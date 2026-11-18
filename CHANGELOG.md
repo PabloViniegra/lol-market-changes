@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - MIT license.
 - This changelog.
+- Local Graphify source graph configuration and Git hook setup instructions.
 - Ingestor: Leaguepedia Cargo client with pagination (500 rows per request), a 6 s request interval and exponential backoff on `ratelimited`, timeouts, connection errors and 5xx responses.
 - Ingestor: `probe` binary that dumps one month of roster changes, tournaments, teams, players, redirects and tenures to JSON fixtures.
 - Ingestor: database migrations for `teams`, `team_seasons`, `players`, `raw_events` and `sync_state`.
