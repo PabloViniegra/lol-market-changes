@@ -12,6 +12,7 @@ use crate::fetch::ScopeRows;
 use crate::model::Direction;
 use crate::normalize::{Normalized, RawEvent};
 use crate::pairing::{self, Transfer};
+use crate::rumors::{self, Official, Rumor};
 
 #[derive(Debug, Default, PartialEq)]
 pub struct WriteStats {
@@ -77,6 +78,102 @@ pub async fn write(pool: &PgPool, data: &Normalized, window: &Window<'_>) -> Res
     };
     tx.commit().await?;
     Ok(stats)
+}
+
+/// Replaces the `rumors` table with `rumors`, each with its reconciled status (§6.4).
+pub async fn sync_rumors(pool: &PgPool, rumors: &[Rumor], today: NaiveDate) -> Result<u64> {
+    let mut tx = pool.begin().await?;
+    let players: Vec<String> = rumors.iter().map(|r| r.player.to_lowercase()).collect();
+    let officials: Vec<Official> = sqlx::query_as(
+        "select id::text, player, from_team, to_team, date from transfers
+         where lower(player) = any($1) and kind not in ('bench', 'sub')",
+    )
+    .bind(&players)
+    .fetch_all(&mut *tx)
+    .await?
+    .into_iter()
+    .map(|(id, player, from_team, to_team, date)| Official {
+        id,
+        player,
+        from_team,
+        to_team,
+        date,
+    })
+    .collect();
+    let renames = load_renames(&mut tx).await?;
+    let outcomes: Vec<_> = rumors
+        .iter()
+        .map(|rumor| rumors::reconcile(rumor, &officials, &renames, today))
+        .collect();
+    let text = |f: fn(&Rumor) -> Option<String>| rumors.iter().map(f).collect::<Vec<_>>();
+    let sources = rumors
+        .iter()
+        .map(|r| serde_json::to_string(&r.sources))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let removed = sqlx::query("delete from rumors where not (id = any($1))")
+        .bind(text(|r| Some(r.id.clone())))
+        .execute(&mut *tx)
+        .await?;
+    let upserted = sqlx::query(
+        "insert into rumors (id, player, from_team, to_team, role, kind, reported_at, reliability,
+           sources, notes, status, transfer_id)
+         select id, player, from_team, to_team, role, kind, reported_at, reliability,
+           sources::jsonb, notes, status, transfer_id::uuid
+         from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[],
+           $7::date[], $8::int2[], $9::text[], $10::text[], $11::text[], $12::text[])
+           as r(id, player, from_team, to_team, role, kind, reported_at, reliability, sources,
+             notes, status, transfer_id)
+         on conflict (id) do update set
+           player = excluded.player, from_team = excluded.from_team, to_team = excluded.to_team,
+           role = excluded.role, kind = excluded.kind, reported_at = excluded.reported_at,
+           reliability = excluded.reliability, sources = excluded.sources,
+           notes = excluded.notes, status = excluded.status, transfer_id = excluded.transfer_id,
+           updated_at = now()
+         where (rumors.player, rumors.from_team, rumors.to_team, rumors.role, rumors.kind,
+             rumors.reported_at, rumors.reliability, rumors.sources, rumors.notes,
+             rumors.status, rumors.transfer_id)
+           is distinct from
+           (excluded.player, excluded.from_team, excluded.to_team, excluded.role, excluded.kind,
+             excluded.reported_at, excluded.reliability, excluded.sources, excluded.notes,
+             excluded.status, excluded.transfer_id)",
+    )
+    .bind(text(|r| Some(r.id.clone())))
+    .bind(text(|r| Some(r.player.clone())))
+    .bind(text(|r| r.from_team.clone()))
+    .bind(text(|r| r.to_team.clone()))
+    .bind(text(|r| r.role.clone()))
+    .bind(text(|r| r.kind.clone()))
+    .bind(rumors.iter().map(|r| r.reported_at).collect::<Vec<_>>())
+    .bind(rumors.iter().map(|r| r.reliability).collect::<Vec<_>>())
+    .bind(sources)
+    .bind(text(|r| r.notes.clone()))
+    .bind(
+        outcomes
+            .iter()
+            .map(|o| o.status.as_str())
+            .collect::<Vec<_>>(),
+    )
+    .bind(
+        outcomes
+            .iter()
+            .map(|o| o.transfer_id.clone())
+            .collect::<Vec<_>>(),
+    )
+    .execute(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(removed.rows_affected() + upserted.rows_affected())
+}
+
+async fn load_renames(tx: &mut Transaction<'_, Postgres>) -> Result<HashMap<String, String>> {
+    Ok(
+        sqlx::query_as("select name, renamed_to from teams where renamed_to is not null")
+            .fetch_all(&mut **tx)
+            .await?
+            .into_iter()
+            .collect(),
+    )
 }
 
 /// Scope rows fetched in the last 24 hours for a window that started on or before `since`.
@@ -321,12 +418,7 @@ async fn mark_deleted(
 /// Re-pairs every live event of `players` and syncs their transfers, keyed by source events.
 async fn rebuild_transfers(tx: &mut Transaction<'_, Postgres>, players: &[String]) -> Result<u64> {
     let events = load_events(tx, players).await?;
-    let renames: HashMap<String, String> =
-        sqlx::query_as("select name, renamed_to from teams where renamed_to is not null")
-            .fetch_all(&mut **tx)
-            .await?
-            .into_iter()
-            .collect();
+    let renames = load_renames(tx).await?;
     let transfers = pairing::pair(&events, &renames);
     let column = |f: fn(&Transfer) -> Option<String>| transfers.iter().map(f).collect::<Vec<_>>();
 

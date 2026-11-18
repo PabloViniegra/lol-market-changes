@@ -36,7 +36,7 @@ async fn writes_are_idempotent_and_track_wiki_deletions() {
         return;
     };
     let pool = db::connect(&url).await.unwrap();
-    sqlx::query("truncate transfers, raw_events, team_seasons, players, teams, sync_state")
+    sqlx::query("truncate rumors, transfers, raw_events, team_seasons, players, teams, sync_state")
         .execute(&pool)
         .await
         .unwrap();

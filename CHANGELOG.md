@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Ingestor: pairing of roster changes into transfers (transfer, free-agent signing, release, retirement, loan and loan return, promotion, bench and sub), with a 45-day window, renamed teams treated as one team and contract extensions or role swaps ignored. Each run rebuilds the transfers of the players it touched.
 - Ingestor: `transfers` table, `teams.renamed_to` column and `leaguepedia_cache` table (migration `0002`).
 - Ingestor: incremental runs reuse the tournaments, rosters and scope team redirects fetched in the last 24 hours; `--full` always refreshes them.
+- Ingestor: `data/rumors.yaml` parsing and validation (unique ids, a team, past report date, reliability 1–5, at least one source, manual status `rumor` or `denied`), synced to a new `rumors` table (migration `0003`) on every run.
+- Ingestor: rumor reconciliation: confirmed by an official move of the same player to the same team (or from it when there is no destination) from 7 days before to 90 days after the report, stale after 60 days without a match, and `denied` never overridden.
+- Ingestor: `--rumors <path>` flag, defaulting to `../data/rumors.yaml`.
+- CI: `data/rumors.yaml` is validated by the ingestor tests.
 - CI: Postgres service for the ingestor database test.
 - Fixtures from Leaguepedia in `ingestor/tests/fixtures/probe/` (CC BY-SA).
 

@@ -20,6 +20,17 @@ pub enum Kind {
 }
 
 impl Kind {
+    pub const ALL: [Kind; 8] = [
+        Self::Transfer,
+        Self::FreeAgentSigning,
+        Self::Release,
+        Self::Loan,
+        Self::Promotion,
+        Self::Bench,
+        Self::Sub,
+        Self::Retirement,
+    ];
+
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Transfer => "transfer",
@@ -238,7 +249,7 @@ fn transfer(kind: Kind, leave: Option<&RawEvent>, join: Option<&RawEvent>) -> Tr
     }
 }
 
-fn lineage(renames: &HashMap<String, String>, team: &str) -> String {
+pub fn lineage(renames: &HashMap<String, String>, team: &str) -> String {
     let mut current = team;
     let mut seen = HashSet::from([team]);
     while let Some(next) = renames.get(current) {

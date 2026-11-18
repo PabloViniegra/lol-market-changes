@@ -1,3 +1,4 @@
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use anyhow::{Context, Result};
@@ -7,6 +8,7 @@ use ingestor::db::{self, Window};
 use ingestor::fetch::{Scope, ScopeRows, fetch_scope, fetch_snapshot};
 use ingestor::leaguepedia::Client;
 use ingestor::normalize::{Normalized, normalize};
+use ingestor::rumors::{self, Rumor};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 use tracing_subscriber::EnvFilter;
@@ -28,6 +30,10 @@ struct Cli {
     /// Fetch and process without connecting to the database.
     #[arg(long)]
     dry_run: bool,
+
+    /// Hand-curated rumors file.
+    #[arg(long, default_value = "../data/rumors.yaml")]
+    rumors: PathBuf,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -41,6 +47,7 @@ async fn main() -> Result<()> {
     let today = Utc::now().date_naive();
 
     if cli.dry_run {
+        let rumors = load_rumors(&cli.rumors, today)?;
         let since = cli
             .since
             .or(cli.full.then(|| backfill_start(today)))
@@ -48,7 +55,7 @@ async fn main() -> Result<()> {
         let mut client = Client::new()?;
         let scope_rows = fetch_scope(&mut client, since).await?;
         let (data, _) = fetch_and_normalize(&mut client, since, scope_rows).await?;
-        tracing::info!(stats = %normalized_stats(&data), "dry run finished");
+        tracing::info!(stats = %normalized_stats(&data), rumors = rumors.len(), "dry run finished");
         return Ok(());
     }
 
@@ -68,6 +75,7 @@ async fn main() -> Result<()> {
 }
 
 async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
+    let rumors = load_rumors(&cli.rumors, today)?;
     let since = match (cli.since, cli.full) {
         (Some(since), _) => since,
         (None, true) => backfill_start(today),
@@ -98,6 +106,7 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
         teams: &scope.teams,
     };
     let written = db::write(pool, &data, &window).await?;
+    let rumors_changed = db::sync_rumors(pool, &rumors, today).await?;
     let stats = json!({
         "since": since.to_string(),
         "duration_secs": started.elapsed().as_secs(),
@@ -110,10 +119,17 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
             "raw_events": written.raw_events,
             "deleted_events": written.deleted_events,
             "transfers": written.transfers,
+            "rumors": rumors_changed,
         },
     });
     tracing::info!(%stats, "ingestion finished");
     Ok(stats)
+}
+
+fn load_rumors(path: &Path, today: NaiveDate) -> Result<Vec<Rumor>> {
+    let yaml =
+        std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
+    rumors::parse(&yaml, today)
 }
 
 async fn fetch_and_normalize(
