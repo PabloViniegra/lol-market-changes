@@ -25,6 +25,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - CI: `data/rumors.yaml` is validated by the ingestor tests.
 - CI: Postgres service for the ingestor database test.
 - Ingest workflow runs every 15 minutes (`7,22,37,52 * * * *`) and reuses the cached release binary until the ingestor sources, migrations or toolchain change.
+- Ingestor: tournament rosters (in-game players and roles) are stored in `team_seasons.roster` (migration `0004`).
+- `market_feed` view with official moves where either team was in a tracked league on the move date, plus every rumor, and a `league_at(team, date)` function (migration `0004`).
+- API: `GET /api/feed` with league, team, role, kind, status and date filters and cursor pagination; denied and stale rumors are opt-in.
+- API: `GET /api/stats` and `GET /api/flows` over a `7d`, `30d` or `season` window (the season starts on November 1).
+- API: `GET /api/teams/:name` with the roster before the season, the current roster, arrivals, departures and related rumors.
+- API: `GET /api/players/:name` with the player's moves and rumors.
 - Fixtures from Leaguepedia in `ingestor/tests/fixtures/probe/` (CC BY-SA).
 - Web: anti-slop rules for Oxlint.
 

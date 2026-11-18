@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use anyhow::Result;
 use chrono::NaiveDate;
+use serde::Serialize;
 
 use crate::leaguepedia::Row;
 use crate::model::{
@@ -40,6 +41,13 @@ pub struct TeamSeason {
     pub tournament: String,
     pub date_start: NaiveDate,
     pub date_end: Option<NaiveDate>,
+    pub roster: Vec<RosterSlot>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct RosterSlot {
+    pub player: String,
+    pub role: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -145,6 +153,14 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
                 tournament: tournament.page.clone(),
                 date_start: tournament.date_start,
                 date_end: tournament.date_end,
+                roster: roster
+                    .players
+                    .iter()
+                    .map(|(player, role)| RosterSlot {
+                        player: resolve_player(player),
+                        role: role.clone(),
+                    })
+                    .collect(),
             };
             Some(((team, tournament.page.clone()), season))
         })

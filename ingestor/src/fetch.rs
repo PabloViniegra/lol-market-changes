@@ -78,7 +78,7 @@ pub async fn fetch_scope(client: &mut Client, since: NaiveDate) -> Result<ScopeR
         query_chunked(client, &distinct(&tournaments, "OverviewPage"), |chunk| {
             Ok(Query {
                 tables: "TournamentRosters".into(),
-                fields: "Team,OverviewPage,Region,Short".into(),
+                fields: "Team,OverviewPage,Region,Short,RosterLinks,Roles".into(),
                 where_clause: in_list("OverviewPage", chunk)?,
                 order_by: "OverviewPage,Team".into(),
             })

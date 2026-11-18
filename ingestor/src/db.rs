@@ -261,12 +261,17 @@ async fn upsert_teams(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> 
 async fn upsert_team_seasons(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> Result<u64> {
     let seasons = &data.team_seasons;
     let result = sqlx::query(
-        "insert into team_seasons (team, league, tournament, date_start, date_end)
-         select * from unnest($1::text[], $2::text[], $3::text[], $4::date[], $5::date[])
+        "insert into team_seasons (team, league, tournament, date_start, date_end, roster)
+         select team, league, tournament, date_start, date_end, roster::jsonb
+         from unnest($1::text[], $2::text[], $3::text[], $4::date[], $5::date[], $6::text[])
+           as s(team, league, tournament, date_start, date_end, roster)
          on conflict (team, tournament) do update set
-           league = excluded.league, date_start = excluded.date_start, date_end = excluded.date_end
-         where (team_seasons.league, team_seasons.date_start, team_seasons.date_end)
-           is distinct from (excluded.league, excluded.date_start, excluded.date_end)",
+           league = excluded.league, date_start = excluded.date_start,
+           date_end = excluded.date_end, roster = excluded.roster
+         where (team_seasons.league, team_seasons.date_start, team_seasons.date_end,
+                team_seasons.roster)
+           is distinct from (excluded.league, excluded.date_start, excluded.date_end,
+                             excluded.roster)",
     )
     .bind(seasons.iter().map(|s| s.team.clone()).collect::<Vec<_>>())
     .bind(seasons.iter().map(|s| s.league.clone()).collect::<Vec<_>>())
@@ -278,6 +283,12 @@ async fn upsert_team_seasons(tx: &mut Transaction<'_, Postgres>, data: &Normaliz
     )
     .bind(seasons.iter().map(|s| s.date_start).collect::<Vec<_>>())
     .bind(seasons.iter().map(|s| s.date_end).collect::<Vec<_>>())
+    .bind(
+        seasons
+            .iter()
+            .map(|s| serde_json::to_string(&s.roster))
+            .collect::<Result<Vec<_>, _>>()?,
+    )
     .execute(&mut **tx)
     .await?;
     Ok(result.rows_affected())

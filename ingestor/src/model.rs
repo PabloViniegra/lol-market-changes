@@ -98,6 +98,8 @@ impl TryFrom<&Row> for Tournament {
 pub struct TournamentRoster {
     pub tournament: String,
     pub team: String,
+    /// `(player, role)` for the in-game roles; coaches and other staff are dropped.
+    pub players: Vec<(String, String)>,
 }
 
 impl TryFrom<&Row> for TournamentRoster {
@@ -107,6 +109,7 @@ impl TryFrom<&Row> for TournamentRoster {
         Ok(Self {
             tournament: required(row, "OverviewPage")?,
             team: required(row, "Team")?,
+            players: roster_players(row),
         })
     }
 }
@@ -216,6 +219,27 @@ fn list(row: &Row, key: &str, delimiter: char) -> Vec<String> {
         .unwrap_or_default()
 }
 
+const INGAME_ROLES: [&str; 5] = ["Top", "Jungle", "Mid", "Bot", "Support"];
+
+// `RosterLinks` and `Roles` are parallel `;;` lists, so empty entries must keep their position.
+fn roster_players(row: &Row) -> Vec<(String, String)> {
+    let split = |key| {
+        optional(row, key)
+            .map(|value| {
+                value
+                    .split(";;")
+                    .map(|s| s.trim().to_owned())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default()
+    };
+    split("RosterLinks")
+        .into_iter()
+        .zip(split("Roles"))
+        .filter(|(player, role)| !player.is_empty() && INGAME_ROLES.contains(&role.as_str()))
+        .collect()
+}
+
 fn date(row: &Row, key: &str) -> Result<NaiveDate> {
     let value = text(row, key)?;
     let day = value.get(..10).unwrap_or(value);
@@ -230,6 +254,32 @@ mod tests {
 
     fn row(value: Value) -> Row {
         value.as_object().unwrap().clone()
+    }
+
+    #[test]
+    fn keeps_in_game_roster_players_in_order() {
+        let roster = TournamentRoster::try_from(&row(json!({
+            "OverviewPage": "LCK/2026 Season/Rounds 1-2",
+            "Team": "T1",
+            "RosterLinks": "Doran (Choi Hyeon-jun);;Oner;;Faker;;Peyz;;Keria;;Tom (Im Jae-hyeon);;;;Easyhoon",
+            "Roles": "Top;;Jungle;;Mid;;Bot;;Support;;Coach;;Coach;;Coach",
+        })))
+        .unwrap();
+        let players: Vec<(&str, &str)> = roster
+            .players
+            .iter()
+            .map(|(player, role)| (player.as_str(), role.as_str()))
+            .collect();
+        assert_eq!(
+            players,
+            [
+                ("Doran (Choi Hyeon-jun)", "Top"),
+                ("Oner", "Jungle"),
+                ("Faker", "Mid"),
+                ("Peyz", "Bot"),
+                ("Keria", "Support"),
+            ]
+        );
     }
 
     #[test]
