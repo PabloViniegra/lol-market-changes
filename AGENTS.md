@@ -40,6 +40,7 @@ CI (`.github/workflows/ci.yml`) runs exactly these. Keep both green.
 
 - **pnpm only.** Never add `package-lock.json` or `yarn.lock`.
 - **TypeScript 7 is mandatory.** Type-check `.ts` with `tsc` and `.vue` with `vue-tsgo`. Do not add `vue-tsc` or downgrade `typescript`: `vue-tsc` needs the TS ≤6 JS API.
+- **`DESIGN.md` is the design system and its use is mandatory in `web/`.** Use only the tokens in `web/src/style.css` (`@theme` colours, `font-display`/`font-body`, `rounded-flap|control|panel|pill`, the 4px spacing grid, `max-w-content`) and the `type-*` utilities for typography. Tailwind's default palette, type scale, radii and shadows are reset on purpose: do not add arbitrary values (`bg-[#…]`, `text-[17px]`) or restore defaults. Change a token in `DESIGN.md` first, then mirror it in `style.css`. Product context lives in `PRODUCT.md`.
 - **oxlint + oxfmt** are the only linter and formatter. Do not add ESLint or Prettier. Lint runs with `--deny-warnings`.
 - `web/` and `api/` share types only through `@lol/shared`, using `import type`. `api/` must not import from `web/`, nor `web/` from `api/`.
 - **The API is read-only.** It uses the Postgres read-only role (`DATABASE_URL` in Vercel). Only the ingestor writes, using the read/write role via `INGESTOR_DATABASE_URL` (GitHub secret, `.env.local` locally). Never point `DATABASE_URL` at the read/write role.

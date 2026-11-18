@@ -3,7 +3,7 @@ name: Ingest
 on:
   schedule:
     # Off the hour so Neon can scale to zero between runs.
-    - cron: "7,22,37,52 * * * *"
+    - cron: "4,19,34,49 * * * *"
   workflow_dispatch:
     inputs:
       full:

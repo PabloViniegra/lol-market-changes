@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: Transfer Board design system (`DESIGN.md`) as Tailwind CSS 4 tokens and `type-*` utilities, with self-hosted Big Shoulders Display and Atkinson Hyperlegible Next fonts; `PRODUCT.md` with the product context.
 - MIT license.
 - This changelog.
 - Local Graphify source graph configuration and Git hook setup instructions.
@@ -38,6 +39,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Ingestor: Leaguepedia queries are sent as POST, so `IN` lists are split into chunks of 20,000 characters instead of 2,000 and runs need fewer requests.
 - Ingest workflow timeout raised from 15 to 30 minutes so a full backfill fits.
+- Ingest workflow schedule moved to minutes 4, 19, 34 and 49 (still every 15 minutes) so GitHub registers it again.
+- Web: the page title is now "Transfer Board".
 
 ## [0.1.0] - 2026-11-18
 

@@ -5,8 +5,8 @@ const { data: meta, isPending, isError } = useMeta();
 </script>
 
 <template>
-  <h1 class="text-2xl font-semibold">LoL Market Changes</h1>
-  <p class="mt-2 text-neutral-400">
+  <h1 class="type-heading-lg">Transfer Board</h1>
+  <p class="mt-2 type-body-sm text-text-muted">
     <span v-if="isPending">Checking sync status…</span>
     <span v-else-if="isError">Sync status unavailable.</span>
     <span v-else-if="meta?.lastRunAt"

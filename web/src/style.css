@@ -1,1 +1,134 @@
+@import "@fontsource-variable/big-shoulders-display";
+@import "@fontsource-variable/atkinson-hyperlegible-next";
 @import "tailwindcss";
+
+/* Tokens from DESIGN.md. Tailwind's default palette, fonts, type scale, radii and shadows are
+   reset so only design-system values generate utilities. */
+@theme {
+  --color-*: initial;
+  --color-primary: #f2c230;
+  --color-primary-hover: #f7d35e;
+  --color-on-primary: #0e2a2b;
+  --color-background: #0e2a2b;
+  --color-surface: #133536;
+  --color-surface-raised: #1a4243;
+  --color-line: #2a5556;
+  --color-text: #eef3ef;
+  --color-text-muted: #a9bdb8;
+  --color-league-lck: #7fb7e6;
+  --color-league-lpl: #f07a63;
+  --color-league-lec: #b7a3f0;
+  --color-league-lcs: #6fcf97;
+
+  --font-*: initial;
+  --font-display: "Big Shoulders Display Variable", "Arial Narrow", sans-serif;
+  --font-body: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+
+  --text-*: initial;
+
+  --radius-*: initial;
+  --radius-flap: 3px;
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-pill: 9999px;
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+
+  --spacing: 4px;
+  --container-content: 1280px;
+}
+
+@utility type-board-code {
+  font-family: var(--font-display);
+  font-size: 31px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+@utility type-board-player {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+@utility type-heading-lg {
+  font-family: var(--font-display);
+  font-size: 39px;
+  font-weight: 700;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+@utility type-heading-md {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+@utility type-body-md {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@utility type-body-sm {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+@utility type-label-md {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+@utility type-data-tabular {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    accent-color: var(--color-primary);
+    caret-color: var(--color-primary);
+    scrollbar-color: var(--color-line) var(--color-background);
+  }
+
+  body {
+    @apply type-body-md bg-background text-text antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+}
