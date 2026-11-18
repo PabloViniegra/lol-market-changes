@@ -12,6 +12,7 @@
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm build"
   },
   "devDependencies": {
+    "@oxlint/plugins": "1.94.0",
     "@types/node": "^24.19.2",
     "oxfmt": "^0.79.0",
     "oxlint": "^1.94.0",

@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@oxlint/plugins':
+        specifier: 1.94.0
+        version: 1.94.0
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
@@ -674,6 +677,10 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
+
+  '@oxlint/plugins@1.94.0':
+    resolution: {integrity: sha512-YT6htikBOBQ00XDxZpRZLZ0anEDo7h9s4+YvjRU0/Ng/cLd0D6SZQ3tsms4g/GDer/z8UKlegC5iptEfyRXJcw==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   '@rolldown/binding-android-arm-eabi@1.2.19':
     resolution: {integrity: sha512-e+Ebe0WT+9tbXmNKPIiC8YrWAHYwug3m6i4p3rZGGulfZri1jtI4HslT+OZnFf/OIHowWF71DTlHwXBP2SiA7A==}
@@ -1962,6 +1969,8 @@ snapshots:
 
   '@oxlint/binding-win32-x64-msvc@1.94.0':
     optional: true
+
+  '@oxlint/plugins@1.94.0': {}
 
   '@rolldown/binding-android-arm-eabi@1.2.19':
     optional: true
