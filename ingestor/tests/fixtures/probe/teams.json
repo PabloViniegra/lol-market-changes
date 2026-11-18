@@ -1,0 +1,542 @@
+[
+  {
+    "Image": "Anyone's Legendlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Anyone's Legend",
+    "OrganizationPage": "",
+    "Page": "Anyone's Legend",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "AL"
+  },
+  {
+    "Image": "Bilibili Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Bilibili Gaming",
+    "OrganizationPage": "",
+    "Page": "Bilibili Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "BLG"
+  },
+  {
+    "Image": "BNK FEARXlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "BNK FEARX",
+    "OrganizationPage": "",
+    "Page": "BNK FEARX",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "BFX"
+  },
+  {
+    "Image": "Cloud9logo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Cloud9",
+    "OrganizationPage": "",
+    "Page": "Cloud9",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "C9"
+  },
+  {
+    "Image": "Cupid Esportslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Cupid Esports",
+    "OrganizationPage": "",
+    "Page": "Cupid Esports",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "CPD"
+  },
+  {
+    "Image": "Dignitaslogo profile.png",
+    "IsDisbanded": "1",
+    "Name": "Dignitas",
+    "OrganizationPage": "",
+    "Page": "Dignitas",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "DIG"
+  },
+  {
+    "Image": "Disguisedlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Disguised",
+    "OrganizationPage": "",
+    "Page": "Disguised",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "DSG"
+  },
+  {
+    "Image": "DN SOOPerslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "DN SOOPers",
+    "OrganizationPage": "",
+    "Page": "DN SOOPers",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "DNS"
+  },
+  {
+    "Image": "Dplus Kialogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Dplus Kia",
+    "OrganizationPage": "",
+    "Page": "Dplus Kia",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "DK"
+  },
+  {
+    "Image": "EDward Gaminglogo square.png",
+    "IsDisbanded": "0",
+    "Name": "EDward Gaming",
+    "OrganizationPage": "",
+    "Page": "EDward Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "EDG"
+  },
+  {
+    "Image": "FlyQuestlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "FlyQuest",
+    "OrganizationPage": "",
+    "Page": "FlyQuest",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "FLY"
+  },
+  {
+    "Image": "Fnaticlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Fnatic",
+    "OrganizationPage": "",
+    "Page": "Fnatic",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "FNC"
+  },
+  {
+    "Image": "Fuegologo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Fuego",
+    "OrganizationPage": "",
+    "Page": "Fuego",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "FUE"
+  },
+  {
+    "Image": "G2 Esportslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "G2 Esports",
+    "OrganizationPage": "",
+    "Page": "G2 Esports",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "G2"
+  },
+  {
+    "Image": "Gen.Glogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Gen.G",
+    "OrganizationPage": "",
+    "Page": "Gen.G",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "GEN"
+  },
+  {
+    "Image": "GIANTXlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "GIANTX",
+    "OrganizationPage": "",
+    "Page": "GIANTX",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "GX"
+  },
+  {
+    "Image": "HANJIN BRIONlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "HANJIN BRION",
+    "OrganizationPage": "",
+    "Page": "HANJIN BRION",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "BRO"
+  },
+  {
+    "Image": "HANJIN BRIONlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "HANJIN BRION Academy",
+    "OrganizationPage": "",
+    "Page": "HANJIN BRION Academy",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "BRO.A"
+  },
+  {
+    "Image": "HANJIN BRIONlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "HANJIN BRION Challengers",
+    "OrganizationPage": "",
+    "Page": "HANJIN BRION Challengers",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "BRO.C"
+  },
+  {
+    "Image": "Hanwha Life Esportslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Hanwha Life Esports",
+    "OrganizationPage": "",
+    "Page": "Hanwha Life Esports",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "HLE"
+  },
+  {
+    "Image": "Invictus Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Invictus Gaming",
+    "OrganizationPage": "",
+    "Page": "Invictus Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "iG"
+  },
+  {
+    "Image": "JD Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "JD Gaming",
+    "OrganizationPage": "",
+    "Page": "JD Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "JDG"
+  },
+  {
+    "Image": "Karmine Corplogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Karmine Corp",
+    "OrganizationPage": "",
+    "Page": "Karmine Corp",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "KC"
+  },
+  {
+    "Image": "Karmine Corp Bluelogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Karmine Corp Blue",
+    "OrganizationPage": "",
+    "Page": "Karmine Corp Blue",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "KCB"
+  },
+  {
+    "Image": "Kits Esportslogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Kits Esports",
+    "OrganizationPage": "",
+    "Page": "Kits Esports",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "KITS"
+  },
+  {
+    "Image": "Kiwoom DRXlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Kiwoom DRX",
+    "OrganizationPage": "",
+    "Page": "Kiwoom DRX",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "KRX"
+  },
+  {
+    "Image": "KT Rolsterlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "KT Rolster",
+    "OrganizationPage": "",
+    "Page": "KT Rolster",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "KT"
+  },
+  {
+    "Image": "LGD_logo.png",
+    "IsDisbanded": "0",
+    "Name": "LGD Gaming",
+    "OrganizationPage": "",
+    "Page": "LGD Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "LGD"
+  },
+  {
+    "Image": "LNG Esportslogo square.png",
+    "IsDisbanded": "0",
+    "Name": "LNG Esports",
+    "OrganizationPage": "",
+    "Page": "LNG Esports",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "LNG"
+  },
+  {
+    "Image": "Los Ratoneslogo square.png",
+    "IsDisbanded": "1",
+    "Name": "Los Ratones",
+    "OrganizationPage": "",
+    "Page": "Los Ratones",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "LR"
+  },
+  {
+    "Image": "LYON (2024 American Team)logo profile.png",
+    "IsDisbanded": "0",
+    "Name": "LYON",
+    "OrganizationPage": "",
+    "Page": "LYON (2024 American Team)",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "LYON"
+  },
+  {
+    "Image": "Maryville Universitylogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Maryville University",
+    "OrganizationPage": "",
+    "Page": "Maryville University",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "MU"
+  },
+  {
+    "Image": "Movistar KOIlogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Movistar KOI",
+    "OrganizationPage": "",
+    "Page": "Movistar KOI",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "MKOI"
+  },
+  {
+    "Image": "Natus Vincerelogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Natus Vincere",
+    "OrganizationPage": "",
+    "Page": "Natus Vincere",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "NAVI"
+  },
+  {
+    "Image": "Ninjas in Pyjamas.CNlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Ninjas in Pyjamas",
+    "OrganizationPage": "",
+    "Page": "Ninjas in Pyjamas.CN",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "NIP"
+  },
+  {
+    "Image": "Nongshim Esports Academylogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Nongshim Esports Academy",
+    "OrganizationPage": "Team Dynamics (Organization)",
+    "Page": "Nongshim Esports Academy",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "NS.EA"
+  },
+  {
+    "Image": "Nongshim RedForcelogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Nongshim RedForce",
+    "OrganizationPage": "Team Dynamics (Organization)",
+    "Page": "Nongshim RedForce",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "NS"
+  },
+  {
+    "Image": "Oh My Godlogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Oh My God",
+    "OrganizationPage": "",
+    "Page": "Oh My God",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "OMG"
+  },
+  {
+    "Image": "Sentinelslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Sentinels",
+    "OrganizationPage": "",
+    "Page": "Sentinels",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "SEN"
+  },
+  {
+    "Image": "Shifterslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Shifters",
+    "OrganizationPage": "",
+    "Page": "Shifters",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "SHFT"
+  },
+  {
+    "Image": "Shopify Rebellionlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Shopify Rebellion",
+    "OrganizationPage": "",
+    "Page": "Shopify Rebellion",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "SR"
+  },
+  {
+    "Image": "SK Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "SK Gaming",
+    "OrganizationPage": "SK Gaming (Organization)",
+    "Page": "SK Gaming",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "SK"
+  },
+  {
+    "Image": "Solarylogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Solary",
+    "OrganizationPage": "Solary (Organization)",
+    "Page": "Solary",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "SLY"
+  },
+  {
+    "Image": "T1logo profile.png",
+    "IsDisbanded": "0",
+    "Name": "T1",
+    "OrganizationPage": "T1 (Organization)",
+    "Page": "T1",
+    "Region": "Korea",
+    "RenamedTo": "",
+    "Short": "T1"
+  },
+  {
+    "Image": "Team Hereticslogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Team Heretics",
+    "OrganizationPage": "",
+    "Page": "Team Heretics",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "TH"
+  },
+  {
+    "Image": "Team Heretics Academylogo square.png",
+    "IsDisbanded": "1",
+    "Name": "Team Heretics Academy",
+    "OrganizationPage": "",
+    "Page": "Team Heretics Academy",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "HRTS"
+  },
+  {
+    "Image": "Team Liquidlogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Team Liquid",
+    "OrganizationPage": "Team Liquid (Organization)",
+    "Page": "Team Liquid",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "TL"
+  },
+  {
+    "Image": "Team Vitalitylogo square.png",
+    "IsDisbanded": "0",
+    "Name": "Team Vitality",
+    "OrganizationPage": "Team Vitality (Organization)",
+    "Page": "Team Vitality",
+    "Region": "EMEA",
+    "RenamedTo": "",
+    "Short": "VIT"
+  },
+  {
+    "Image": "Team WElogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Team WE",
+    "OrganizationPage": "Team WE (Organization)",
+    "Page": "Team WE",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "WE"
+  },
+  {
+    "Image": "ThunderTalk Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "ThunderTalk Gaming",
+    "OrganizationPage": "",
+    "Page": "ThunderTalk Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "TT"
+  },
+  {
+    "Image": "Top Esportslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Top Esports",
+    "OrganizationPage": "Topsports Gaming (Organization)",
+    "Page": "Top Esports",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "TES"
+  },
+  {
+    "Image": "Ultra Primelogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Ultra Prime",
+    "OrganizationPage": "",
+    "Page": "Ultra Prime",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "UP"
+  },
+  {
+    "Image": "Weibo Gaminglogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Weibo Gaming",
+    "OrganizationPage": "",
+    "Page": "Weibo Gaming",
+    "Region": "China",
+    "RenamedTo": "",
+    "Short": "WBG"
+  },
+  {
+    "Image": "Zeu5 Esportslogo profile.png",
+    "IsDisbanded": "0",
+    "Name": "Zeu5 Esports",
+    "OrganizationPage": "",
+    "Page": "Zeu5 Esports",
+    "Region": "North America",
+    "RenamedTo": "",
+    "Short": "Z5"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "player_redirects": 133,
+    "players": 133,
+    "roster_changes": 164,
+    "team_redirects": 139,
+    "teams": 54,
+    "tenures": 134,
+    "tournament_rosters": 223,
+    "tournaments": 25
+  },
+  "fetched_on": "2026-11-18",
+  "since": "2026-10-18",
+  "source": "https://lol.fandom.com (Leaguepedia, CC BY-SA 3.0)"
+}

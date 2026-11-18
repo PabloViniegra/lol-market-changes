@@ -67,7 +67,10 @@ Run the ingestor:
 ```sh
 cd ingestor
 cargo run -- --help
-cargo run -- --dry-run
+cargo run -- --dry-run      # fetch and normalise without touching the database
+cargo run                   # incremental run; needs INGESTOR_DATABASE_URL
+cargo run -- --full         # backfill the last two seasons
+cargo run --bin probe       # refresh the JSON fixtures in tests/fixtures/probe/
 ```
 
 ## Checks
@@ -83,6 +86,13 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
+The database test in `ingestor/tests/db.rs` runs only when `TEST_DATABASE_URL` points at a disposable Postgres (it truncates the ingestor tables); CI provides one. Locally:
+
+```sh
+docker run -d --name lol-market-pg -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=lol_market -p 55432:5432 postgres:17
+TEST_DATABASE_URL=postgres://postgres:dev@127.0.0.1:55432/lol_market cargo test
+```
+
 ## Configuration
 
 See [`.env.example`](.env.example).
@@ -94,8 +104,8 @@ See [`.env.example`](.env.example).
 
 ## Roadmap
 
-1. Data probe: confirm the Leaguepedia Cargo tables and fields.
-2. Ingestor core: fetch, normalise and upsert raw events, plus migrations.
+1. ~~Data probe: confirm the Leaguepedia Cargo tables and fields.~~ Done.
+2. ~~Ingestor core: fetch, normalise and upsert raw events, plus migrations.~~ Done.
 3. Pairing of events into transfers.
 4. Rumors: schema, validation and reconciliation.
 5. Scheduled ingestion every 15 minutes.
@@ -107,3 +117,7 @@ See [`.env.example`](.env.example).
 Official roster data comes from [Leaguepedia](https://lol.fandom.com/) and is licensed [CC BY-SA](https://creativecommons.org/licenses/by-sa/3.0/).
 
 LoL Market Changes isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+
+## License
+
+[MIT](LICENSE). See [CHANGELOG.md](CHANGELOG.md) for release notes.

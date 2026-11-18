@@ -19,7 +19,8 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # A full backfill takes ~11 min under the anonymous Leaguepedia rate limit.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ingestor

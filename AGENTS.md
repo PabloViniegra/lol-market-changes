@@ -48,6 +48,7 @@ CI (`.github/workflows/ci.yml`) runs exactly these. Keep both green.
 - Leaguepedia etiquette: ≤ 1 request/s, an identifiable User-Agent, incremental fetches. Data is CC BY-SA, so the UI must keep the attribution footer.
 - Never commit secrets. `.env*` files are git-ignored. Use `vercel env pull` locally.
 - Ask before adding a dependency the PRD does not already list.
+- Record every user-visible or operational change under `## [Unreleased]` in `CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com/en/1.1.0/) sections: Added, Changed, Deprecated, Removed, Fixed, Security) in the same commit. On release, rename it to `## [x.y.z] - YYYY-MM-DD` and update the compare links.
 
 ## Skills
 
