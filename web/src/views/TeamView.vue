@@ -7,7 +7,7 @@ import LeagueTag from "../components/LeagueTag.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
 import { HttpError } from "../api/client";
-import { LEAGUES, playerHandle, shortDate, teamCode } from "../format";
+import { LEAGUES, playerHandle, shortDate, teamCode, tournamentLabel } from "../format";
 
 const props = defineProps<{ name: string }>();
 
@@ -62,7 +62,11 @@ const seasonLabel = computed(() =>
         <div class="rounded-panel bg-surface p-6">
           <h3 class="type-label-md">Previous season</h3>
           <p class="mb-4 type-body-sm text-text-muted">
-            {{ team.data.value.previousTournament ?? "No tournament roster before this season" }}
+            {{
+              team.data.value.previousTournament
+                ? tournamentLabel(team.data.value.previousTournament)
+                : "No tournament roster before this season"
+            }}
           </p>
           <ul class="flex flex-col divide-y divide-line">
             <li
@@ -70,9 +74,13 @@ const seasonLabel = computed(() =>
               :key="entry.player"
               class="flex items-baseline justify-between gap-4 py-2"
             >
-              <span :class="departures.has(entry.player) ? 'text-text-muted' : ''">
+              <RouterLink
+                :to="`/players/${encodeURIComponent(entry.player)}`"
+                class="underline hover:text-primary"
+                :class="departures.has(entry.player) ? 'text-text-muted' : ''"
+              >
                 {{ playerHandle(entry.player) }}
-              </span>
+              </RouterLink>
               <span class="flex gap-3 type-body-sm text-text-muted">
                 {{ entry.role }}
                 <span v-if="departures.has(entry.player)" class="type-label-md">Left</span>
@@ -93,7 +101,12 @@ const seasonLabel = computed(() =>
               :key="entry.player"
               class="flex items-baseline justify-between gap-4 py-2"
             >
-              <span>{{ playerHandle(entry.player) }}</span>
+              <RouterLink
+                :to="`/players/${encodeURIComponent(entry.player)}`"
+                class="underline hover:text-primary"
+              >
+                {{ playerHandle(entry.player) }}
+              </RouterLink>
               <span class="flex gap-3 type-body-sm text-text-muted">
                 {{ entry.role }}
                 <span v-if="arrivals.has(entry.player)" class="type-label-md text-primary"

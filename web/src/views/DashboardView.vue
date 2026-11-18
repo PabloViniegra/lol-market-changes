@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FlowsResponse } from "@lol/shared";
-import { defineAsyncComponent, ref } from "vue";
+import { computed, defineAsyncComponent, ref } from "vue";
 import { useFeed } from "../api/feed";
 import { useFlows, useStats } from "../api/stats";
+import BoardLegend from "../components/BoardLegend.vue";
 import FilterChip from "../components/FilterChip.vue";
 import LeagueBars from "../components/LeagueBars.vue";
 import MoveBoard from "../components/MoveBoard.vue";
@@ -16,6 +17,10 @@ const rumors = useFeed({ status: "rumor", limit: 6 });
 const stats = useStats("season");
 const flowLevel = ref<FlowsResponse["level"]>("league");
 const flows = useFlows(flowLevel, "season");
+
+const teamToTeam = computed(
+  () => flows.data.value?.links.reduce((sum, link) => sum + link.value, 0) ?? 0,
+);
 </script>
 
 <template>
@@ -23,13 +28,16 @@ const flows = useFlows(flowLevel, "season");
 
   <div class="flex flex-col gap-12 lg:flex-row lg:gap-6">
     <section class="min-w-0 flex-1" aria-labelledby="latest-heading">
-      <h2 id="latest-heading" class="mb-4 type-heading-md">Latest moves</h2>
+      <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4">
+        <h2 id="latest-heading" class="type-heading-md">Latest moves</h2>
+        <BoardLegend />
+      </div>
       <QueryError v-if="latest.isError.value" what="moves" @retry="latest.refetch()" />
       <MoveBoard
         v-else
         :items="latest.data.value?.items"
         :pending="latest.isPending.value"
-        empty="No moves yet this season. New moves show up here within 30 minutes of Leaguepedia."
+        empty="No moves yet this window. New moves show up here within 30 minutes of Leaguepedia."
       />
       <RouterLink
         to="/feed"
@@ -66,16 +74,19 @@ const flows = useFlows(flowLevel, "season");
           </div>
         </dl>
         <div v-if="stats.data.value.topTeamsByChurn.length" class="rounded-panel bg-surface p-6">
-          <h3 class="mb-3 type-label-md">Busiest teams</h3>
-          <ul class="flex flex-col gap-2 type-body-sm">
+          <div class="mb-1 flex justify-between gap-4">
+            <h3 class="type-label-md">Busiest teams</h3>
+            <span class="type-body-sm text-text-muted">Joined / left</span>
+          </div>
+          <ul class="flex flex-col type-body-sm">
             <li
               v-for="team in stats.data.value.topTeamsByChurn.slice(0, 5)"
               :key="team.team"
-              class="flex justify-between gap-4"
+              class="flex items-center justify-between gap-4"
             >
               <RouterLink
                 :to="`/teams/${encodeURIComponent(team.team)}`"
-                class="truncate underline hover:text-primary"
+                class="min-w-0 flex-1 truncate py-2.5 underline hover:text-primary md:py-1"
               >
                 {{ team.team }}
               </RouterLink>
@@ -103,14 +114,30 @@ const flows = useFlows(flowLevel, "season");
     <div v-else class="rounded-panel bg-surface p-6">
       <div v-if="flows.isPending.value" class="h-80" aria-busy="true" />
       <p v-else-if="!flows.data.value?.links.length" class="text-text-muted">
-        No team-to-team moves this season yet.
+        No team-to-team moves this window yet.
       </p>
-      <FlowsChart v-else :links="flows.data.value.links" />
+      <template v-else>
+        <p class="mb-4 max-w-prose type-body-sm text-text-muted">
+          {{ teamToTeam }} {{ teamToTeam === 1 ? "move" : "moves" }}
+          <template v-if="stats.data.value">of {{ stats.data.value.totalMoves }}</template>
+          went straight from one team to another. Releases, retirements and free agent signings are
+          not shown.
+          <template v-if="flowLevel === 'league'">
+            Other covers teams outside LCK, LPL, LEC and LCS.
+          </template>
+        </p>
+        <FlowsChart :links="flows.data.value.links" />
+      </template>
     </div>
   </section>
 
   <section class="mt-12" aria-labelledby="rumors-heading">
-    <h2 id="rumors-heading" class="mb-4 type-heading-md">Rumors to watch</h2>
+    <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+      <h2 id="rumors-heading" class="type-heading-md">Rumors to watch</h2>
+      <RouterLink to="/rumors" class="type-body-sm underline hover:text-primary">
+        Rumor tracker
+      </RouterLink>
+    </div>
     <QueryError v-if="rumors.isError.value" what="rumors" @retry="rumors.refetch()" />
     <MoveBoard
       v-else

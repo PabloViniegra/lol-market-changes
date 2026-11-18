@@ -4,7 +4,7 @@ import { SankeyChart } from "echarts/charts";
 import { TooltipComponent } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 import VChart from "vue-echarts";
 import { LEAGUES } from "../format";
 
@@ -24,9 +24,28 @@ const nodeColor = (name: string) =>
 
 const label = (id: string) => id.slice(id.indexOf(":") + 1);
 
+const direction = (id: string) => (id.startsWith("from:") ? "out" : "in");
+
+const container = useTemplateRef("container");
+const width = ref(0);
+const observer = new ResizeObserver(([entry]) => (width.value = entry?.contentRect.width ?? 0));
+
+onMounted(() => container.value && observer.observe(container.value));
+
+onBeforeUnmount(() => observer.disconnect());
+
+const labelSpace = computed(() => Math.min(200, Math.max(96, Math.round(width.value * 0.3))));
+
 const topLinks = computed(() =>
   props.links.toSorted((a, b) => b.value - a.value).slice(0, MAX_LINKS),
 );
+
+const height = computed(() => {
+  const origins = new Set(topLinks.value.map((link) => link.source)).size;
+  const destinations = new Set(topLinks.value.map((link) => link.target)).size;
+
+  return Math.min(480, Math.max(160, Math.max(origins, destinations) * 40 + 16));
+});
 
 // Origins and destinations get separate nodes so moves inside a league don't form a cycle.
 const option = computed(() => {
@@ -49,13 +68,13 @@ const option = computed(() => {
       }) =>
         params.dataType === "edge"
           ? `${label(params.data.source ?? "")} ▸ ${label(params.data.target ?? "")}: ${params.data.value} moves`
-          : `${label(params.name)}: ${params.value} moves`,
+          : `${label(params.name)}: ${params.value} ${direction(params.name)}`,
     },
     series: [
       {
         type: "sankey",
         left: 8,
-        right: 200,
+        right: labelSpace.value,
         top: 8,
         bottom: 8,
         nodeGap: 12,
@@ -76,8 +95,10 @@ const option = computed(() => {
           color: token("text"),
           fontSize: 13,
           fontWeight: 700,
+          width: labelSpace.value - 8,
+          overflow: "truncate",
           formatter: (params: { name: string; value: number }) =>
-            `${label(params.name)} ${params.value}`,
+            `${label(params.name)} ${params.value} ${direction(params.name)}`,
         },
       },
     ],
@@ -87,7 +108,7 @@ const option = computed(() => {
 
 <template>
   <div>
-    <div class="h-80" aria-hidden="true">
+    <div ref="container" :style="{ height: `${height}px` }" aria-hidden="true">
       <VChart :option="option" autoresize />
     </div>
     <table class="sr-only">

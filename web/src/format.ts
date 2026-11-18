@@ -101,3 +101,10 @@ export function formatAge(minutes: number): string {
 
   return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
 }
+
+export function tournamentLabel(page: string): string {
+  return page
+    .split("/")
+    .map((part) => part.replace(/\s+Season$/, ""))
+    .join(" ");
+}

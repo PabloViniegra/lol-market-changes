@@ -41,6 +41,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - API: `GET /api/players/:name` with the player's current team (from the latest move or, when newer, the latest tournament roster), moves and rumors.
 - Fixtures from Leaguepedia in `ingestor/tests/fixtures/probe/` (CC BY-SA).
 - Web: anti-slop rules for Oxlint.
+- Web: player page (`/players/:name`) with the current team, moves and rumors; player names on boards and team rosters link to it.
+- Web: rumor tracker (`/rumors`) with open, confirmed and denied or faded rumors and the confirmation rate, linked from the header and the dashboard.
+- Web: "How to read the board" legend explaining team codes, `FA`, `OUT` and every status.
+- Web: feed team filter, a visible label for each filter group and a "Showing N moves" count.
 
 ### Changed
 
@@ -48,6 +52,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Ingest workflow timeout raised from 15 to 30 minutes so a full backfill fits.
 - Ingest workflow schedule moved to minutes 4, 19, 34 and 49 (still every 15 minutes) so GitHub registers it again.
 - Web: the page title is now "Transfer Board".
+- Web: `Official` status pills are neutral (solid outline) and yellow fill is kept for `Confirmed`, so changes stand out on a board of official moves; the per-row "Source" link is an external-link icon named after the outlet.
+- Web: the stale-data banner has a warning icon and replaces the "Updated" text instead of repeating it.
+- Web: the flows Sankey labels nodes with their move count and direction, sizes itself to its nodes and width, and explains which moves it leaves out.
+- Web: filter chips, busiest-team links and header links are larger tap targets on small screens.
+- Web: "This season" is now "This window", and previous tournaments show readable names instead of the Leaguepedia page path.
+- Web: the empty board state spans the full width.
+
+### Fixed
+
+- Web: feed date filters can no longer set a start date after the end date.
 
 ## [0.1.0] - 2026-11-18
 

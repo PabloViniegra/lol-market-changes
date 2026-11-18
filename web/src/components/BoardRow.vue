@@ -16,6 +16,17 @@ const leagues = computed(() => {
   return [...new Set([fromLeague, toLeague])].filter((league) => league !== null);
 });
 
+const source = computed(() => {
+  const first = props.item.sources[0];
+
+  if (!first) return null;
+
+  return {
+    url: first.url,
+    outlet: first.outlet ?? URL.parse(first.url)?.hostname.replace(/^www\./, "") ?? "source",
+  };
+});
+
 const details = computed(() =>
   [props.item.role, kindLabel(props.item.kind)].filter(Boolean).join(" · "),
 );
@@ -46,7 +57,13 @@ const details = computed(() =>
     </div>
 
     <div class="min-w-0 flex-1">
-      <p class="truncate type-board-player" :title="item.player">{{ playerHandle(item.player) }}</p>
+      <RouterLink
+        :to="`/players/${encodeURIComponent(item.player)}`"
+        :title="item.player"
+        class="row-link block truncate type-board-player hover:text-primary"
+      >
+        {{ playerHandle(item.player) }}
+      </RouterLink>
       <p v-if="item.notes" class="truncate type-body-sm text-text-muted" :title="item.notes">
         {{ item.notes }}
       </p>
@@ -64,18 +81,54 @@ const details = computed(() =>
         {{ relativeDay(item.date, now) }}
       </time>
       <a
-        v-if="item.sources[0]"
-        :href="item.sources[0].url"
+        v-if="source"
+        :href="source.url"
         target="_blank"
         rel="noopener noreferrer"
-        class="text-text-muted underline hover:text-text"
-        >{{ item.sources[0].outlet ?? "Source" }}</a
+        :title="`Source: ${source.outlet}`"
+        class="-m-1.5 flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
       >
+        <svg
+          viewBox="0 0 20 20"
+          class="size-5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path
+            d="M11 3.5h5.5V9M16.5 3.5 9 11M14 12v3.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8"
+          />
+        </svg>
+        <span class="sr-only">Source: {{ source.outlet }} (opens in a new tab)</span>
+      </a>
     </div>
   </li>
 </template>
 
 <style scoped>
+.row-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.row-link:focus-visible {
+  outline: none;
+}
+
+li:has(.row-link:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+li :deep(a:not(.row-link)) {
+  position: relative;
+  z-index: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .row-fresh::before {
     content: "";

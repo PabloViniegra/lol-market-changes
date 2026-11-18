@@ -11,6 +11,12 @@ export const router = createRouter({
       meta: { title: "Market feed" },
     },
     { path: "/teams/:name", component: () => import("./views/TeamView.vue"), props: true },
+    { path: "/players/:name", component: () => import("./views/PlayerView.vue"), props: true },
+    {
+      path: "/rumors",
+      component: () => import("./views/RumorsView.vue"),
+      meta: { title: "Rumor tracker" },
+    },
   ],
   scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? undefined : { top: 0 }),
 });

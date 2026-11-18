@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Transfer Board
-description: A split-flap departures board for the League of Legends transfer market. Deep petrol surfaces, signal-yellow for confirmed moves, condensed signage type for team codes.
+description: A split-flap departures board for the League of Legends transfer market. Deep petrol surfaces, signal-yellow for what changed, condensed signage type for team codes.
 colors:
   primary: "#F2C230"
   primary-hover: "#F7D35E"
@@ -110,8 +110,8 @@ components:
     backgroundColor: "{colors.line}"
     height: 1px
   status-official:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.text}"
     typography: "{typography.label-md}"
     rounded: "{rounded.pill}"
     padding: 4px 10px
@@ -217,7 +217,7 @@ Transfer Board treats the League of Legends offseason like a terminal departures
 
 That metaphor is the one bold idea, and it lives in a single place: **the board**, the feed of moves that opens the dashboard and the feed page. Team codes sit on raised "flaps" set in condensed signage type, with a hairline seam across the middle of each flap like a real Solari board. Everything around the board stays quiet: plain panels, small type, flat surfaces.
 
-The palette comes from the same place. Departure boards are dark with bright yellow characters, so the base here is a deep petrol green (a real colour, not a tinted black) and the single signal colour is a sodium-lamp yellow. Yellow means **this happened**: official and confirmed moves are filled with it. Uncertainty is shown by taking the fill away, never by adding a new colour.
+The palette comes from the same place. Departure boards are dark with bright yellow characters, so the base here is a deep petrol green (a real colour, not a tinted black) and the single signal colour is a sodium-lamp yellow. Yellow means **this changed**: a rumor that came true is filled with it, rumors are outlined in it, and plain official moves, the bulk of the board, stay neutral so the changes stand out. Uncertainty is shown by taking the fill away, never by adding a new colour.
 
 The audience is one person who follows competitive LoL closely and checks in a few times a day during the transfer window. Density beats spectacle. Someone glancing at the board should be able to read "who, from where, to where, how sure" in under two seconds per row.
 
@@ -225,7 +225,7 @@ The audience is one person who follows competitive LoL closely and checks in a f
 
 The palette is dark-first. A light theme is out of scope for v1.
 
-- **Primary — Signal yellow (#F2C230):** The only accent. Fills `Official` and `Confirmed` status pills and primary buttons, and marks the focus ring. It never decorates. If yellow is on screen, it is telling the user something is confirmed or actionable.
+- **Primary — Signal yellow (#F2C230):** The only accent. Fills `Confirmed` status pills and primary buttons, outlines `Rumor` pills, and marks the focus ring. It never decorates and never marks the default state: `Official` is neutral because nearly every row is official. If yellow is on screen, it is telling the user something changed or is actionable.
 - **Primary hover (#F7D35E):** Hover state for yellow buttons only.
 - **On-primary — Petrol ink (#0E2A2B):** Text on yellow and on league tags. It is the background colour reused, which keeps the palette closed.
 - **Background — Petrol (#0E2A2B):** The page. A blue-green deep enough to read as dark, coloured enough not to read as generic black.
@@ -289,7 +289,7 @@ Dashboard (`/`), desktop:
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Board row anatomy, left to right: origin flap, a direction glyph, destination flap, player name, role, league tag(s), status pill, relative date. A missing origin shows an empty flap with `FA` (free agent). A missing destination shows `OUT`.
+Board row anatomy, left to right: origin flap, a direction glyph, destination flap, player name, role, league tag(s), status pill, relative date, source icon (an external-link outline icon whose accessible name and tooltip give the outlet). A missing origin shows an empty flap with `FA` (free agent). A missing destination shows `OUT`.
 
 Spacing comes from a 4px base (`xs` 4 → `3xl` 48). Board rows are 64px tall with `md` (12px) internal padding. Panels use `xl` (24px). Sections are separated by `3xl` (48px) and a heading, never by stacking cards.
 
@@ -316,7 +316,7 @@ The direction glyph between flaps is a solid right-pointing triangle (`▸`), no
 
 ## Components
 
-**Board row.** The core component. A `surface` row 64px tall, separated from its neighbours by a 1px `divider`, not by gaps or cards. Rows are clickable; the whole row opens the player page. Hover lifts the row to `surface-raised`. Keyboard focus draws a 2px signal-yellow outline inset by 2px.
+**Board row.** The core component. A `surface` row 64px tall, separated from its neighbours by a 1px `divider`, not by gaps or cards. Rows are clickable: the player name is a stretched link, so the whole row opens the player page while team codes, the source icon and other links inside stay separately clickable. Hover lifts the row to `surface-raised`. Keyboard focus draws a 2px signal-yellow outline inset by 2px.
 
 **Flap.** `surface-raised`, 72×44, `board-code` type, centred text, with a 1px `line` seam across the middle. Team codes are at most 4 characters. Empty states: `FA` for free agent origin, `OUT` for release or retirement, both in `text-muted`.
 
@@ -324,7 +324,7 @@ The direction glyph between flaps is a solid right-pointing triangle (`▸`), no
 
 | State     | Label       | Treatment                                                                                                      |
 | --------- | ----------- | -------------------------------------------------------------------------------------------------------------- |
-| Official  | `Official`  | Solid yellow fill, petrol text.                                                                                |
+| Official  | `Official`  | Surface fill, text colour, 1px solid `text-muted` outline. The quiet default: most rows are official.          |
 | Confirmed | `Confirmed` | Solid yellow fill, petrol text, plus a small dashed-outline dot before the label meaning "started as a rumor". |
 | Rumor     | `Rumor`     | Surface fill, yellow text, 1.5px dashed yellow outline. Followed by 1–5 small filled dots showing reliability. |
 | Denied    | `Denied`    | Surface fill, muted text, label struck through.                                                                |
@@ -336,11 +336,13 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 
 **Buttons.** Primary is yellow and is used at most once per view (for example "See all moves"). Secondary is `surface-raised`. Button text says what happens: "See all moves", "Show faded rumors", "Clear filters".
 
-**Filter chips.** Leagues, roles, move types and statuses. Inactive chips are surface with muted text. Active chips invert to light fill with petrol text, so the active state never competes with signal yellow. Every filter is mirrored in the URL.
+**Filter chips.** Leagues, roles, move types and statuses. Inactive chips are surface with muted text. Active chips invert to light fill with petrol text, so the active state never competes with signal yellow. Chips are 44px tall below 768px and 32px above, so every chip is a comfortable tap target. Each group (League, Role, Move, Status) has a visible label. Every filter is mirrored in the URL.
 
-**Freshness indicator.** In the header: "Updated 4 min ago" in `body-sm`, muted. When the last sync is older than 1 hour, it becomes a full-width `surface-raised` bar under the header: "Data hasn't refreshed for 2 hours. Moves from Leaguepedia may be missing."
+**Board legend.** A collapsed "How to read the board" disclosure next to every board heading. Opened, it shows a `surface` panel explaining origin ▸ destination, `FA` and `OUT`, and each status pill with one line of meaning. It never opens on its own.
 
-**Charts (flows, per-league bars).** Series use league colours only. Every series and every Sankey node carries a direct text label in `label-md`; no legends that require matching colours. Gridlines use `line`. Tooltips follow popover styling.
+**Freshness indicator.** In the header: "Updated 4 min ago" in `body-sm`, muted. When the last sync is older than 1 hour, the header text is hidden and a full-width `surface-raised` bar appears under the header with a signal-yellow warning icon: "**Data hasn't refreshed for 2 hours.** Moves from Leaguepedia may be missing."
+
+**Charts (flows, per-league bars).** Series use league colours only. Every series and every Sankey node carries a direct text label in `label-md` ("LCK 3 out", "LEC 2 in"); no legends that require matching colours. The Sankey's height follows its node count and a caption states how many of the window's moves it shows. Gridlines use `line`. Tooltips follow popover styling.
 
 **Empty and error states.** Plain sentences that say what to do. Empty filtered feed: "No moves match these filters. Try removing a role or widening the dates." API error: "Couldn't load moves. Retrying in 30 seconds." with a "Retry now" secondary button.
 
@@ -350,7 +352,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 
 **Do**
 
-- Keep yellow for confirmed facts and the single primary action per view. If you need emphasis anywhere else, use size or weight.
+- Keep yellow for changes (confirmed rumors, open rumors) and the single primary action per view. If you need emphasis anywhere else, use size or weight.
 - Show uncertainty by removing fill (dashed outline, muted text), never by introducing new colours.
 - Give the board the full content width and the largest type on the page.
 - Label every chart series and node directly; pair league colours with text.

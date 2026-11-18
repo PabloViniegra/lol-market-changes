@@ -15,9 +15,9 @@ const fresh = useNewIds(computed(() => props.items?.map((item) => item.id)));
   <ul v-if="pending" class="flex flex-col gap-px bg-line" aria-busy="true" aria-label="Loading">
     <li v-for="n in 6" :key="n" class="h-16 bg-surface" />
   </ul>
-  <p v-else-if="!items?.length" class="max-w-prose rounded-panel bg-surface p-6 text-text-muted">
-    {{ empty }}
-  </p>
+  <div v-else-if="!items?.length" class="rounded-panel bg-surface p-6 text-text-muted">
+    <p class="max-w-prose">{{ empty }}</p>
+  </div>
   <ul v-else class="flex flex-col gap-px overflow-hidden rounded-panel bg-line">
     <BoardRow
       v-for="item in items"

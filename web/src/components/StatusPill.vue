@@ -10,7 +10,8 @@ defineProps<{ status: FeedStatus; reliability?: number | null }>();
     <span
       class="inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 type-label-md"
       :class="{
-        'bg-primary text-on-primary': status === 'official' || status === 'confirmed',
+        'pill-solid text-text': status === 'official',
+        'bg-primary text-on-primary': status === 'confirmed',
         'pill-dashed bg-surface text-primary': status === 'rumor',
         'bg-surface text-text-muted line-through': status === 'denied',
         'bg-background text-text-muted': status === 'stale',
@@ -40,6 +41,11 @@ defineProps<{ status: FeedStatus; reliability?: number | null }>();
 </template>
 
 <style scoped>
+.pill-solid {
+  outline: 1px solid var(--color-text-muted);
+  outline-offset: -1px;
+}
+
 .pill-dashed {
   outline: 1.5px dashed var(--color-primary);
   outline-offset: -1.5px;
