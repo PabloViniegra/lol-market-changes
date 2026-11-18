@@ -1,0 +1,14 @@
+{
+  "name": "@lol/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.1"
+  },
+  "devDependencies": {
+    "@lol/shared": "workspace:*"
+  }
+}

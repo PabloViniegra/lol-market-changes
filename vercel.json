@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @lol/web build",
+  "devCommand": "pnpm --filter @lol/web dev --port $PORT",
+  "outputDirectory": "web/dist",
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

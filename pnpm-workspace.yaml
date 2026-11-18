@@ -1,0 +1,8 @@
+packages:
+  - web
+  - api
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  vue-demi: true

@@ -1,0 +1,16 @@
+docs/
+
+node_modules/
+dist/
+*.tsbuildinfo
+.vercel/
+
+ingestor/target/
+
+.env
+.env.*
+!.env.example
+
+
+/.claude/settings.local.json
+.DS_Store

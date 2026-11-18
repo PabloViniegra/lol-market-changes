@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "skills": {
+    "echarts": {
+      "source": "sentimony/skills",
+      "commit": "4be896eb9c8ebd6bab47d88422f83841648da408",
+      "sourceType": "github",
+      "skillPath": "skills/echarts/SKILL.md",
+      "computedHash": "bece7b127bdc83b8946d14e00286045d2c45bd14949413c6722cc9dd031169fe",
+      "installMode": "copy"
+    },
+    "neon-postgres": {
+      "source": "neondatabase/agent-skills",
+      "commit": "6f435c42a984b6b3d2024fc8305b4236635aa601",
+      "sourceType": "github",
+      "skillPath": "skills/neon-postgres/SKILL.md",
+      "computedHash": "0e1db49f25e9208cb24fa2084a542d52d60a85c09271b915acc3dad6901de6a0",
+      "installMode": "copy"
+    },
+    "tanstack-query-best-practices": {
+      "source": "DeckardGer/tanstack-agent-skills",
+      "commit": "b2fc14c974b2ca09b38de09c28237f240175205b",
+      "sourceType": "github",
+      "skillPath": "skills/tanstack-query/SKILL.md",
+      "computedHash": "7e22c25af6f7dd31ab76fb5b1415afe9f49caf613581c04ed04e0e8591ea704a",
+      "installMode": "copy"
+    },
+    "vue-pinia-best-practices": {
+      "source": "vuejs-ai/skills",
+      "commit": "198f0cd8f7f9c0a3d9b566ccc16de6677519ee78",
+      "sourceType": "github",
+      "skillPath": "skills/vue-pinia-best-practices/SKILL.md",
+      "computedHash": "3f7ab354e80570361571e9dbb6d90b9495d2d214c15fca788da6b8a181cd1cff",
+      "installMode": "copy"
+    }
+  }
+}

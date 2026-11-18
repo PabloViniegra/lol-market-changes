@@ -1,0 +1,24 @@
+{
+  "name": "lol-market-changes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @lol/web dev",
+    "build": "pnpm --filter @lol/web build",
+    "lint": "oxlint --deny-warnings",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "packageManager": "pnpm@11.2.2"
+}
