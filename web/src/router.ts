@@ -1,7 +1,23 @@
 import { createRouter, createWebHistory } from "vue-router";
-import HomeView from "./views/HomeView.vue";
+import DashboardView from "./views/DashboardView.vue";
 
 export const router = createRouter({
   history: createWebHistory(),
-  routes: [{ path: "/", component: HomeView }],
+  routes: [
+    { path: "/", component: DashboardView, meta: { title: "Dashboard" } },
+    {
+      path: "/feed",
+      component: () => import("./views/FeedView.vue"),
+      meta: { title: "Market feed" },
+    },
+    { path: "/teams/:name", component: () => import("./views/TeamView.vue"), props: true },
+  ],
+  scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? undefined : { top: 0 }),
+});
+
+router.afterEach((to) => {
+  const name = to.params.name;
+  const page = (Array.isArray(name) ? name[0] : name) ?? to.meta.title;
+
+  document.title = page ? `${page} · Transfer Board` : "Transfer Board";
 });

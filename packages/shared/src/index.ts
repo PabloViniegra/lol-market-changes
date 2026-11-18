@@ -42,6 +42,8 @@ export interface FeedItem {
   player: string;
   fromTeam: string | null;
   toTeam: string | null;
+  fromShort: string | null;
+  toShort: string | null;
   fromLeague: League | null;
   toLeague: League | null;
   role: string | null;

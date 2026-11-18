@@ -48,6 +48,10 @@
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.02em;
+
+  @media (width < 48rem) {
+    font-size: 25px;
+  }
 }
 
 @utility type-board-player {

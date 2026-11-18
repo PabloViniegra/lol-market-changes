@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: dashboard (`/`) with the latest moves board, per-league move counts, free agents, rumor confirmation rate, busiest teams, a league or team flows Sankey and rumors to watch.
+- Web: market feed (`/feed`) with league, role, move type, status and date filters mirrored in the URL, and paginated loading.
+- Web: team page (`/teams/:name`) with the previous and current roster, arrivals, departures, moves since the season start and related rumors.
+- Web: "Updated X min ago" indicator, a stale-data banner after one hour without a sync, error states that retry every 30 seconds and a one-time flap flip on new moves (a yellow edge with reduced motion). Data refetches every 5 minutes.
+- Web: Pinia, ECharts and vue-echarts dependencies; the dev server proxies `/api` to production, or to `API_ORIGIN` when set.
+- API: feed items include `fromShort` and `toShort` team codes.
 - Web: Transfer Board design system (`DESIGN.md`) as Tailwind CSS 4 tokens and `type-*` utilities, with self-hosted Big Shoulders Display and Atkinson Hyperlegible Next fonts; `PRODUCT.md` with the product context.
 - MIT license.
 - This changelog.

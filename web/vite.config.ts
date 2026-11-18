@@ -4,4 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
+  server: {
+    proxy: { "/api": process.env.API_ORIGIN ?? "https://lol-market-changes.vercel.app" },
+  },
 });

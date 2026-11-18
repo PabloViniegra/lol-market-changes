@@ -38,7 +38,9 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
 
   const rows = await db()`
     select id, status, player, from_team, to_team, from_league, to_league, role, kind,
-           date::text as date, reliability, sources, notes, rumor_id, transfer_id
+           date::text as date, reliability, sources, notes, rumor_id, transfer_id,
+           (select short from teams where name = from_team) as from_short,
+           (select short from teams where name = to_team) as to_short
     from market_feed
     where status = any(${statuses}::text[])
       and (${league}::text is null or ${league}::text in (from_league, to_league))
@@ -58,6 +60,8 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
     player: row.player,
     fromTeam: row.from_team,
     toTeam: row.to_team,
+    fromShort: row.from_short,
+    toShort: row.to_short,
     fromLeague: row.from_league,
     toLeague: row.to_league,
     role: row.role,
