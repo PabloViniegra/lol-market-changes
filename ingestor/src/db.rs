@@ -4,7 +4,14 @@ use serde_json::Value;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use sqlx::{Postgres, Transaction};
 
-use crate::normalize::Normalized;
+use std::collections::{BTreeSet, HashMap};
+
+use sqlx::Row;
+
+use crate::fetch::ScopeRows;
+use crate::model::Direction;
+use crate::normalize::{Normalized, RawEvent};
+use crate::pairing::{self, Transfer};
 
 #[derive(Debug, Default, PartialEq)]
 pub struct WriteStats {
@@ -13,6 +20,7 @@ pub struct WriteStats {
     pub players: u64,
     pub raw_events: u64,
     pub deleted_events: u64,
+    pub transfers: u64,
 }
 
 /// Rows re-fetched by this run, by the raw names queried: events on or after `since` for these
@@ -49,11 +57,51 @@ pub async fn write(pool: &PgPool, data: &Normalized, window: &Window<'_>) -> Res
         teams: upsert_teams(&mut tx, data).await?,
         team_seasons: upsert_team_seasons(&mut tx, data).await?,
         players: upsert_players(&mut tx, data).await?,
-        raw_events: upsert_raw_events(&mut tx, data).await?,
-        deleted_events: mark_deleted(&mut tx, data, window).await?,
+        ..WriteStats::default()
+    };
+    let raw_events = upsert_raw_events(&mut tx, data).await?;
+    let deleted = mark_deleted(&mut tx, data, window).await?;
+    let affected: Vec<String> = data
+        .raw_events
+        .iter()
+        .map(|e| e.player.clone())
+        .chain(deleted.iter().cloned())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect();
+    let stats = WriteStats {
+        raw_events,
+        deleted_events: deleted.len() as u64,
+        transfers: rebuild_transfers(&mut tx, &affected).await?,
+        ..stats
     };
     tx.commit().await?;
     Ok(stats)
+}
+
+/// Scope rows fetched in the last 24 hours for a window that started on or before `since`.
+pub async fn load_scope_rows(pool: &PgPool, since: NaiveDate) -> Result<Option<ScopeRows>> {
+    let rows: Option<Value> = sqlx::query_scalar(
+        "select rows from leaguepedia_cache
+         where name = 'scope' and since <= $1 and fetched_at > now() - interval '24 hours'",
+    )
+    .bind(since)
+    .fetch_optional(pool)
+    .await?;
+    rows.map(ScopeRows::from_json).transpose()
+}
+
+pub async fn save_scope_rows(pool: &PgPool, since: NaiveDate, rows: &ScopeRows) -> Result<()> {
+    sqlx::query(
+        "insert into leaguepedia_cache (name, since, rows) values ('scope', $1, $2)
+         on conflict (name) do update set
+           since = excluded.since, rows = excluded.rows, fetched_at = now()",
+    )
+    .bind(since)
+    .bind(rows.to_json())
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 pub async fn record_run(
@@ -84,14 +132,17 @@ pub async fn record_run(
 async fn upsert_teams(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> Result<u64> {
     let teams = &data.teams;
     let result = sqlx::query(
-        "insert into teams (name, short, league, region, org, logo_url)
-         select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[])
+        "insert into teams (name, short, league, region, org, logo_url, renamed_to)
+         select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[],
+           $6::text[], $7::text[])
          on conflict (name) do update set
            short = excluded.short, league = excluded.league, region = excluded.region,
-           org = excluded.org, logo_url = excluded.logo_url
-         where (teams.short, teams.league, teams.region, teams.org, teams.logo_url)
+           org = excluded.org, logo_url = excluded.logo_url, renamed_to = excluded.renamed_to
+         where (teams.short, teams.league, teams.region, teams.org, teams.logo_url,
+             teams.renamed_to)
            is distinct from
-           (excluded.short, excluded.league, excluded.region, excluded.org, excluded.logo_url)",
+           (excluded.short, excluded.league, excluded.region, excluded.org, excluded.logo_url,
+             excluded.renamed_to)",
     )
     .bind(teams.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
     .bind(teams.iter().map(|t| t.short.clone()).collect::<Vec<_>>())
@@ -99,6 +150,12 @@ async fn upsert_teams(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> 
     .bind(teams.iter().map(|t| t.region.clone()).collect::<Vec<_>>())
     .bind(teams.iter().map(|t| t.org.clone()).collect::<Vec<_>>())
     .bind(teams.iter().map(|t| t.logo_url.clone()).collect::<Vec<_>>())
+    .bind(
+        teams
+            .iter()
+            .map(|t| t.renamed_to.clone())
+            .collect::<Vec<_>>(),
+    )
     .execute(&mut **tx)
     .await?;
     Ok(result.rows_affected())
@@ -238,13 +295,14 @@ async fn mark_deleted(
     tx: &mut Transaction<'_, Postgres>,
     data: &Normalized,
     window: &Window<'_>,
-) -> Result<u64> {
-    let result = sqlx::query(
+) -> Result<Vec<String>> {
+    let players = sqlx::query_scalar(
         "update raw_events set deleted_at = now()
          where deleted_at is null
            and date >= $1
            and (player_raw = any($2) or team_raw = any($3))
-           and not (id = any($4))",
+           and not (id = any($4))
+         returning player",
     )
     .bind(window.since)
     .bind(window.players)
@@ -255,7 +313,98 @@ async fn mark_deleted(
             .map(|e| e.id.clone())
             .collect::<Vec<_>>(),
     )
+    .fetch_all(&mut **tx)
+    .await?;
+    Ok(players)
+}
+
+/// Re-pairs every live event of `players` and syncs their transfers, keyed by source events.
+async fn rebuild_transfers(tx: &mut Transaction<'_, Postgres>, players: &[String]) -> Result<u64> {
+    let events = load_events(tx, players).await?;
+    let renames: HashMap<String, String> =
+        sqlx::query_as("select name, renamed_to from teams where renamed_to is not null")
+            .fetch_all(&mut **tx)
+            .await?
+            .into_iter()
+            .collect();
+    let transfers = pairing::pair(&events, &renames);
+    let column = |f: fn(&Transfer) -> Option<String>| transfers.iter().map(f).collect::<Vec<_>>();
+
+    let removed = sqlx::query(
+        "delete from transfers t
+         where t.player = any($1)
+           and not exists (
+             select 1 from unnest($2::text[], $3::text[]) as k(leave_event, join_event)
+             where k.leave_event is not distinct from t.leave_event
+               and k.join_event is not distinct from t.join_event)",
+    )
+    .bind(players)
+    .bind(column(|t| t.leave_event.clone()))
+    .bind(column(|t| t.join_event.clone()))
     .execute(&mut **tx)
     .await?;
-    Ok(result.rows_affected())
+    let upserted = sqlx::query(
+        "insert into transfers (player, from_team, to_team, role, kind, date, leave_event, join_event)
+         select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[],
+           $6::date[], $7::text[], $8::text[])
+         on conflict (leave_event, join_event) do update set
+           player = excluded.player, from_team = excluded.from_team, to_team = excluded.to_team,
+           role = excluded.role, kind = excluded.kind, date = excluded.date, updated_at = now()
+         where (transfers.player, transfers.from_team, transfers.to_team, transfers.role,
+             transfers.kind, transfers.date)
+           is distinct from
+           (excluded.player, excluded.from_team, excluded.to_team, excluded.role,
+             excluded.kind, excluded.date)",
+    )
+    .bind(column(|t| Some(t.player.clone())))
+    .bind(column(|t| t.from_team.clone()))
+    .bind(column(|t| t.to_team.clone()))
+    .bind(column(|t| t.role.clone()))
+    .bind(column(|t| Some(t.kind.as_str().to_owned())))
+    .bind(transfers.iter().map(|t| t.date).collect::<Vec<_>>())
+    .bind(column(|t| t.leave_event.clone()))
+    .bind(column(|t| t.join_event.clone()))
+    .execute(&mut **tx)
+    .await?;
+    Ok(removed.rows_affected() + upserted.rows_affected())
+}
+
+async fn load_events(
+    tx: &mut Transaction<'_, Postgres>,
+    players: &[String],
+) -> Result<Vec<RawEvent>> {
+    let rows = sqlx::query(
+        "select id, date, player, player_raw, team, team_raw, direction, role, preload, status,
+           is_sub, is_loan, is_retired, news_id, line_in_news, source_url
+         from raw_events
+         where player = any($1) and deleted_at is null",
+    )
+    .bind(players)
+    .fetch_all(&mut **tx)
+    .await?;
+    rows.iter()
+        .map(|row| {
+            Ok(RawEvent {
+                id: row.try_get("id")?,
+                date: row.try_get("date")?,
+                player: row.try_get("player")?,
+                player_raw: row.try_get("player_raw")?,
+                team: row.try_get("team")?,
+                team_raw: row.try_get("team_raw")?,
+                direction: match row.try_get::<&str, _>("direction")? {
+                    "join" => Direction::Join,
+                    _ => Direction::Leave,
+                },
+                role: row.try_get("role")?,
+                preload: row.try_get("preload")?,
+                status: row.try_get("status")?,
+                is_sub: row.try_get("is_sub")?,
+                is_loan: row.try_get("is_loan")?,
+                is_retired: row.try_get("is_retired")?,
+                news_id: row.try_get("news_id")?,
+                line_in_news: row.try_get("line_in_news")?,
+                source_url: row.try_get("source_url")?,
+            })
+        })
+        .collect()
 }

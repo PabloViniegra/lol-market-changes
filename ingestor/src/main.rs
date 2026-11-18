@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use chrono::{Datelike, Days, NaiveDate, Utc};
 use clap::Parser;
 use ingestor::db::{self, Window};
-use ingestor::fetch::{Scope, fetch_snapshot};
+use ingestor::fetch::{Scope, ScopeRows, fetch_scope, fetch_snapshot};
 use ingestor::leaguepedia::Client;
 use ingestor::normalize::{Normalized, normalize};
 use serde_json::{Value, json};
@@ -45,7 +45,9 @@ async fn main() -> Result<()> {
             .since
             .or(cli.full.then(|| backfill_start(today)))
             .unwrap_or(today - Days::new(OVERLAP_DAYS));
-        let (data, _) = fetch_and_normalize(since).await?;
+        let mut client = Client::new()?;
+        let scope_rows = fetch_scope(&mut client, since).await?;
+        let (data, _) = fetch_and_normalize(&mut client, since, scope_rows).await?;
         tracing::info!(stats = %normalized_stats(&data), "dry run finished");
         return Ok(());
     }
@@ -75,7 +77,21 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
             .unwrap_or_else(|| backfill_start(today)),
     };
     let started = Instant::now();
-    let (data, scope) = fetch_and_normalize(since).await?;
+    let mut client = Client::new()?;
+    let cached = match cli.full {
+        true => None,
+        false => db::load_scope_rows(pool, since).await?,
+    };
+    let scope_cached = cached.is_some();
+    let scope_rows = match cached {
+        Some(rows) => rows,
+        None => {
+            let rows = fetch_scope(&mut client, since).await?;
+            db::save_scope_rows(pool, since, &rows).await?;
+            rows
+        }
+    };
+    let (data, scope) = fetch_and_normalize(&mut client, since, scope_rows).await?;
     let window = Window {
         since,
         players: &scope.players,
@@ -85,6 +101,7 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
     let stats = json!({
         "since": since.to_string(),
         "duration_secs": started.elapsed().as_secs(),
+        "scope_cached": scope_cached,
         "fetched": normalized_stats(&data),
         "changed": {
             "teams": written.teams,
@@ -92,16 +109,20 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
             "players": written.players,
             "raw_events": written.raw_events,
             "deleted_events": written.deleted_events,
+            "transfers": written.transfers,
         },
     });
     tracing::info!(%stats, "ingestion finished");
     Ok(stats)
 }
 
-async fn fetch_and_normalize(since: NaiveDate) -> Result<(Normalized, Scope)> {
+async fn fetch_and_normalize(
+    client: &mut Client,
+    since: NaiveDate,
+    scope_rows: ScopeRows,
+) -> Result<(Normalized, Scope)> {
     tracing::info!(%since, "fetching Leaguepedia");
-    let mut client = Client::new()?;
-    let (snapshot, scope) = fetch_snapshot(&mut client, since).await?;
+    let (snapshot, scope) = fetch_snapshot(client, since, scope_rows).await?;
     Ok((normalize(&snapshot)?, scope))
 }
 

@@ -30,6 +30,7 @@ pub struct Team {
     pub region: Option<String>,
     pub org: Option<String>,
     pub logo_url: Option<String>,
+    pub renamed_to: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -214,6 +215,7 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
                 region: info.and_then(|i| i.region.clone()),
                 org: info.and_then(|i| i.org.clone()),
                 logo_url: info.and_then(|i| i.image.as_deref()).map(file_url),
+                renamed_to: info.and_then(|i| i.renamed_to.clone()),
             }
         })
         .collect();

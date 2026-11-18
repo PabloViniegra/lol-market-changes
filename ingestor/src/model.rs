@@ -140,6 +140,7 @@ pub struct TeamInfo {
     pub region: Option<String>,
     pub org: Option<String>,
     pub image: Option<String>,
+    pub renamed_to: Option<String>,
 }
 
 impl TryFrom<&Row> for TeamInfo {
@@ -152,6 +153,7 @@ impl TryFrom<&Row> for TeamInfo {
             region: optional(row, "Region"),
             org: optional(row, "OrganizationPage"),
             image: optional(row, "Image"),
+            renamed_to: optional(row, "RenamedTo"),
         })
     }
 }

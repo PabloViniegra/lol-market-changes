@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use chrono::{Days, NaiveDate, Utc};
 use clap::Parser;
-use ingestor::fetch::{distinct, fetch_snapshot, query_chunked};
+use ingestor::fetch::{distinct, fetch_scope, fetch_snapshot, query_chunked};
 use ingestor::leaguepedia::{Client, Query, Row, in_list};
 use serde_json::json;
 use tracing_subscriber::EnvFilter;
@@ -34,7 +34,8 @@ async fn main() -> Result<()> {
     std::fs::create_dir_all(&cli.out)?;
     let mut client = Client::new()?;
 
-    let (snapshot, _) = fetch_snapshot(&mut client, since).await?;
+    let scope = fetch_scope(&mut client, since).await?;
+    let (snapshot, _) = fetch_snapshot(&mut client, since, scope).await?;
     let tables = [
         ("tournaments", &snapshot.tournaments),
         ("tournament_rosters", &snapshot.tournament_rosters),

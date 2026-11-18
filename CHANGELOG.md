@@ -15,11 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Ingestor: database migrations for `teams`, `team_seasons`, `players`, `raw_events` and `sync_state`.
 - Ingestor: fetch and normalisation of LCK, LPL, LEC and LCS roster changes (LTA North counts as LCS), with team and player redirects resolved, staff and Game Changers rows skipped, and the full history of in-scope players kept.
 - Ingestor: idempotent upserts into Neon, soft deletion of events removed from the wiki, incremental runs with a 14-day overlap, `--full` two-season backfill and `--since`; each run is recorded in `sync_state`.
+- Ingestor: pairing of roster changes into transfers (transfer, free-agent signing, release, retirement, loan and loan return, promotion, bench and sub), with a 45-day window, renamed teams treated as one team and contract extensions or role swaps ignored. Each run rebuilds the transfers of the players it touched.
+- Ingestor: `transfers` table, `teams.renamed_to` column and `leaguepedia_cache` table (migration `0002`).
+- Ingestor: incremental runs reuse the tournaments, rosters and scope team redirects fetched in the last 24 hours; `--full` always refreshes them.
 - CI: Postgres service for the ingestor database test.
 - Fixtures from Leaguepedia in `ingestor/tests/fixtures/probe/` (CC BY-SA).
 
 ### Changed
 
+- Ingestor: Leaguepedia queries are sent as POST, so `IN` lists are split into chunks of 20,000 characters instead of 2,000 and runs need fewer requests.
 - Ingest workflow timeout raised from 15 to 30 minutes so a full backfill fits.
 
 ## [0.1.0] - 2026-11-18

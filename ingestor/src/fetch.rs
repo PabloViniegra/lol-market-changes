@@ -1,17 +1,17 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::{Days, NaiveDate};
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::leaguepedia::{Client, Query, Row, in_list};
 use crate::normalize::{LEAGUE_NAMES, Snapshot, page_title};
 
 // Long enough to include the previous season's rosters, so off-season moves stay in scope.
 const TOURNAMENT_LOOKBACK_DAYS: u64 = 365;
-// Leaguepedia answers HTTP 400 once the URL passes ~8 KB; this leaves room for two IN lists
-// plus percent-encoding.
-const MAX_IN_CHARS: usize = 2000;
+// Queries are POSTed, so the ~8 KB URL limit of GET does not apply; a 69 KB `where` was
+// accepted in testing. This keeps two IN lists well below that.
+const MAX_IN_CHARS: usize = 20_000;
 const QUOTES_AND_COMMA: usize = 3;
 const ROSTER_CHANGE_FIELDS: &str = "Date_Sort=Date,Player,Direction,Team,Roles,RolesIngame,\
     RolesStaff,RoleDisplay,Role,RoleModifier,Status,CurrentTeamPriority,PlayerUnlinked,\
@@ -25,10 +25,42 @@ pub struct Scope {
     pub players: Vec<String>,
 }
 
-/// Fetches every row needed to normalise roster changes on or after `since`: the in-scope
-/// teams' changes plus the full history of their players in the window, so moves from or to
-/// teams outside the four leagues keep both ends.
-pub async fn fetch_snapshot(client: &mut Client, since: NaiveDate) -> Result<(Snapshot, Scope)> {
+/// The tournaments, rosters and team redirects that decide which teams are in scope. They change
+/// rarely, so runs reuse them for a day (`db::load_scope_rows`).
+#[derive(Debug, Clone, PartialEq)]
+pub struct ScopeRows {
+    pub tournaments: Vec<Row>,
+    pub tournament_rosters: Vec<Row>,
+    pub team_redirects: Vec<Row>,
+}
+
+impl ScopeRows {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "tournaments": self.tournaments,
+            "tournament_rosters": self.tournament_rosters,
+            "team_redirects": self.team_redirects,
+        })
+    }
+
+    pub fn from_json(value: Value) -> Result<Self> {
+        let rows = |key: &str| -> Result<Vec<Row>> {
+            Ok(serde_json::from_value(
+                value
+                    .get(key)
+                    .cloned()
+                    .with_context(|| format!("cached scope has no `{key}`"))?,
+            )?)
+        };
+        Ok(Self {
+            tournaments: rows("tournaments")?,
+            tournament_rosters: rows("tournament_rosters")?,
+            team_redirects: rows("team_redirects")?,
+        })
+    }
+}
+
+pub async fn fetch_scope(client: &mut Client, since: NaiveDate) -> Result<ScopeRows> {
     let tournaments = client
         .query_all(&Query {
             tables: "Tournaments".into(),
@@ -53,8 +85,28 @@ pub async fn fetch_snapshot(client: &mut Client, since: NaiveDate) -> Result<(Sn
         })
         .await?;
 
-    let mut team_redirects =
+    let team_redirects =
         fetch_team_redirects(client, &distinct(&tournament_rosters, "Team"), true).await?;
+    Ok(ScopeRows {
+        tournaments,
+        tournament_rosters,
+        team_redirects,
+    })
+}
+
+/// Fetches every row needed to normalise roster changes on or after `since`: the in-scope
+/// teams' changes plus the full history of their players in the window, so moves from or to
+/// teams outside the four leagues keep both ends.
+pub async fn fetch_snapshot(
+    client: &mut Client,
+    since: NaiveDate,
+    scope: ScopeRows,
+) -> Result<(Snapshot, Scope)> {
+    let ScopeRows {
+        tournaments,
+        tournament_rosters,
+        mut team_redirects,
+    } = scope;
     let scope_names = union([
         distinct(&tournament_rosters, "Team"),
         distinct(&team_redirects, "Page"),

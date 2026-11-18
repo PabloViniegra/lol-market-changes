@@ -154,8 +154,8 @@ impl Client {
     async fn request(&self, query: &Query, offset: usize) -> Result<Page> {
         let body: Value = self
             .http
-            .get(API_URL)
-            .query(&query.params(offset))
+            .post(API_URL)
+            .form(&query.params(offset))
             .send()
             .await?
             .error_for_status()?
