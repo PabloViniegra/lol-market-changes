@@ -1,7 +1,9 @@
 name: Ingest
 
-# Schedule (7,22,37,52 * * * *) is enabled in M4 once the pipeline exists.
 on:
+  schedule:
+    # Off the hour so Neon can scale to zero between runs.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
     inputs:
       full:
@@ -26,10 +28,23 @@ jobs:
         working-directory: ingestor
     steps:
       - uses: actions/checkout@v7
-      - uses: Swatinem/rust-cache@v2
+      # Migrations are embedded by sqlx::migrate!(), so they are part of the key.
+      - id: binary
+        uses: actions/cache/restore@v6
+        with:
+          path: ingestor/target/release/ingestor
+          key: ingestor-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', 'ingestor/Cargo.toml', 'ingestor/Cargo.lock', 'ingestor/src/**', 'ingestor/migrations/**') }}
+      - if: steps.binary.outputs.cache-hit != 'true'
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: ingestor
-      - run: cargo build --release --locked
+      - if: steps.binary.outputs.cache-hit != 'true'
+        run: cargo build --release --locked
+      - if: steps.binary.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ingestor/target/release/ingestor
+          key: ${{ steps.binary.outputs.cache-primary-key }}
       - name: Run ingestor
         env:
           INGESTOR_DATABASE_URL: ${{ secrets.INGESTOR_DATABASE_URL }}

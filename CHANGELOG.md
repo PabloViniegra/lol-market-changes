@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Ingestor: `--rumors <path>` flag, defaulting to `../data/rumors.yaml`.
 - CI: `data/rumors.yaml` is validated by the ingestor tests.
 - CI: Postgres service for the ingestor database test.
+- Ingest workflow runs every 15 minutes (`7,22,37,52 * * * *`) and reuses the cached release binary until the ingestor sources, migrations or toolchain change.
 - Fixtures from Leaguepedia in `ingestor/tests/fixtures/probe/` (CC BY-SA).
 
 ### Changed
