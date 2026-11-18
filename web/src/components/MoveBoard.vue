@@ -4,16 +4,31 @@ import { computed } from "vue";
 import { useNewIds } from "../composables/useNewIds";
 import { useNow } from "../composables/useNow";
 import BoardRow from "./BoardRow.vue";
+import BoardRowSkeleton from "./BoardRowSkeleton.vue";
 
-const props = defineProps<{ items: FeedItem[] | undefined; pending: boolean; empty: string }>();
+const props = withDefaults(
+  defineProps<{ items: FeedItem[] | undefined; pending: boolean; empty: string; rows?: number }>(),
+  { rows: 6 },
+);
+
+const NAME_WIDTHS = ["w-28", "w-40", "w-24", "w-36", "w-32", "w-20"];
 
 const now = useNow();
 const fresh = useNewIds(computed(() => props.items?.map((item) => item.id)));
 </script>
 
 <template>
-  <ul v-if="pending" class="flex flex-col gap-px bg-line" aria-busy="true" aria-label="Loading">
-    <li v-for="n in 6" :key="n" class="h-16 bg-surface" />
+  <ul
+    v-if="pending"
+    class="flex flex-col gap-px overflow-hidden rounded-panel bg-line"
+    aria-busy="true"
+    aria-label="Loading moves"
+  >
+    <BoardRowSkeleton
+      v-for="n in rows"
+      :key="n"
+      :name-width="NAME_WIDTHS[(n - 1) % NAME_WIDTHS.length]!"
+    />
   </ul>
   <div v-else-if="!items?.length" class="rounded-panel bg-surface p-6 text-text-muted">
     <p class="max-w-prose">{{ empty }}</p>

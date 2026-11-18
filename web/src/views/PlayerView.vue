@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { HttpError } from "../api/client";
 import { usePlayer } from "../api/players";
 import BoardFlap from "../components/BoardFlap.vue";
+import FlapSkeleton from "../components/FlapSkeleton.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
 import { playerHandle, teamCode } from "../format";
@@ -75,7 +76,22 @@ const details = computed(() => {
     </p>
   </div>
   <QueryError v-else-if="player.isError.value" what="this player" @retry="player.refetch()" />
-  <div v-else-if="player.isPending.value" class="h-40" aria-busy="true" />
+  <div v-else-if="player.isPending.value" aria-busy="true">
+    <span class="sr-only">Loading player</span>
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-6" aria-hidden="true">
+      <div>
+        <span class="block h-9 w-48 max-w-full rounded-flap bg-surface-raised" />
+        <span class="mt-3 block h-3 w-56 max-w-full rounded-flap bg-surface-raised" />
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="h-3 w-12 rounded-flap bg-surface-raised" />
+        <FlapSkeleton />
+        <span class="h-4 w-24 rounded-flap bg-surface-raised" />
+      </div>
+    </div>
+    <span class="mb-4 block h-6 w-20 rounded-flap bg-surface-raised" aria-hidden="true" />
+    <MoveBoard :items="undefined" pending :rows="4" empty="" />
+  </div>
   <template v-else-if="player.data.value">
     <header class="mb-10 flex flex-wrap items-end justify-between gap-6">
       <div>

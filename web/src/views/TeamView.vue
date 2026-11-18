@@ -3,9 +3,11 @@ import { computed } from "vue";
 import { useFeed } from "../api/feed";
 import { useTeam } from "../api/teams";
 import BoardFlap from "../components/BoardFlap.vue";
+import FlapSkeleton from "../components/FlapSkeleton.vue";
 import LeagueTag from "../components/LeagueTag.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
+import RosterSkeleton from "../components/RosterSkeleton.vue";
 import { HttpError } from "../api/client";
 import { LEAGUES, playerHandle, shortDate, teamCode, tournamentLabel } from "../format";
 
@@ -47,7 +49,19 @@ const seasonLabel = computed(() =>
     </p>
   </div>
   <QueryError v-else-if="team.isError.value" what="this team" @retry="team.refetch()" />
-  <div v-else-if="team.isPending.value" class="h-40" aria-busy="true" />
+  <div v-else-if="team.isPending.value" aria-busy="true">
+    <span class="sr-only">Loading team</span>
+    <div class="mb-10 flex flex-wrap items-center gap-4" aria-hidden="true">
+      <FlapSkeleton />
+      <span class="h-9 w-56 max-w-full rounded-flap bg-surface-raised" />
+      <span class="h-5 w-10 rounded-flap bg-surface-raised" />
+    </div>
+    <span class="mb-4 block h-6 w-24 rounded-flap bg-surface-raised" aria-hidden="true" />
+    <div class="grid gap-6 md:grid-cols-2">
+      <RosterSkeleton />
+      <RosterSkeleton />
+    </div>
+  </div>
   <template v-else-if="team.data.value && info">
     <header class="mb-10 flex flex-wrap items-center gap-4">
       <BoardFlap :code="teamCode(info.name, info.short)" placeholder="" :team="null" />

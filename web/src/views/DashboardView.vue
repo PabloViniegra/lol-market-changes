@@ -37,6 +37,7 @@ const teamToTeam = computed(
         v-else
         :items="latest.data.value?.items"
         :pending="latest.isPending.value"
+        :rows="12"
         empty="No moves yet this window. New moves show up here within 30 minutes of Leaguepedia."
       />
       <RouterLink
@@ -97,6 +98,47 @@ const teamToTeam = computed(
           </ul>
         </div>
       </template>
+      <div v-else-if="stats.isPending.value" class="contents" aria-busy="true">
+        <span class="sr-only">Loading stats</span>
+        <div class="rounded-panel bg-surface p-6" aria-hidden="true">
+          <span class="mb-5 block h-3 w-40 rounded-flap bg-surface-raised" />
+          <ul class="flex flex-col gap-2">
+            <li
+              v-for="width in ['w-full', 'w-3/4', 'w-1/2', 'w-2/3']"
+              :key="width"
+              class="flex items-center gap-3"
+            >
+              <span class="h-3 w-9 rounded-flap bg-surface-raised" />
+              <span class="h-3 flex-1">
+                <span class="block h-full rounded-flap bg-surface-raised" :class="width" />
+              </span>
+              <span class="h-3 w-8 rounded-flap bg-surface-raised" />
+            </li>
+          </ul>
+        </div>
+        <div class="grid grid-cols-2 gap-6 rounded-panel bg-surface p-6" aria-hidden="true">
+          <div v-for="n in 2" :key="n" class="flex flex-col gap-2">
+            <span class="h-3 w-20 rounded-flap bg-surface-raised" />
+            <span class="h-4 w-16 rounded-flap bg-surface-raised" />
+          </div>
+        </div>
+        <div class="rounded-panel bg-surface p-6" aria-hidden="true">
+          <div class="mb-3 flex justify-between gap-4">
+            <span class="h-3 w-24 rounded-flap bg-surface-raised" />
+            <span class="h-3 w-20 rounded-flap bg-surface-raised" />
+          </div>
+          <ul class="flex flex-col gap-4 py-1">
+            <li
+              v-for="width in ['w-32', 'w-24', 'w-36', 'w-28', 'w-20']"
+              :key="width"
+              class="flex justify-between gap-4"
+            >
+              <span class="h-3 rounded-flap bg-surface-raised" :class="width" />
+              <span class="h-3 w-12 rounded-flap bg-surface-raised" />
+            </li>
+          </ul>
+        </div>
+      </div>
     </aside>
   </div>
 
@@ -112,7 +154,31 @@ const teamToTeam = computed(
     </div>
     <QueryError v-if="flows.isError.value" what="flows" @retry="flows.refetch()" />
     <div v-else class="rounded-panel bg-surface p-6">
-      <div v-if="flows.isPending.value" class="h-80" aria-busy="true" />
+      <div v-if="flows.isPending.value" aria-busy="true">
+        <span class="sr-only">Loading flows</span>
+        <div class="mb-6 flex max-w-prose flex-col gap-2" aria-hidden="true">
+          <span class="h-3 w-full rounded-flap bg-surface-raised" />
+          <span class="h-3 w-2/3 rounded-flap bg-surface-raised" />
+        </div>
+        <div class="flex h-80 justify-between gap-6" aria-hidden="true">
+          <div class="flex w-3 flex-col gap-3">
+            <span
+              v-for="(grow, i) in ['grow-3', 'grow-2', 'grow', 'grow-2']"
+              :key="i"
+              class="rounded-flap bg-surface-raised"
+              :class="grow"
+            />
+          </div>
+          <div class="flex w-3 flex-col gap-3">
+            <span
+              v-for="(grow, i) in ['grow-2', 'grow-3', 'grow', 'grow']"
+              :key="i"
+              class="rounded-flap bg-surface-raised"
+              :class="grow"
+            />
+          </div>
+        </div>
+      </div>
       <p v-else-if="!flows.data.value?.links.length" class="text-text-muted">
         No team-to-team moves this window yet.
       </p>
