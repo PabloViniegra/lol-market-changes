@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: Pinia, ECharts and vue-echarts dependencies; the dev server proxies `/api` to production, or to `API_ORIGIN` when set.
 - API: feed items include `fromShort` and `toShort` team codes.
 - Web: Transfer Board design system (`DESIGN.md`) as Tailwind CSS 4 tokens and `type-*` utilities, with self-hosted Big Shoulders Display and Atkinson Hyperlegible Next fonts; `PRODUCT.md` with the product context.
+- Web: split-flap arrow logo in the header, WebP and ICO favicons, an Apple touch icon and the theme colour.
 - MIT license.
 - This changelog.
 - Local Graphify source graph configuration and Git hook setup instructions.

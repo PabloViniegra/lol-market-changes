@@ -29,7 +29,10 @@ const staleHours = computed(() =>
 <template>
   <div class="mx-auto flex min-h-dvh max-w-content flex-col px-4 md:px-6">
     <header class="flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-line py-4">
-      <RouterLink to="/" class="type-heading-md hover:text-primary">Transfer Board</RouterLink>
+      <RouterLink to="/" class="flex items-center gap-3 type-heading-md hover:text-primary">
+        <img src="/logo.webp" alt="" width="32" height="32" class="size-8" />
+        Transfer Board
+      </RouterLink>
       <nav aria-label="Main" class="flex gap-6 type-label-md">
         <RouterLink to="/" class="nav-link text-text-muted hover:text-text">Dashboard</RouterLink>
         <RouterLink to="/feed" class="nav-link text-text-muted hover:text-text">Feed</RouterLink>
