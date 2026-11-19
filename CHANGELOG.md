@@ -61,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: the feed date filters and rumor report date use a shared calendar styled like the dropdowns, with keyboard navigation and the relevant date limits.
 - Web: "Send a rumor" form uses its own role and move dropdowns, a team combobox with codes and league tags, and a reliability dot meter instead of native selects and datalists, so every option follows the design system. The player name is typed in board type, the preview flips its flaps when a team changes and the success state shows the rumor waiting for review.
 - Web: the feed team filter uses the same team combobox, with codes and league tags.
 - Web: "Where players went" is a hand-built SVG flows diagram, even with only a few routes. Pointing at or tabbing through a route (arrow keys move between routes) highlights it and shows its count, team nodes take their league colour, and switching between league and team view morphs the diagram (instant with reduced motion). It replaces the ECharts Sankey and the short-list fallback.

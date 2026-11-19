@@ -88,6 +88,12 @@ export function shortDate(iso: string, withYear = false): string {
   });
 }
 
+export function localToday(): string {
+  const date = new Date();
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 export function minutesAgo(iso: string, now: Date): number {
   return Math.max(0, Math.floor((now.getTime() - Date.parse(iso)) / 60_000));
 }

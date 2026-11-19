@@ -194,14 +194,3 @@
     }
   }
 }
-
-@layer base {
-  ::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    opacity: 0.7;
-  }
-
-  ::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
-  }
-}

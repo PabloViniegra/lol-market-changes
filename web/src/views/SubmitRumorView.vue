@@ -6,6 +6,7 @@ import { HttpError } from "../api/client";
 import { z } from "zod";
 import { useSubmitRumor } from "../api/submissions";
 import { useTeams } from "../api/teams";
+import DatePicker from "../components/DatePicker.vue";
 import FormField from "../components/FormField.vue";
 import ReliabilityMeter from "../components/ReliabilityMeter.vue";
 import RoleIcon from "../components/RoleIcon.vue";
@@ -14,13 +15,7 @@ import SelectMenu from "../components/SelectMenu.vue";
 import TeamCombobox from "../components/TeamCombobox.vue";
 import WarningIcon from "../components/WarningIcon.vue";
 import { zodSchema } from "../forms";
-import { KIND_LABELS, KINDS, ROLES } from "../format";
-
-const today = () => {
-  const now = new Date();
-
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-};
+import { KIND_LABELS, KINDS, localToday, ROLES } from "../format";
 
 const UNSAFE = /[\p{Cc}\u2028\u2029\uFEFF]/u;
 const HIDDEN = "Remove hidden characters, they often come from copy and paste.";
@@ -42,7 +37,7 @@ const schema = z
     reportedAt: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Pick the date it was reported.")
-      .refine((date) => date <= today(), "The date can’t be in the future."),
+      .refine((date) => date <= localToday(), "The date can’t be in the future."),
     sourceUrl: z
       .url({ protocol: /^https?$/, error: "Paste a link that starts with https://." })
       .max(500, "Use a shorter link.")
@@ -66,7 +61,7 @@ const initialValues = {
   toTeam: "",
   role: "",
   kind: "",
-  reportedAt: today(),
+  reportedAt: localToday(),
   sourceUrl: "",
   outlet: "",
   reliability: 3,
@@ -144,7 +139,7 @@ const failure = computed(() => {
 
 function sendAnother() {
   submit.reset();
-  resetForm({ values: { ...initialValues, reportedAt: today() } });
+  resetForm({ values: { ...initialValues, reportedAt: localToday() } });
 }
 
 const input =
@@ -356,15 +351,14 @@ const input =
               hint="The day the source published it."
               :error="errors.reportedAt"
             >
-              <input
+              <DatePicker
                 id="rumor-reportedAt"
                 v-model="reportedAt"
                 v-bind="reportedAtAttrs"
-                type="date"
-                :max="today()"
-                :aria-describedby="describedBy"
+                :max="localToday()"
+                :described-by="describedBy"
                 :aria-invalid="invalid || undefined"
-                :class="input"
+                class="h-10 border-2 bg-surface-raised"
               />
             </FormField>
             <fieldset class="flex flex-col gap-1">

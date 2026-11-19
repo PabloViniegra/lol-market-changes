@@ -4,6 +4,7 @@ import { computed, ref, useId, watch } from "vue";
 import { findTeam, useTeams } from "../api/teams";
 import { KIND_LABELS, KINDS, LEAGUES, ROLES, STATUS_LABELS, STATUSES } from "../format";
 import { useFeedFilters } from "../stores/feedFilters";
+import DatePicker from "./DatePicker.vue";
 import FilterChip from "./FilterChip.vue";
 import TeamCombobox from "./TeamCombobox.vue";
 
@@ -28,6 +29,8 @@ const toggle = <K extends "league" | "role" | "kind">(
 ) => store.update({ [key]: filters.value[key] === value ? null : value });
 
 const teamId = useId();
+const fromId = useId();
+const toId = useId();
 const teamDraft = ref(teamValue.value);
 
 watch(teamValue, (value) => (teamDraft.value = value));
@@ -42,12 +45,6 @@ const setPlayer = (event: Event) => {
   const input = event.target;
 
   if (input instanceof HTMLInputElement) store.update({ player: input.value.trim() || null });
-};
-
-const setDate = (key: "from" | "to", event: Event) => {
-  const input = event.target;
-
-  if (input instanceof HTMLInputElement) store.update({ [key]: input.value || null });
 };
 </script>
 
@@ -172,28 +169,30 @@ const setDate = (key: "from" | "to", event: Event) => {
             @change="setTeam(teamDraft)"
           />
         </div>
-        <label class="flex flex-col gap-1 type-body-sm text-text-muted">
-          From
-          <input
-            type="date"
-            :value="filters.from ?? ''"
-            :max="filters.to ?? undefined"
+        <div class="flex w-full flex-col gap-1 type-body-sm text-text-muted sm:w-56">
+          <label :for="fromId">From</label>
+          <DatePicker
+            :id="fromId"
+            :model-value="filters.from ?? ''"
+            :max="filters.to"
             :class="fieldBg"
-            class="h-11 rounded-control border border-control-border px-3 type-body-md text-text md:h-10"
-            @change="setDate('from', $event)"
+            class="h-11 border md:h-10"
+            clearable
+            @update:model-value="store.update({ from: $event || null })"
           />
-        </label>
-        <label class="flex flex-col gap-1 type-body-sm text-text-muted">
-          To
-          <input
-            type="date"
-            :value="filters.to ?? ''"
-            :min="filters.from ?? undefined"
+        </div>
+        <div class="flex w-full flex-col gap-1 type-body-sm text-text-muted sm:w-56">
+          <label :for="toId">To</label>
+          <DatePicker
+            :id="toId"
+            :model-value="filters.to ?? ''"
+            :min="filters.from"
             :class="fieldBg"
-            class="h-11 rounded-control border border-control-border px-3 type-body-md text-text md:h-10"
-            @change="setDate('to', $event)"
+            class="h-11 border md:h-10"
+            clearable
+            @update:model-value="store.update({ to: $event || null })"
           />
-        </label>
+        </div>
       </div>
     </div>
   </div>
