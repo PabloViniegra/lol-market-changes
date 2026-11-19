@@ -1,1 +1,12 @@
-[]
+- id: "2026-11-17-doggo-free-agent-to-fnatic"
+  player: "Doggo"
+  from_team: null
+  to_team: "Fnatic"
+  role: Bot
+  kind: transfer
+  reported_at: 2026-11-17
+  sources:
+    - url: "https://www.sheepesports.com/en/articles/sources-doggo-set-to-join-fnatic-for-the-2027-lec-season/en"
+      outlet: "Sheep Sports"
+  reliability: 5
+  status: rumor
