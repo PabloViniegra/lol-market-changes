@@ -46,6 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: rumor tracker (`/rumors`) with open, confirmed and denied or faded rumors and the confirmation rate, linked from the header and the dashboard.
 - Web: "How to read the board" legend explaining team codes, `FA`, `OUT` and every status.
 - Web: feed team filter, a visible label for each filter group and a "Showing N moves" count.
+- API: `GET /api/teams` lists the teams in a tracked league; the feed team filter suggests them.
 
 ### Changed
 
@@ -59,10 +60,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: filter chips, busiest-team links and header links are larger tap targets on small screens.
 - Web: "This season" is now "This window", and previous tournaments show readable names instead of the Leaguepedia page path.
 - Web: the empty board state spans the full width.
+- API: the feed `team` filter and `GET /api/teams/:name`, including its rumors, ignore letter case, so `fnatic` finds Fnatic.
+- API: `GET /api/players/:name` returns moves and rumors as feed items, with team codes, leagues and sources, plus `currentTeamShort`; moves outside the tracked leagues are left out, as in the feed.
+- Web: an empty feed filtered by team names the team, and the "Moves involving" link only appears for a known team.
 
 ### Fixed
 
 - Web: feed date filters can no longer set a start date after the end date.
+- Web: the player page shows the same team codes as the rest of the board (`FNC`, not `FNA`), with league tags and source links.
 
 ## [0.1.0] - 2026-11-18
 

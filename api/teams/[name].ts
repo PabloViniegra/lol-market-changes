@@ -5,15 +5,20 @@ import { toRumor } from "../_lib/rumors.js";
 const toEntry = ({ player, role }: Record<string, any>): RosterEntry => ({ player, role });
 
 export const GET = handler(async (url): Promise<TeamResponse> => {
-  const name = pathName(url);
+  const requested = pathName(url);
   const seasonStart = windowStart("season");
   const sql = db();
+  const [team] = await sql`select name, short, league, region, logo_url from teams
+                           where lower(name) = lower(${requested})
+                           order by name = ${requested} desc
+                           limit 1`;
+  if (!team) throw new NotFound(`Team ${requested} not found`);
+  const name: string = team.name;
 
   // The previous roster is the team's last tournament roster before the season started; the
   // current one applies every later move to it.
-  const [teams = [], [base] = [], current = [], rumors = []] = await sql.transaction(
+  const [[base] = [], current = [], rumors = []] = await sql.transaction(
     [
-      sql`select name, short, league, region, logo_url from teams where name = ${name}`,
       sql`select tournament, roster from team_seasons
           where team = ${name} and date_start < ${seasonStart}::date and roster <> '[]'
           order by date_start desc limit 1`,
@@ -44,14 +49,12 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
                  reported_at::text as reported_at, reliability, sources, notes,
                  transfer_id::text as transfer_id
           from rumors
-          where ${name} in (from_team, to_team)
+          where lower(${name}) in (lower(from_team), lower(to_team))
           order by reported_at desc, id`,
     ],
     { readOnly: true },
   );
 
-  const [team] = teams;
-  if (!team) throw new NotFound(`Team ${name} not found`);
   const roster = current.map(toEntry);
   const previousRoster: RosterEntry[] = (base?.roster ?? []).map(toEntry);
   const now = new Set(roster.map((entry) => entry.player));

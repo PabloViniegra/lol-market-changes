@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { FeedItem, Move, Rumor } from "@lol/shared";
 import { computed } from "vue";
 import { HttpError } from "../api/client";
 import { usePlayer } from "../api/players";
@@ -15,49 +14,6 @@ const player = usePlayer(() => props.name);
 
 const notFound = computed(
   () => player.error.value instanceof HttpError && player.error.value.status === 404,
-);
-
-const base = (name: string) => ({
-  player: name,
-  fromShort: null,
-  toShort: null,
-  fromLeague: null,
-  toLeague: null,
-  notes: null,
-  rumorId: null,
-  transferId: null,
-});
-
-const moves = computed<FeedItem[] | undefined>(() =>
-  player.data.value?.timeline.map((move: Move) => ({
-    ...base(props.name),
-    id: move.id,
-    status: "official",
-    fromTeam: move.fromTeam,
-    toTeam: move.toTeam,
-    role: move.role,
-    kind: move.kind,
-    date: move.date,
-    reliability: null,
-    sources: [],
-  })),
-);
-
-const rumors = computed<FeedItem[] | undefined>(() =>
-  player.data.value?.rumors.map((rumor: Rumor) => ({
-    ...base(props.name),
-    id: rumor.id,
-    status: rumor.status,
-    fromTeam: rumor.fromTeam,
-    toTeam: rumor.toTeam,
-    role: rumor.role,
-    kind: rumor.kind,
-    date: rumor.reportedAt,
-    reliability: rumor.reliability,
-    sources: rumor.sources,
-    notes: rumor.notes,
-    transferId: rumor.transferId,
-  })),
 );
 
 const details = computed(() => {
@@ -104,7 +60,9 @@ const details = computed(() => {
         </span>
         <BoardFlap
           :code="
-            player.data.value.currentTeam ? teamCode(player.data.value.currentTeam, null) : null
+            player.data.value.currentTeam
+              ? teamCode(player.data.value.currentTeam, player.data.value.currentTeamShort)
+              : null
           "
           placeholder="FA"
           empty-label="free agent"
@@ -118,7 +76,7 @@ const details = computed(() => {
       <h2 id="player-moves-heading" class="mb-4 type-heading-md">Moves</h2>
       <MoveBoard
         :key="name"
-        :items="moves"
+        :items="player.data.value.timeline"
         :pending="false"
         empty="No official moves in the last two seasons."
       />
@@ -128,7 +86,7 @@ const details = computed(() => {
       <h2 id="player-rumors-heading" class="mb-4 type-heading-md">Rumors</h2>
       <MoveBoard
         :key="name"
-        :items="rumors"
+        :items="player.data.value.rumors"
         :pending="false"
         empty="No rumors involve this player."
       />

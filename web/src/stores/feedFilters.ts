@@ -68,11 +68,13 @@ export const useFeedFilters = defineStore("feedFilters", () => {
     return { ...rest, status: statuses.join(","), limit: 50 };
   });
 
-  const isFiltered = computed(() => {
-    const { statuses, ...rest } = filters.value;
+  const hasNonTeamFilters = computed(() => {
+    const { statuses, team: _team, ...rest } = filters.value;
 
     return !isDefaultStatuses(statuses) || Object.values(rest).some((value) => value !== null);
   });
+
+  const isFiltered = computed(() => hasNonTeamFilters.value || filters.value.team !== null);
 
   function update(patch: Partial<FeedFilters>) {
     const next = { ...filters.value, ...patch };
@@ -102,5 +104,5 @@ export const useFeedFilters = defineStore("feedFilters", () => {
     void router.replace({ query: {} });
   }
 
-  return { filters, apiParams, isFiltered, update, toggleStatus, clear };
+  return { filters, apiParams, isFiltered, hasNonTeamFilters, update, toggleStatus, clear };
 });

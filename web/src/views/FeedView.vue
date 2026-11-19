@@ -2,6 +2,7 @@
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useFeedPages } from "../api/feed";
+import { useTeams } from "../api/teams";
 import BoardLegend from "../components/BoardLegend.vue";
 import FilterChip from "../components/FilterChip.vue";
 import MoveBoard from "../components/MoveBoard.vue";
@@ -10,9 +11,31 @@ import { KIND_LABELS, KINDS, LEAGUES, ROLES, STATUS_LABELS, STATUSES } from "../
 import { useFeedFilters } from "../stores/feedFilters";
 
 const store = useFeedFilters();
-const { filters, apiParams, isFiltered } = storeToRefs(store);
+const { filters, apiParams, isFiltered, hasNonTeamFilters } = storeToRefs(store);
 const feed = useFeedPages(apiParams);
 const items = computed(() => feed.data.value?.pages.flatMap((page) => page.items));
+const teams = useTeams();
+
+const findTeam = (name: string) => {
+  const key = name.toLowerCase();
+
+  return teams.data.value?.teams.find((team) => team.name.toLowerCase() === key);
+};
+
+const knownTeam = computed(() => (filters.value.team ? findTeam(filters.value.team) : undefined));
+const teamName = computed(() => knownTeam.value?.name ?? filters.value.team);
+
+const emptyMessage = computed(() => {
+  if (!filters.value.team) {
+    return "No moves match these filters. Try removing a role or widening the dates.";
+  }
+
+  if (hasNonTeamFilters.value) {
+    return `No moves involve “${teamName.value}” with these filters. Try removing a filter or widening the dates.`;
+  }
+
+  return `No moves involve “${teamName.value}”. Team names follow Leaguepedia, for example “Gen.G”.`;
+});
 
 const toggle = <K extends "league" | "role" | "kind">(
   key: K,
@@ -22,7 +45,11 @@ const toggle = <K extends "league" | "role" | "kind">(
 const setTeam = (event: Event) => {
   const input = event.target;
 
-  if (input instanceof HTMLInputElement) store.update({ team: input.value.trim() || null });
+  if (!(input instanceof HTMLInputElement)) return;
+
+  const value = input.value.trim();
+
+  store.update({ team: value ? (findTeam(value)?.name ?? value) : null });
 };
 
 const setDate = (key: "from" | "to", event: Event) => {
@@ -35,14 +62,16 @@ const setDate = (key: "from" | "to", event: Event) => {
 <template>
   <div class="mb-6 flex flex-wrap items-baseline justify-between gap-4">
     <h1 class="type-heading-lg">Market feed</h1>
-    <p v-if="filters.team" class="flex items-center gap-3 type-body-md">
+    <p v-if="teamName" class="flex items-center gap-3 type-body-md">
       Moves involving
       <RouterLink
-        :to="`/teams/${encodeURIComponent(filters.team)}`"
+        v-if="knownTeam"
+        :to="`/teams/${encodeURIComponent(knownTeam.name)}`"
         class="underline hover:text-primary"
       >
-        {{ filters.team }}
+        {{ knownTeam.name }}
       </RouterLink>
+      <template v-else>“{{ teamName }}”</template>
     </p>
   </div>
 
@@ -108,11 +137,18 @@ const setDate = (key: "from" | "to", event: Event) => {
         Team
         <input
           type="search"
-          :value="filters.team ?? ''"
+          :value="teamName ?? ''"
+          list="tracked-teams"
+          autocomplete="off"
           placeholder="Leaguepedia name, e.g. Gen.G"
           class="h-10 w-64 rounded-control bg-surface-raised px-3 type-body-md text-text placeholder:text-text-muted"
           @change="setTeam"
         />
+        <datalist id="tracked-teams">
+          <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name">
+            {{ team.league }}
+          </option>
+        </datalist>
       </label>
       <label class="flex flex-col gap-1 type-body-sm text-text-muted">
         From
@@ -160,7 +196,7 @@ const setDate = (key: "from" | "to", event: Event) => {
       :key="JSON.stringify(apiParams)"
       :items="items"
       :pending="feed.isPending.value"
-      empty="No moves match these filters. Try removing a role or widening the dates."
+      :empty="emptyMessage"
     />
     <button
       v-if="feed.hasNextPage.value"

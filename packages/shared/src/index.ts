@@ -90,6 +90,11 @@ export interface TeamInfo {
   logoUrl: string | null;
 }
 
+export interface TeamsResponse {
+  /** Teams currently in a tracked league, by name. */
+  teams: { name: string; short: string | null; league: League }[];
+}
+
 export interface RosterEntry {
   player: string;
   role: string | null;
@@ -123,15 +128,6 @@ export interface TeamResponse {
   rumors: Rumor[];
 }
 
-export interface Move {
-  id: string;
-  date: string;
-  kind: MoveKind;
-  fromTeam: string | null;
-  toTeam: string | null;
-  role: string | null;
-}
-
 export interface PlayerResponse {
   player: {
     name: string;
@@ -141,6 +137,7 @@ export interface PlayerResponse {
     imageUrl: string | null;
   };
   currentTeam: string | null;
-  timeline: Move[];
-  rumors: Rumor[];
+  currentTeamShort: string | null;
+  timeline: FeedItem[];
+  rumors: FeedItem[];
 }

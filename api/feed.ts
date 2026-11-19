@@ -1,4 +1,5 @@
 import type { FeedItem, FeedResponse, FeedStatus, League, MoveKind } from "@lol/shared";
+import { toFeedItem } from "./_lib/feed.js";
 import { BadRequest, db, handler, isIsoDate, isoDate, oneOf, text } from "./_lib/http.js";
 
 const LEAGUES = ["LCK", "LPL", "LEC", "LCS"] as const satisfies readonly League[];
@@ -44,7 +45,7 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
     from market_feed
     where status = any(${statuses}::text[])
       and (${league}::text is null or ${league}::text in (from_league, to_league))
-      and (${team}::text is null or ${team}::text in (from_team, to_team))
+      and (${team}::text is null or lower(${team}::text) in (lower(from_team), lower(to_team)))
       and (${role}::text is null or role = ${role}::text)
       and (${kind}::text is null or kind = ${kind}::text)
       and (${from}::date is null or date >= ${from}::date)
@@ -54,25 +55,7 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
     order by date desc, id desc
     limit ${limit + 1}`;
 
-  const items: FeedItem[] = rows.slice(0, limit).map((row) => ({
-    id: row.id,
-    status: row.status,
-    player: row.player,
-    fromTeam: row.from_team,
-    toTeam: row.to_team,
-    fromShort: row.from_short,
-    toShort: row.to_short,
-    fromLeague: row.from_league,
-    toLeague: row.to_league,
-    role: row.role,
-    kind: row.kind,
-    date: row.date,
-    reliability: row.reliability,
-    sources: row.sources,
-    notes: row.notes,
-    rumorId: row.rumor_id,
-    transferId: row.transfer_id,
-  }));
+  const items: FeedItem[] = rows.slice(0, limit).map(toFeedItem);
   const last = items.at(-1);
   const nextCursor = rows.length > limit && last ? encodeCursor(last.date, last.id) : null;
   return { items, nextCursor };
