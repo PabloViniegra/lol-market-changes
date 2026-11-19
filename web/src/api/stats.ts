@@ -1,5 +1,5 @@
 import type { FlowsResponse, StatsResponse, StatsWindow } from "@lol/shared";
-import { useQuery } from "@tanstack/vue-query";
+import { keepPreviousData, useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 import { getJson } from "./client";
 
@@ -18,5 +18,6 @@ export function useFlows(
     queryKey: computed(() => ["flows", toValue(level), toValue(window)]),
     queryFn: () =>
       getJson<FlowsResponse>("/api/flows", { level: toValue(level), window: toValue(window) }),
+    placeholderData: keepPreviousData,
   });
 }

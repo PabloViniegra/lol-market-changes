@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import type { FlowsResponse } from "@lol/shared";
-import { computed, defineAsyncComponent } from "vue";
+import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useFeed } from "../api/feed";
 import { useFlows, useStats } from "../api/stats";
 import BoardLegend from "../components/BoardLegend.vue";
 import FilterChip from "../components/FilterChip.vue";
+import FlowsChart from "../components/FlowsChart.vue";
 import LeagueBars from "../components/LeagueBars.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
 import { shortDate } from "../format";
-
-const FlowsChart = defineAsyncComponent(() => import("../components/FlowsChart.vue"));
 
 const route = useRoute();
 const router = useRouter();
@@ -258,45 +257,22 @@ const teamToTeam = computed(
       <p v-else-if="!flows.data.value?.links.length" class="text-text-muted">
         No team-to-team moves this window yet.
       </p>
-      <template v-else>
+      <div
+        v-else
+        :aria-busy="flows.isPlaceholderData.value"
+        :class="{ 'opacity-60': flows.isPlaceholderData.value }"
+      >
         <p class="mb-4 max-w-prose type-body-sm text-text-muted">
           {{ teamToTeam }} {{ teamToTeam === 1 ? "move" : "moves" }}
           <template v-if="stats.data.value">of {{ stats.data.value.totalMoves }}</template>
           went straight from one team to another. Releases, retirements and free agent signings are
           not shown.
-          <template v-if="flowLevel === 'league'">
+          <template v-if="flows.data.value.level === 'league'">
             Other covers teams outside LCK, LPL, LEC and LCS.
           </template>
         </p>
-        <ul
-          v-if="flows.data.value.links.length < 8"
-          class="flex max-w-prose flex-col divide-y divide-line"
-        >
-          <li
-            v-for="link in flows.data.value.links.toSorted((a, b) => b.value - a.value)"
-            :key="`${link.source}-${link.target}`"
-            class="flex items-baseline justify-between gap-4 py-2"
-          >
-            <span v-if="link.source === link.target" class="min-w-0 type-body-md">
-              {{
-                link.source === "Other"
-                  ? "Between teams outside the tracked leagues"
-                  : `Within ${link.source}`
-              }}
-            </span>
-            <span v-else class="min-w-0 type-body-md">
-              {{ link.source }}
-              <span class="text-text-muted" aria-hidden="true">▸</span>
-              <span class="sr-only">to</span>
-              {{ link.target }}
-            </span>
-            <span class="whitespace-nowrap type-data-tabular">
-              {{ link.value }} {{ link.value === 1 ? "move" : "moves" }}
-            </span>
-          </li>
-        </ul>
-        <FlowsChart v-else :links="flows.data.value.links" />
-      </template>
+        <FlowsChart :links="flows.data.value.links" />
+      </div>
     </div>
   </section>
 </template>

@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: market feed (`/feed`) with league, role, move type, status and date filters mirrored in the URL, and paginated loading.
 - Web: team page (`/teams/:name`) with the previous and current roster, arrivals, departures, moves since the season start and related rumors.
 - Web: "Updated X min ago" indicator, a stale-data banner after one hour without a sync, error states that retry every 30 seconds and a one-time flap flip on new moves (a yellow edge with reduced motion). Data refetches every 5 minutes.
-- Web: Pinia, ECharts and vue-echarts dependencies; the dev server proxies `/api` to production, or to `API_ORIGIN` when set.
+- Web: Pinia dependency; the dev server proxies `/api` to production, or to `API_ORIGIN` when set.
 - Web: static loading skeletons that mirror the board rows, dashboard stats, flows chart, team rosters and player header.
 - API: feed items include `fromShort` and `toShort` team codes.
 - Web: Transfer Board design system (`DESIGN.md`) as Tailwind CSS 4 tokens and `type-*` utilities, with self-hosted Big Shoulders Display and Atkinson Hyperlegible Next fonts; `PRODUCT.md` with the product context.
@@ -56,6 +56,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: "Where players went" is a hand-built SVG flows diagram, even with only a few routes. Pointing at or tabbing through a route (arrow keys move between routes) highlights it and shows its count, team nodes take their league colour, and switching between league and team view morphs the diagram (instant with reduced motion). It replaces the ECharts Sankey and the short-list fallback.
 - Web: board rows fit on two lines below 768px: the move type stays available to screen readers only and the team-name subline is hidden, since the flaps carry it.
 - Web: an empty rumor tracker explains the rumor lifecycle; the dashboard hides the rumor strip and the confirmation rate when there are no rumors.
 - Web: the feed empty state suggests removing only the filters that are set; the dashboard free agent row reads "Released and unsigned".
