@@ -15,3 +15,6 @@ ingestor/target/
 /.claude/settings.local.json
 .DS_Store
 graphify-out/
+.claude/
+.agents/
+skills-lock.json
