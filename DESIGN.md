@@ -344,6 +344,8 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 
 **Filter chips.** Leagues, roles, move types and statuses. Inactive chips are surface with muted text. Active chips invert to light fill with petrol text, so the active state never competes with signal yellow. Chips are 44px tall below 768px and 32px above, so every chip is a comfortable tap target. Each group (League, Role, Move, Status) has a visible label. Every filter is mirrored in the URL.
 
+**Dropdowns and comboboxes.** No native selects or datalists, because their option lists can't carry the system. A dropdown trigger is styled like an input field, with a 20px outline chevron. Its list is a popover (`surface-raised`, 1px `line` outline, `control` radius) of 40px rows: the highlighted row is `line` with `text`, the others are `text-muted`, and the chosen option ends with a yellow check. Team comboboxes list each match as code, full name and league tag, and show the matched code and tag inside the field. Reliability is picked on a row of five 40px `surface-raised` tiles, each holding a dot that fills yellow up to the chosen level, next to its label ("3 · Plausible").
+
 **Board legend.** A collapsed "How to read the board" disclosure next to every board heading. Opened, it shows a `surface` panel explaining origin ▸ destination, `FA` and `OUT`, and each status pill with one line of meaning. It never opens on its own.
 
 **Freshness indicator.** In the header: "Updated 4 min ago" in `body-sm`, muted. When the last sync is older than 1 hour, the header text is hidden and a full-width `surface-raised` bar appears under the header with a signal-yellow warning icon: "**Data hasn't refreshed for 2 hours.** Moves from Leaguepedia may be missing."
@@ -352,7 +354,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 
 **Empty and error states.** Plain sentences that say what to do. Empty filtered feed: "No moves match these filters. Try removing a role or widening the dates." API error: "Couldn't load moves. Retrying in 30 seconds." with a "Retry now" secondary button.
 
-**Motion.** When a refetch brings in a new move, each flap flips once around its seam. The upper half folds in for 140ms and the lower half unfolds for 140ms using `--ease-out` (`cubic-bezier(0.23, 1, 0.32, 1)`), with a 30ms delay on the destination flap to follow the direction of the move. The mobile filters sheet slides from and back to the bottom edge over 240ms using `--ease-drawer` (`cubic-bezier(0.32, 0.72, 0, 1)`). Hover, focus and inline disclosures update instantly. With `prefers-reduced-motion`, the flip is replaced by a 1-second yellow left edge and the sheet uses a 240ms opacity transition.
+**Motion.** When a refetch brings in a new move, each flap flips once around its seam. The upper half folds in for 140ms and the lower half unfolds for 140ms using `--ease-out` (`cubic-bezier(0.23, 1, 0.32, 1)`), with a 30ms delay on the destination flap to follow the direction of the move. The mobile filters sheet slides from and back to the bottom edge over 240ms using `--ease-drawer` (`cubic-bezier(0.32, 0.72, 0, 1)`). Dropdown and combobox lists open over 140ms (fade plus a 4px drop) using `--ease-out` and close with a 90ms fade. Hover, focus and inline disclosures update instantly. With `prefers-reduced-motion`, the flip is replaced by a 1-second yellow left edge, the sheet uses a 240ms opacity transition and lists fade without moving.
 
 ## Do's and Don'ts
 

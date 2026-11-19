@@ -7,7 +7,11 @@ import { z } from "zod";
 import { useSubmitRumor } from "../api/submissions";
 import { useTeams } from "../api/teams";
 import FormField from "../components/FormField.vue";
+import ReliabilityMeter from "../components/ReliabilityMeter.vue";
+import RoleIcon from "../components/RoleIcon.vue";
 import RumorPreview from "../components/RumorPreview.vue";
+import SelectMenu from "../components/SelectMenu.vue";
+import TeamCombobox from "../components/TeamCombobox.vue";
 import WarningIcon from "../components/WarningIcon.vue";
 import { zodSchema } from "../forms";
 import { KIND_LABELS, KINDS, ROLES } from "../format";
@@ -86,6 +90,18 @@ const [outlet, outletAttrs] = defineField("outlet", lazy);
 const [reliability, reliabilityAttrs] = defineField("reliability", lazy);
 const [notes, notesAttrs] = defineField("notes", lazy);
 
+const RELIABILITY = ["Weak", "Shaky", "Plausible", "Reliable", "Very reliable"] as const;
+
+const ROLE_OPTIONS = [
+  { value: "", label: "Not sure" },
+  ...ROLES.map((r) => ({ value: r, label: r })),
+];
+
+const KIND_OPTIONS = [
+  { value: "", label: "Not sure" },
+  ...KINDS.map((k) => ({ value: k, label: KIND_LABELS[k] })),
+];
+
 const website = ref("");
 const teams = useTeams();
 const submit = useSubmitRumor();
@@ -155,6 +171,19 @@ const input =
       <p class="mt-2 type-body-md text-text-muted">
         If it’s accepted, it shows in the rumor tracker after the next sync.
       </p>
+      <RumorPreview
+        class="mt-8"
+        bare
+        heading="Waiting for review"
+        flip-on-mount
+        :player="player ?? ''"
+        :from-team="fromTeam ?? ''"
+        :to-team="toTeam ?? ''"
+        :role="role ?? ''"
+        :kind="kind ?? ''"
+        :reliability="reliability ?? 3"
+        :teams="teams.data.value?.teams ?? []"
+      />
       <div class="mt-6 flex flex-wrap gap-3">
         <RouterLink
           to="/rumors"
@@ -184,7 +213,7 @@ const input =
             id="rumor-player"
             v-slot="{ describedBy, invalid }"
             label="Player"
-            hint="Use the name on Leaguepedia, for example Caps."
+            hint="Use the name on Leaguepedia."
             :error="errors.player"
           >
             <input
@@ -194,7 +223,9 @@ const input =
               :aria-describedby="describedBy"
               :aria-invalid="invalid || undefined"
               autocomplete="off"
-              :class="input"
+              spellcheck="false"
+              placeholder="Caps"
+              class="h-14 w-full rounded-control border-2 border-transparent bg-surface-raised px-4 type-board-player text-text placeholder:text-text-muted aria-invalid:border-text"
             />
           </FormField>
 
@@ -206,15 +237,13 @@ const input =
               hint="Leave empty for a free agent."
               :error="errors.fromTeam"
             >
-              <input
+              <TeamCombobox
                 id="rumor-fromTeam"
                 v-model="fromTeam"
                 v-bind="fromTeamAttrs"
-                list="rumor-teams"
+                :teams="teams.data.value?.teams ?? []"
                 :aria-describedby="describedBy"
                 :aria-invalid="invalid || undefined"
-                autocomplete="off"
-                :class="input"
               />
             </FormField>
             <FormField
@@ -224,20 +253,15 @@ const input =
               hint="Leave empty if they leave the scene."
               :error="errors.toTeam"
             >
-              <input
+              <TeamCombobox
                 id="rumor-toTeam"
                 v-model="toTeam"
                 v-bind="toTeamAttrs"
-                list="rumor-teams"
+                :teams="teams.data.value?.teams ?? []"
                 :aria-describedby="describedBy"
                 :aria-invalid="invalid || undefined"
-                autocomplete="off"
-                :class="input"
               />
             </FormField>
-            <datalist id="rumor-teams">
-              <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name" />
-            </datalist>
 
             <FormField
               id="rumor-role"
@@ -246,16 +270,23 @@ const input =
               optional
               :error="errors.role"
             >
-              <select
+              <SelectMenu
                 id="rumor-role"
                 v-model="role"
                 v-bind="roleAttrs"
+                :options="ROLE_OPTIONS"
                 :aria-describedby="describedBy"
-                :class="input"
               >
-                <option value="">Not sure</option>
-                <option v-for="item in ROLES" :key="item" :value="item">{{ item }}</option>
-              </select>
+                <template #option="{ option }">
+                  <RoleIcon v-if="option?.value" :role="String(option.value)" />
+                  <span
+                    v-else
+                    class="size-5 shrink-0 rounded-flap border border-dashed border-text-muted"
+                    aria-hidden="true"
+                  />
+                  <span class="truncate">{{ option?.label }}</span>
+                </template>
+              </SelectMenu>
             </FormField>
             <FormField
               id="rumor-kind"
@@ -264,18 +295,13 @@ const input =
               optional
               :error="errors.kind"
             >
-              <select
+              <SelectMenu
                 id="rumor-kind"
                 v-model="kind"
                 v-bind="kindAttrs"
+                :options="KIND_OPTIONS"
                 :aria-describedby="describedBy"
-                :class="input"
-              >
-                <option value="">Not sure</option>
-                <option v-for="item in KINDS" :key="item" :value="item">
-                  {{ KIND_LABELS[item] }}
-                </option>
-              </select>
+              />
             </FormField>
           </div>
         </fieldset>
@@ -287,6 +313,7 @@ const input =
               id="rumor-sourceUrl"
               v-slot="{ describedBy, invalid }"
               label="Source link"
+              hint="The article or post that reports it."
               :error="errors.sourceUrl"
             >
               <input
@@ -323,6 +350,7 @@ const input =
               id="rumor-reportedAt"
               v-slot="{ describedBy, invalid }"
               label="Reported on"
+              hint="The day the source published it."
               :error="errors.reportedAt"
             >
               <input
@@ -336,27 +364,18 @@ const input =
                 :class="input"
               />
             </FormField>
-            <FormField
-              id="rumor-reliability"
-              v-slot="{ describedBy }"
-              label="Reliability"
-              hint="How trustworthy is the source?"
-              :error="errors.reliability"
-            >
-              <select
-                id="rumor-reliability"
-                v-model.number="reliability"
+            <fieldset class="flex flex-col gap-1">
+              <legend class="type-label-md">Reliability</legend>
+              <p id="rumor-reliability-hint" class="type-body-sm text-text-muted">
+                How trustworthy is the source?
+              </p>
+              <ReliabilityMeter
+                v-model="reliability"
                 v-bind="reliabilityAttrs"
-                :aria-describedby="describedBy"
-                :class="input"
-              >
-                <option :value="1">1 · Weak</option>
-                <option :value="2">2 · Shaky</option>
-                <option :value="3">3 · Plausible</option>
-                <option :value="4">4 · Reliable</option>
-                <option :value="5">5 · Very reliable</option>
-              </select>
-            </FormField>
+                :labels="RELIABILITY"
+                described-by="rumor-reliability-hint"
+              />
+            </fieldset>
           </div>
 
           <FormField
@@ -374,8 +393,15 @@ const input =
               :aria-describedby="describedBy"
               :aria-invalid="invalid || undefined"
               :class="input"
-              class="h-auto py-2"
+              class="h-auto resize-y py-2"
             />
+            <p
+              class="self-end type-body-sm tabular-nums"
+              :class="(notes?.length ?? 0) > 500 ? 'text-text' : 'text-text-muted'"
+              aria-hidden="true"
+            >
+              {{ notes?.length ?? 0 }} / 500
+            </p>
           </FormField>
         </fieldset>
 

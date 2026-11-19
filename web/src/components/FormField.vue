@@ -20,7 +20,7 @@ const describedBy = computed(
 
 <template>
   <div class="flex flex-col gap-1">
-    <label :for="id" class="type-label-md">
+    <label :for="id" class="flex min-h-4 items-baseline gap-1 type-label-md">
       {{ label }}
       <span v-if="optional" class="type-body-sm text-text-muted">(optional)</span>
     </label>

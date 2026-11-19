@@ -61,6 +61,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: "Send a rumor" form uses its own role and move dropdowns, a team combobox with codes and league tags, and a reliability dot meter instead of native selects and datalists, so every option follows the design system. The player name is typed in board type, the preview flips its flaps when a team changes and the success state shows the rumor waiting for review.
+- Web: the feed team filter uses the same team combobox, with codes and league tags.
 - Web: "Where players went" is a hand-built SVG flows diagram, even with only a few routes. Pointing at or tabbing through a route (arrow keys move between routes) highlights it and shows its count, team nodes take their league colour, and switching between league and team view morphs the diagram (instant with reduced motion). It replaces the ECharts Sankey and the short-list fallback.
 - Web: board rows fit on two lines below 768px: the move type stays available to screen readers only and the team-name subline is hidden, since the flaps carry it.
 - Web: an empty rumor tracker explains the rumor lifecycle; the dashboard hides the rumor strip and the confirmation rate when there are no rumors.
@@ -100,6 +102,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Web: on mobile the "Updated X min ago" text moves under the navigation instead of being cut off at the right edge of the header.
 - Web: official moves that confirm a rumor show the Confirmed badge and match the Confirmed filter. The feed shows one row per match when both entries qualify, and the tracker keeps the original report.
 - Ingestor and API: record and expose the last successful sync separately from the latest attempt. The dashboard shows failed or unavailable freshness and keeps the Leaguepedia credit visible when metadata is unavailable.
 - Web: board empty states and query errors avoid promising a refresh time they cannot guarantee.

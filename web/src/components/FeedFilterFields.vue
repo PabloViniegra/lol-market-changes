@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, useId, watch } from "vue";
 import { findTeam, useTeams } from "../api/teams";
 import { KIND_LABELS, KINDS, LEAGUES, ROLES, STATUS_LABELS, STATUSES } from "../format";
 import { useFeedFilters } from "../stores/feedFilters";
 import FilterChip from "./FilterChip.vue";
+import TeamCombobox from "./TeamCombobox.vue";
 
 const props = defineProps<{ collapsible?: boolean }>();
 
@@ -26,14 +27,15 @@ const toggle = <K extends "league" | "role" | "kind">(
   value: NonNullable<(typeof filters.value)[K]>,
 ) => store.update({ [key]: filters.value[key] === value ? null : value });
 
-const setTeam = (event: Event) => {
-  const input = event.target;
+const teamId = useId();
+const teamDraft = ref(teamValue.value);
 
-  if (!(input instanceof HTMLInputElement)) return;
+watch(teamValue, (value) => (teamDraft.value = value));
 
-  const value = input.value.trim();
+const setTeam = (value: string) => {
+  const name = value.trim();
 
-  store.update({ team: value ? (findTeam(teams.data.value?.teams, value)?.name ?? value) : null });
+  store.update({ team: name ? (findTeam(teams.data.value?.teams, name)?.name ?? name) : null });
 };
 
 const setPlayer = (event: Event) => {
@@ -158,24 +160,18 @@ const setDate = (key: "from" | "to", event: Event) => {
       </fieldset>
 
       <div class="flex flex-wrap items-end gap-x-6 gap-y-4 md:pl-24">
-        <label class="flex w-full flex-col gap-1 type-body-sm text-text-muted sm:w-64">
-          Team
-          <input
-            type="search"
-            :value="teamValue"
-            list="tracked-teams"
-            autocomplete="off"
+        <div class="flex w-full flex-col gap-1 type-body-sm text-text-muted sm:w-64">
+          <label :for="teamId">Team</label>
+          <TeamCombobox
+            :id="teamId"
+            v-model="teamDraft"
+            :teams="teams.data.value?.teams ?? []"
+            :field-class="[fieldBg, 'h-11 md:h-10'].join(' ')"
             placeholder="Name or code, e.g. FNC"
-            :class="fieldBg"
-            class="h-11 rounded-control px-3 type-body-md text-text placeholder:text-text-muted md:h-10"
-            @change="setTeam"
+            @select="setTeam"
+            @change="setTeam(teamDraft)"
           />
-        </label>
-        <datalist id="tracked-teams">
-          <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name">
-            {{ [team.short, team.league].filter(Boolean).join(" · ") }}
-          </option>
-        </datalist>
+        </div>
         <label class="flex flex-col gap-1 type-body-sm text-text-muted">
           From
           <input

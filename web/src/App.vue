@@ -71,7 +71,10 @@ const freshness = computed(() =>
           >Rumors</RouterLink
         >
       </nav>
-      <p v-if="meta && !warning" class="type-body-sm text-text-muted md:ml-auto">
+      <p
+        v-if="meta && !warning"
+        class="order-last -mt-1 basis-full pb-3 type-body-sm text-text-muted md:order-none md:mt-0 md:ml-auto md:basis-auto md:pb-0"
+      >
         {{ freshness }}
       </p>
       <LolLogo
