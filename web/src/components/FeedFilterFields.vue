@@ -36,6 +36,12 @@ const setTeam = (event: Event) => {
   store.update({ team: value ? (findTeam(teams.data.value?.teams, value)?.name ?? value) : null });
 };
 
+const setPlayer = (event: Event) => {
+  const input = event.target;
+
+  if (input instanceof HTMLInputElement) store.update({ player: input.value.trim() || null });
+};
+
 const setDate = (key: "from" | "to", event: Event) => {
   const input = event.target;
 
@@ -45,10 +51,28 @@ const setDate = (key: "from" | "to", event: Event) => {
 
 <template>
   <div class="flex flex-col gap-4">
+    <div class="filter-group">
+      <label :for="collapsible ? 'player-search' : 'player-search-sheet'" class="filter-legend">
+        Player
+      </label>
+      <input
+        :id="collapsible ? 'player-search' : 'player-search-sheet'"
+        type="search"
+        :value="filters.player ?? ''"
+        autocomplete="off"
+        placeholder="Name, e.g. Faker"
+        :aria-keyshortcuts="collapsible ? '/' : undefined"
+        :class="fieldBg"
+        class="h-11 w-full rounded-control px-3 type-body-md text-text placeholder:text-text-muted sm:w-64 md:h-8"
+        @change="setPlayer"
+      />
+    </div>
+
     <fieldset class="filter-group">
       <legend class="filter-legend">League</legend>
       <div class="flex flex-wrap gap-2">
         <FilterChip
+          :raised="collapsible"
           v-for="league in LEAGUES"
           :key="league"
           :active="filters.league === league"
@@ -63,6 +87,7 @@ const setDate = (key: "from" | "to", event: Event) => {
       <legend class="filter-legend">Status</legend>
       <div class="flex flex-wrap gap-2">
         <FilterChip
+          :raised="collapsible"
           v-for="status in STATUSES"
           :key="status"
           :active="filters.statuses.includes(status)"
@@ -106,6 +131,7 @@ const setDate = (key: "from" | "to", event: Event) => {
         <legend class="filter-legend">Role</legend>
         <div class="flex flex-wrap gap-2">
           <FilterChip
+            :raised="collapsible"
             v-for="role in ROLES"
             :key="role"
             :active="filters.role === role"
@@ -120,6 +146,7 @@ const setDate = (key: "from" | "to", event: Event) => {
         <legend class="filter-legend">Move</legend>
         <div class="flex flex-wrap gap-2">
           <FilterChip
+            :raised="collapsible"
             v-for="kind in KINDS"
             :key="kind"
             :active="filters.kind === kind"

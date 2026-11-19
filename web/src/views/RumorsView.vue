@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { FeedStatus } from "@lol/shared";
 import { computed } from "vue";
 import { useFeed } from "../api/feed";
 import { useStats } from "../api/stats";
 import BoardLegend from "../components/BoardLegend.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
+import StatusPill from "../components/StatusPill.vue";
 
 const open = useFeed({ status: "rumor", limit: 50 });
 const confirmed = useFeed({ status: "confirmed", limit: 50 });
@@ -37,6 +39,13 @@ const sections = [
   },
 ];
 
+const LIFECYCLE: { status: FeedStatus; text: string }[] = [
+  { status: "rumor", text: "Reported, not official yet." },
+  { status: "confirmed", text: "An official move matched it." },
+  { status: "denied", text: "Someone involved denied it." },
+  { status: "stale", text: "No confirmation after 60 days." },
+];
+
 const shown = computed(() =>
   sections.filter(({ query }) => query.isError.value || query.data.value?.items.length !== 0),
 );
@@ -66,7 +75,21 @@ const shown = computed(() =>
     />
   </section>
 
-  <div v-if="!shown.length" class="rounded-panel bg-surface p-6 text-text-muted">
-    <p>No rumors have been added yet.</p>
-  </div>
+  <section
+    v-if="!shown.length"
+    class="rounded-panel bg-surface p-6"
+    aria-labelledby="rumors-empty-heading"
+  >
+    <h2 id="rumors-empty-heading" class="type-heading-md">No rumors tracked yet</h2>
+    <p class="mt-2 type-body-md text-text-muted">
+      Rumors are added by hand from reports and checked against official moves on every sync. Each
+      one moves through these statuses:
+    </p>
+    <ul class="mt-4 flex flex-col gap-3 type-body-sm text-text-muted">
+      <li v-for="step in LIFECYCLE" :key="step.status" class="flex items-center gap-3">
+        <StatusPill :status="step.status" />
+        <span>{{ step.text }}</span>
+      </li>
+    </ul>
+  </section>
 </template>

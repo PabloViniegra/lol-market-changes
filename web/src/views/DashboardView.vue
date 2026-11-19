@@ -15,7 +15,14 @@ const FlowsChart = defineAsyncComponent(() => import("../components/FlowsChart.v
 
 const route = useRoute();
 const router = useRouter();
-const latest = useFeed({ view: "market", limit: 12 });
+const allMoves = computed(() => route.query.moves === "all");
+
+const latest = useFeed(() => ({
+  view: "market",
+  kind: allMoves.value ? null : "transfer",
+  limit: 12,
+}));
+
 const rumors = useFeed({ status: "rumor", limit: 6 });
 const stats = useStats("season");
 const flowLevel = computed(() => (route.query.flow === "team" ? "team" : "league"));
@@ -24,6 +31,13 @@ const flows = useFlows(flowLevel, "season");
 function setFlowLevel(level: FlowsResponse["level"]) {
   void router.replace({
     query: { ...route.query, flow: level === "team" ? level : undefined },
+    hash: route.hash,
+  });
+}
+
+function setAllMoves(all: boolean) {
+  void router.replace({
+    query: { ...route.query, moves: all ? "all" : undefined },
     hash: route.hash,
   });
 }
@@ -37,16 +51,24 @@ const teamToTeam = computed(
   <div class="flex flex-col gap-12 xl:flex-row xl:gap-6">
     <section class="min-w-0 flex-1" aria-labelledby="latest-heading">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 id="latest-heading" class="mr-auto type-heading-lg">Latest moves</h1>
+        <h1 id="latest-heading" class="type-heading-lg">Latest moves</h1>
+        <div class="mr-auto flex gap-2" role="group" aria-label="Moves shown">
+          <FilterChip :active="!allMoves" @click="setAllMoves(false)">Transfers</FilterChip>
+          <FilterChip :active="allMoves" @click="setAllMoves(true)">All moves</FilterChip>
+        </div>
         <RouterLink
-          to="/feed"
+          :to="allMoves ? '/feed' : '/feed?kind=transfer'"
           class="inline-flex h-11 items-center rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover md:h-10"
         >
-          See all moves
+          {{ allMoves ? "See all moves" : "See all transfers" }}
         </RouterLink>
         <BoardLegend />
       </div>
-      <section class="relative mb-4 border-y border-line py-2" aria-label="Open rumors">
+      <section
+        v-if="rumors.isError.value || rumors.data.value?.items.length"
+        class="relative mb-4 border-y border-line py-2"
+        aria-label="Open rumors"
+      >
         <details v-if="rumors.data.value?.items.length" class="group">
           <summary
             class="mr-28 inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-control type-label-md hover:text-primary md:min-h-8"
@@ -58,14 +80,9 @@ const teamToTeam = computed(
             <MoveBoard :items="rumors.data.value.items" :pending="false" />
           </div>
         </details>
-        <div
-          v-else
-          class="flex min-h-11 items-center pr-28 type-body-sm text-text-muted md:min-h-8"
-        >
-          <p v-if="rumors.isPending.value">Loading open rumors…</p>
-          <p v-else-if="rumors.isError.value">Open rumors</p>
-          <p v-else>No open rumors right now.</p>
-        </div>
+        <p v-else class="flex min-h-11 items-center pr-28 type-body-sm text-text-muted md:min-h-8">
+          Open rumors
+        </p>
         <RouterLink
           to="/rumors"
           class="absolute top-2 right-0 inline-flex min-h-11 items-center rounded-control type-body-sm underline hover:text-primary md:min-h-8"
@@ -92,7 +109,7 @@ const teamToTeam = computed(
         :items="latest.data.value?.items"
         :pending="latest.isPending.value"
         :rows="12"
-        empty="No moves to show yet."
+        :empty="allMoves ? 'No moves to show yet.' : 'No transfers to show yet.'"
       />
     </section>
 
@@ -115,23 +132,16 @@ const teamToTeam = computed(
         <LeagueBars :stats="stats.data.value" />
         <dl class="my-4 flex flex-col gap-3 border-t border-line pt-4 type-body-sm">
           <div class="flex items-baseline justify-between gap-4">
-            <dt class="text-text-muted">Players whose latest move was a release this window</dt>
+            <dt class="text-text-muted">Released and unsigned</dt>
             <dd class="shrink-0 type-data-tabular">{{ stats.data.value.freeAgents }}</dd>
           </div>
-          <div class="flex items-baseline justify-between gap-4">
-            <dt class="text-text-muted">
-              {{
-                stats.data.value.rumorConfirmationRate === null
-                  ? "Rumor confirmation rate"
-                  : "Share of resolved rumors confirmed"
-              }}
-            </dt>
-            <dd class="shrink-0 text-right type-label-md tabular-nums">
-              {{
-                stats.data.value.rumorConfirmationRate === null
-                  ? "No resolved rumors"
-                  : `${Math.round(stats.data.value.rumorConfirmationRate * 100)}%`
-              }}
+          <div
+            v-if="stats.data.value.rumorConfirmationRate !== null"
+            class="flex items-baseline justify-between gap-4"
+          >
+            <dt class="text-text-muted">Share of resolved rumors confirmed</dt>
+            <dd class="shrink-0 type-data-tabular">
+              {{ Math.round(stats.data.value.rumorConfirmationRate * 100) }}%
             </dd>
           </div>
         </dl>

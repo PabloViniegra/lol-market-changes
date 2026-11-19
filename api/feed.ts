@@ -27,6 +27,7 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
   const params = url.searchParams;
   const league = oneOf(params, "league", LEAGUES);
   const team = text(params, "team");
+  const player = text(params, "player");
   const role = text(params, "role");
   const kind = oneOf(params, "kind", KINDS);
   const market = oneOf(params, "view", ["market"]) === "market";
@@ -44,6 +45,7 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
       from market_feed
       where (${league}::text is null or ${league}::text in (from_league, to_league))
         and (${team}::text is null or lower(${team}::text) in (lower(from_team), lower(to_team)))
+        and (${player}::text is null or strpos(lower(player), lower(${player}::text)) > 0)
         and (${role}::text is null or role = ${role}::text)
         and (${kind}::text is null or kind = ${kind}::text)
         and (${from}::date is null or date >= ${from}::date)

@@ -9,6 +9,7 @@ export interface FeedFilters {
   role: string | null;
   kind: MoveKind | null;
   team: string | null;
+  player: string | null;
   statuses: FeedStatus[];
   from: string | null;
   to: string | null;
@@ -44,6 +45,7 @@ function parse(query: LocationQuery): FeedFilters {
     role: pick(single(query, "role"), ROLES),
     kind: pick(single(query, "kind"), KINDS),
     team: single(query, "team"),
+    player: single(query, "player"),
     statuses: statuses.length > 0 ? statuses : DEFAULT_STATUSES,
     from: from && ISO_DAY.test(from) ? from : null,
     to: to && ISO_DAY.test(to) ? to : null,

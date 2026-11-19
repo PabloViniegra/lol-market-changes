@@ -50,9 +50,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: "How to read the board" legend explaining team codes, `FA`, `OUT` and every status.
 - Web: feed team filter, a visible label for each filter group and a "Showing N moves" count.
 - API: `GET /api/teams` lists the teams in a tracked league; the feed team filter suggests them.
+- API and web: feed player filter (`?player=`, case-insensitive partial match), always visible in the filters and focused with `/`.
+- Web: dashboard "Transfers" and "All moves" toggle for the latest moves, mirrored in the URL (`?moves=all`); transfers are the default.
+- Web: feed skip link to "Load more moves" for keyboard users.
 
 ### Changed
 
+- Web: board rows fit on two lines below 768px: the move type stays available to screen readers only and the team-name subline is hidden, since the flaps carry it.
+- Web: an empty rumor tracker explains the rumor lifecycle; the dashboard hides the rumor strip and the confirmation rate when there are no rumors.
+- Web: the feed empty state suggests removing only the filters that are set; the dashboard free agent row reads "Released and unsigned".
 - Web: moved the full-feed link next to the dashboard heading, clarified the season summary, aligned dates and sources on the board, and made the mobile filter actions stay in view while scrolling.
 - Web: shortened the split-flap animation for new moves and added a transition to the mobile filter sheet. Reduced-motion settings remove rotation and sliding.
 
@@ -90,6 +96,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Ingestor and API: record and expose the last successful sync separately from the latest attempt. The dashboard shows failed or unavailable freshness and keeps the Leaguepedia credit visible when metadata is unavailable.
 - Web: board empty states and query errors avoid promising a refresh time they cannot guarantee.
 - Web: feed date filters can no longer set a start date after the end date.
+- Web: inactive filter chips in the desktop feed filter panel are visible again; they used the same colour as the panel.
 - Web: the player page shows the same team codes as the rest of the board (`FNC`, not `FNA`), with league tags and source links.
 - Web: the current page is underlined in the header navigation again.
 

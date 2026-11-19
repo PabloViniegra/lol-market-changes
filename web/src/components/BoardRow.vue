@@ -33,9 +33,7 @@ const source = computed(() => {
   };
 });
 
-const details = computed(() =>
-  [props.item.role, kindLabel(props.item.kind)].filter(Boolean).join(" · "),
-);
+const kind = computed(() => kindLabel(props.item.kind));
 </script>
 
 <template>
@@ -88,7 +86,11 @@ const details = computed(() =>
         {{ playerHandle(item.player) }}
       </RouterLink>
       <p
-        :class="hidePlayer ? 'type-body-md wrap-anywhere' : 'truncate type-body-sm text-text-muted'"
+        :class="
+          hidePlayer
+            ? 'type-body-md wrap-anywhere'
+            : 'truncate type-body-sm text-text-muted max-md:hidden'
+        "
         aria-hidden="true"
       >
         {{ item.fromTeam ?? "Free agent" }} ▸ {{ item.toTeam ?? "No team" }}
@@ -101,9 +103,10 @@ const details = computed(() =>
     <div
       class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 type-body-sm md:w-auto md:shrink-0 md:justify-end"
     >
-      <span v-if="details" class="flex items-center gap-1 text-text-muted">
+      <span v-if="item.role || kind" class="flex items-center gap-1 text-text-muted">
         <RoleIcon :role="item.role" />
-        {{ details }}
+        <span v-if="item.role">{{ item.role }}</span>
+        <span v-if="kind" class="max-md:sr-only">{{ item.role ? "· " : "" }}{{ kind }}</span>
       </span>
       <span v-if="leagues.length" class="flex items-center gap-1">
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />

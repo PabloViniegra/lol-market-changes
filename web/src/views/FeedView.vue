@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed, useTemplateRef } from "vue";
+import { computed, onMounted, onUnmounted, useTemplateRef } from "vue";
 import { useFeedPages } from "../api/feed";
 import { findTeam, useTeams } from "../api/teams";
 import BoardLegend from "../components/BoardLegend.vue";
@@ -25,24 +25,45 @@ const knownTeam = computed(() =>
 
 const teamName = computed(() => knownTeam.value?.name ?? filters.value.team);
 
+const listFormat = new Intl.ListFormat("en", { type: "conjunction" });
+
+const filterHint = computed(() => {
+  const { league, role, kind, player, statuses, from, to } = filters.value;
+
+  const removable = (
+    [
+      [league, "the league"],
+      [role, "the role"],
+      [kind, "the move type"],
+      [player, "the player"],
+      [!isDefaultStatuses(statuses), "the status filter"],
+    ] as const
+  ).flatMap(([active, label]) => (active ? [label] : []));
+
+  const actions = [
+    removable.length ? `removing ${listFormat.format(removable)}` : null,
+    from || to ? "widening the dates" : null,
+  ].filter((item) => item !== null);
+
+  return actions.length ? ` Try ${actions.join(" or ")}.` : "";
+});
+
 const emptyMessage = computed(() => {
-  if (!filters.value.team) {
-    return "No moves match these filters. Try removing a role or widening the dates.";
-  }
+  if (!filters.value.team) return `No moves match these filters.${filterHint.value}`;
 
   if (teams.data.value && !knownTeam.value) {
     return `“${teamName.value}” isn't a tracked team. Pick one from the suggestions, by name or code, for example “Gen.G” or “FNC”.`;
   }
 
   if (hasNonTeamFilters.value) {
-    return `No moves involve “${teamName.value}” with these filters. Try removing a filter or widening the dates.`;
+    return `No moves involve “${teamName.value}” with these filters.${filterHint.value}`;
   }
 
   return `No moves involve “${teamName.value}” yet.`;
 });
 
 const activeFilters = computed(() => {
-  const { league, statuses, role, kind, from, to } = filters.value;
+  const { league, statuses, role, kind, player, from, to } = filters.value;
   const active: { key: string; label: string; clear: () => void }[] = [];
 
   if (isMobile.value && league) {
@@ -64,6 +85,14 @@ const activeFilters = computed(() => {
       key: "kind",
       label: KIND_LABELS[kind],
       clear: () => store.update({ kind: null }),
+    });
+  }
+
+  if (player) {
+    active.push({
+      key: "player",
+      label: `Player “${player}”`,
+      clear: () => store.update({ player: null }),
     });
   }
 
@@ -89,6 +118,30 @@ const activeFilters = computed(() => {
 
   return active;
 });
+
+function focusPlayerSearch(event: KeyboardEvent) {
+  if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+
+  const target = event.target;
+
+  if (
+    target instanceof HTMLElement &&
+    target.closest("input, textarea, select, [contenteditable]")
+  ) {
+    return;
+  }
+
+  const input = document.getElementById("player-search");
+
+  if (!input) return;
+
+  event.preventDefault();
+  input.focus();
+}
+
+onMounted(() => window.addEventListener("keydown", focusPlayerSearch));
+
+onUnmounted(() => window.removeEventListener("keydown", focusPlayerSearch));
 
 const closeOnBackdrop = (event: MouseEvent) => {
   if (event.target === sheet.value) sheet.value?.close();
@@ -205,6 +258,13 @@ const closeOnBackdrop = (event: MouseEvent) => {
       </p>
       <BoardLegend />
     </div>
+    <div v-if="feed.hasNextPage.value" class="relative">
+      <a
+        href="#load-more"
+        class="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:rounded-control focus:bg-surface-raised focus:p-3"
+        >Skip to load more moves</a
+      >
+    </div>
     <MoveBoard
       :key="JSON.stringify(apiParams)"
       :items="items"
@@ -213,6 +273,7 @@ const closeOnBackdrop = (event: MouseEvent) => {
     />
     <button
       v-if="feed.hasNextPage.value"
+      id="load-more"
       type="button"
       class="mt-4 h-10 rounded-control bg-surface-raised px-4 type-label-md hover:bg-line disabled:text-text-muted"
       :disabled="feed.isFetchingNextPage.value"
