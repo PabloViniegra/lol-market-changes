@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 import { getJson } from "./client";
 
-export function useTeam(name: MaybeRefOrGetter<string>) {
+export function useTeam(name: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
   return useQuery({
+    enabled,
     queryKey: computed(() => ["team", toValue(name)]),
     queryFn: () => getJson<TeamResponse>(`/api/teams/${encodeURIComponent(toValue(name))}`),
   });

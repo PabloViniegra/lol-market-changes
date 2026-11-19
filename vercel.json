@@ -6,6 +6,11 @@
   "devCommand": "pnpm --filter @lol/web dev --port $PORT",
   "outputDirectory": "web/dist",
   "trailingSlash": false,
+  "functions": {
+    "api/og.ts": {
+      "includeFiles": "{api/_fonts/**,api/node_modules/@resvg/resvg-wasm/index_bg.wasm}"
+    }
+  },
   "headers": [
     {
       "source": "/assets/:path*",
@@ -13,8 +18,31 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/([tT][eE][aA][mM][sS])/:name",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Twitterbot|Discordbot|Slackbot|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Mastodon|Bluesky|redditbot|Embedly|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/api/share?team=:name"
+    },
+    {
+      "source": "/([pP][lL][aA][yY][eE][rR][sS])/:name",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Twitterbot|Discordbot|Slackbot|facebookexternalhit|LinkedInBot|TelegramBot|WhatsApp|Mastodon|Bluesky|redditbot|Embedly|SkypeUriPreview).*"
+        }
+      ],
+      "destination": "/api/share?player=:name"
+    },
     { "source": "/privacy", "destination": "/index.html" },
     { "source": "/credits", "destination": "/index.html" },
+    { "source": "/([cC][oO][mM][pP][aA][rR][eE])", "destination": "/index.html" },
     { "source": "/([fF][eE][eE][dD])", "destination": "/index.html" },
     { "source": "/([rR][uU][mM][oO][rR][sS])", "destination": "/index.html" },
     { "source": "/([rR][uU][mM][oO][rR][sS])/([nN][eE][wW])", "destination": "/index.html" },

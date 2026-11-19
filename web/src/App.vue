@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { useMeta } from "./api/meta";
 import LolLogo from "./components/LolLogo.vue";
+import ShortcutsDialog from "./components/ShortcutsDialog.vue";
 import { useNow } from "./composables/useNow";
+import { useShortcuts } from "./composables/useShortcuts";
 import { formatAge, minutesAgo } from "./format";
 
 const STALE_AFTER_MINUTES = 60;
 
 const { data: meta, isError: metaUnavailable } = useMeta();
 const now = useNow();
+const shortcuts = useTemplateRef("shortcuts");
+
+useShortcuts(() => shortcuts.value?.open());
 
 const attribution = computed(
   () =>
@@ -75,6 +80,9 @@ const freshness = computed(() =>
         <RouterLink to="/rumors" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
           >Rumors<span class="nav-indicator" aria-hidden="true"></span
         ></RouterLink>
+        <RouterLink to="/compare" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
+          >Compare<span class="nav-indicator" aria-hidden="true"></span
+        ></RouterLink>
       </nav>
       <p
         v-if="!warning"
@@ -126,6 +134,9 @@ const freshness = computed(() =>
         <a :href="attribution.url" class="underline hover:text-text">{{ attribution.text }}</a>
         <RouterLink to="/credits" class="underline hover:text-text">Data and credits</RouterLink>
         <RouterLink to="/privacy" class="underline hover:text-text">Privacy</RouterLink>
+        <button type="button" class="underline hover:text-text" @click="shortcuts?.open()">
+          Keyboard shortcuts
+        </button>
       </nav>
       <p>
         Transfer Board isn’t endorsed by Riot Games and doesn’t reflect the views or opinions of
@@ -133,6 +144,7 @@ const freshness = computed(() =>
         of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.
       </p>
     </footer>
+    <ShortcutsDialog ref="shortcuts" />
   </div>
 </template>
 

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: roster comparison (`/compare?a=…&b=…`, in the header and linked from each team page) shows the current rosters of two teams side by side by role, with arrivals marked and a swap button.
+- API: `GET /api/og` draws a 1200×630 split-flap link preview card for a team (`?team=`, roster and season changes), a player (`?player=`, current team and latest move) or the site, with satori and resvg-wasm. Team and player pages answer link-preview bots (X, Discord, Slack, WhatsApp and others, matched by user agent in `vercel.json`) with `GET /api/share`, a page with their title, description and card; visitors and search engines still get the app. The other pages share the site card.
+- Web: keyboard shortcuts: `j`/`k` move between board rows, `g` then `d`, `f`, `r` or `c` opens a screen, and `?` (or "Keyboard shortcuts" in the footer) lists them.
 - Web: screen changes turn the page content like a large split-flap around its seam, the nav underline slides to the new tab and the footer follows the new height (a short fade with reduced motion). Filter changes on the same screen don't turn.
 - Web: privacy and data credits pages, a privacy notice at rumor submission, and the software and font license notices in the published site. The privacy page opens with a board of where your data goes and a contact panel with a copy-email button, and its section links can be shared; credits list the licenses as board rows.
 - Web: "Send a rumor" form (`/rumors/new`, linked from the rumor tracker) validated with vee-validate and Zod, grouped into the move and the source, with team suggestions, a live preview of the board row on wide screens, a specific message when the rate limit is hit and a spam honeypot.

@@ -120,7 +120,15 @@ const rosterRows = computed(() => {
     </header>
 
     <section aria-labelledby="roster-heading">
-      <h2 id="roster-heading" class="mb-4 type-heading-md">Roster</h2>
+      <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+        <h2 id="roster-heading" class="type-heading-md">Roster</h2>
+        <RouterLink
+          :to="{ path: '/compare', query: { a: info.name } }"
+          class="type-body-sm underline hover:text-primary"
+        >
+          Compare with another team
+        </RouterLink>
+      </div>
       <div class="rounded-panel bg-surface px-3 md:px-6">
         <p v-if="!rosterRows.length" class="py-4 text-text-muted">No roster players recorded.</p>
         <table v-else class="w-full table-fixed text-left" aria-labelledby="roster-heading">

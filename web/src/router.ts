@@ -21,6 +21,14 @@ export const router = createRouter({
           "Browse and filter League of Legends esports roster moves by league, team, player and more.",
       },
     },
+    {
+      path: "/compare",
+      component: () => import("./views/CompareView.vue"),
+      meta: {
+        title: "Compare rosters",
+        description: "Compare the current rosters of two League of Legends esports teams.",
+      },
+    },
     { path: "/teams/:name", component: () => import("./views/TeamView.vue"), props: true },
     { path: "/players/:name", component: () => import("./views/PlayerView.vue"), props: true },
     {
