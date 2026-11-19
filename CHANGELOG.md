@@ -62,6 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: the dashboard "See all" button sits under the latest moves board and the legend at the right of its heading; player names line up across board rows even when a team code is long.
 - API: encrypt new review links, keep private notes out of published rumors, and let reviewers clean up the public source URL before approving. Review pages and emails use local system fonts.
 - Web: the feed date filters and rumor report date use a shared calendar styled like the dropdowns, with keyboard navigation and the relevant date limits.
 - Web: "Send a rumor" form uses its own role and move dropdowns, a team combobox with codes and league tags, and a reliability dot meter instead of native selects and datalists, so every option follows the design system. The player name is typed in board type, the preview flips its flaps when a team changes and the success state shows the rumor waiting for review.

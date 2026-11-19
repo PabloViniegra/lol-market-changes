@@ -45,7 +45,7 @@ const kind = computed(() => kindLabel(props.item.kind));
       'hover:bg-surface-raised': !hidePlayer,
     }"
   >
-    <div class="flex shrink-0 items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2 md:min-w-60">
       <BoardFlap
         :code="item.fromTeam ? teamCode(item.fromTeam, item.fromShort) : null"
         placeholder="FA"

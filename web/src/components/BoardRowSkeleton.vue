@@ -6,7 +6,7 @@ defineProps<{ nameWidth: string; hidePlayer?: boolean }>();
 
 <template>
   <li class="board-row" aria-hidden="true">
-    <div class="flex shrink-0 items-center gap-2">
+    <div class="flex shrink-0 items-center gap-2 md:min-w-60">
       <FlapSkeleton />
       <span class="text-line">▸</span>
       <FlapSkeleton />

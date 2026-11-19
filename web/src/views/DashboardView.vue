@@ -49,19 +49,13 @@ const teamToTeam = computed(
 <template>
   <div class="flex flex-col gap-12 xl:flex-row xl:gap-6">
     <section class="min-w-0 flex-1" aria-labelledby="latest-heading">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 id="latest-heading" class="basis-full type-heading-lg sm:basis-auto">Latest moves</h1>
-        <div class="mr-auto flex gap-2" role="group" aria-label="Moves shown">
+      <div class="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <h1 id="latest-heading" class="type-heading-lg">Latest moves</h1>
+        <div class="flex gap-2" role="group" aria-label="Moves shown">
           <FilterChip :active="!allMoves" @click="setAllMoves(false)">Transfers</FilterChip>
           <FilterChip :active="allMoves" @click="setAllMoves(true)">All moves</FilterChip>
         </div>
-        <RouterLink
-          :to="allMoves ? '/feed' : '/feed?kind=transfer'"
-          class="inline-flex h-11 items-center rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover md:h-10"
-        >
-          {{ allMoves ? "See all moves" : "See all transfers" }}
-        </RouterLink>
-        <div class="basis-full sm:contents">
+        <div class="basis-full sm:ml-auto sm:basis-auto sm:has-open:basis-full">
           <BoardLegend />
         </div>
       </div>
@@ -112,6 +106,12 @@ const teamToTeam = computed(
         :rows="12"
         :empty="allMoves ? 'No moves to show yet.' : 'No transfers to show yet.'"
       />
+      <RouterLink
+        :to="allMoves ? '/feed' : '/feed?kind=transfer'"
+        class="mt-4 inline-flex h-11 items-center rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover md:h-10"
+      >
+        {{ allMoves ? "See all moves" : "See all transfers" }}
+      </RouterLink>
     </section>
 
     <aside class="flex flex-col gap-4 xl:w-72" aria-labelledby="window-heading">
