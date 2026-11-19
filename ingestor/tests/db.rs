@@ -36,7 +36,7 @@ async fn writes_are_idempotent_and_track_wiki_deletions() {
         return;
     };
     let pool = db::connect(&url).await.unwrap();
-    sqlx::query("truncate rumors, transfers, raw_events, team_seasons, players, teams, sync_state")
+    sqlx::query("truncate rumors, transfers, raw_events, team_seasons, players, teams")
         .execute(&pool)
         .await
         .unwrap();
@@ -109,6 +109,50 @@ async fn writes_are_idempotent_and_track_wiki_deletions() {
 
 fn early() -> NaiveDate {
     NaiveDate::from_ymd_opt(2000, 1, 1).unwrap()
+}
+
+#[tokio::test]
+async fn a_failed_run_preserves_the_last_successful_refresh() {
+    let Ok(url) = std::env::var("TEST_DATABASE_URL") else {
+        eprintln!("TEST_DATABASE_URL not set, skipping database test");
+        return;
+    };
+    let pool = db::connect(&url).await.unwrap();
+    sqlx::query("truncate sync_state")
+        .execute(&pool)
+        .await
+        .unwrap();
+    let stats = serde_json::json!({});
+    let freshness = "select last_run_status, last_run_at,
+        (to_jsonb(sync_state)->>'last_successful_run_at')::timestamptz from sync_state";
+
+    db::record_run(&pool, None, "error", &stats).await.unwrap();
+    let (_, _, success): (
+        String,
+        chrono::DateTime<chrono::Utc>,
+        Option<chrono::DateTime<chrono::Utc>>,
+    ) = sqlx::query_as(freshness).fetch_one(&pool).await.unwrap();
+    assert_eq!(success, None);
+
+    db::record_run(&pool, Some(early()), "ok", &stats)
+        .await
+        .unwrap();
+    let (status, attempt, success): (
+        String,
+        chrono::DateTime<chrono::Utc>,
+        Option<chrono::DateTime<chrono::Utc>>,
+    ) = sqlx::query_as(freshness).fetch_one(&pool).await.unwrap();
+    assert_eq!(status, "ok");
+    assert_eq!(success, Some(attempt));
+
+    db::record_run(&pool, None, "error", &stats).await.unwrap();
+    let (status, _, after_failure): (
+        String,
+        chrono::DateTime<chrono::Utc>,
+        Option<chrono::DateTime<chrono::Utc>>,
+    ) = sqlx::query_as(freshness).fetch_one(&pool).await.unwrap();
+    assert_eq!(status, "error");
+    assert_eq!(after_failure, success);
 }
 
 #[tokio::test]

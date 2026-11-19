@@ -20,8 +20,6 @@ const STATUSES = [
   "denied",
   "stale",
 ] as const satisfies readonly FeedStatus[];
-// Confirmed rumors show up through their official move; denied and stale ones are opt-in.
-const DEFAULT_STATUSES: FeedStatus[] = ["official", "rumor"];
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
 
@@ -31,25 +29,38 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
   const team = text(params, "team");
   const role = text(params, "role");
   const kind = oneOf(params, "kind", KINDS);
-  const statuses = parseStatuses(params.get("status"));
+  const market = oneOf(params, "view", ["market"]) === "market";
+  const statuses = parseStatuses(params.get("status"), market);
   const from = isoDate(params, "from");
   const to = isoDate(params, "to");
   const limit = parseLimit(params.get("limit"));
   const cursor = parseCursor(params.get("cursor"));
 
   const rows = await db()`
-    select id, status, player, from_team, to_team, from_league, to_league, role, kind,
+    with candidates as not materialized (
+      select *,
+        case when ${market}::boolean and status = 'official' and rumor_id is not null
+          then 'confirmed' else status end as display_status
+      from market_feed
+      where (${league}::text is null or ${league}::text in (from_league, to_league))
+        and (${team}::text is null or lower(${team}::text) in (lower(from_team), lower(to_team)))
+        and (${role}::text is null or role = ${role}::text)
+        and (${kind}::text is null or kind = ${kind}::text)
+        and (${from}::date is null or date >= ${from}::date)
+        and (${to}::date is null or date <= ${to}::date)
+    ),
+    matching as not materialized (
+      select * from candidates where display_status = any(${statuses}::text[])
+    )
+    select id, display_status as status, player, from_team, to_team, from_league, to_league, role, kind,
            date::text as date, reliability, sources, notes, rumor_id, transfer_id,
            (select short from teams where name = from_team) as from_short,
            (select short from teams where name = to_team) as to_short
-    from market_feed
-    where status = any(${statuses}::text[])
-      and (${league}::text is null or ${league}::text in (from_league, to_league))
-      and (${team}::text is null or lower(${team}::text) in (lower(from_team), lower(to_team)))
-      and (${role}::text is null or role = ${role}::text)
-      and (${kind}::text is null or kind = ${kind}::text)
-      and (${from}::date is null or date >= ${from}::date)
-      and (${to}::date is null or date <= ${to}::date)
+    from matching m
+    where (m.status <> 'confirmed' or not exists (
+      select 1 from matching official
+      where official.status = 'official' and official.id = m.transfer_id
+    ))
       and (${cursor?.date ?? null}::date is null
            or (date, id) < (${cursor?.date ?? null}::date, ${cursor?.id ?? null}::text))
     order by date desc, id desc
@@ -61,8 +72,8 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
   return { items, nextCursor };
 });
 
-function parseStatuses(value: string | null): FeedStatus[] {
-  if (!value) return DEFAULT_STATUSES;
+function parseStatuses(value: string | null, market: boolean): FeedStatus[] {
+  if (!value) return market ? ["official", "confirmed", "rumor"] : ["official", "rumor"];
   const statuses = value.split(",").map((s) => s.trim());
   const invalid = statuses.find((s) => !(STATUSES as readonly string[]).includes(s));
   if (invalid !== undefined) {

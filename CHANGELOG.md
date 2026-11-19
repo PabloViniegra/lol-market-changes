@@ -73,10 +73,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: the feed team filter accepts team codes such as `FNC` and says when a team isn't tracked.
 - Web: releases and retirements are dimmed on the board so transfers stand out; the date and source link stay together on small screens.
 - Web: the flows section lists moves as "from ▸ to" when there are fewer than 8, and Sankey labels wrap instead of being cut off.
-- Web: the rumor tracker merges empty sections into one note on how rumors are tracked, and the dashboard hides "Rumors to watch" when there are none.
+- Web: the rumor tracker merges empty sections into one note on how rumors are tracked.
+- Web: the dashboard puts open rumors and a tracker link above the latest board, links the season counts to league-filtered feeds, and shares the flow view in the URL. Keyboard links jump directly to the season summary and flows.
+- Web: rumor rows name their sources, all board source links have larger mobile tap targets, and the flow list labels moves within a league explicitly.
 
 ### Fixed
 
+- Web: official moves that confirm a rumor show the Confirmed badge and match the Confirmed filter. The feed shows one row per match when both entries qualify, and the tracker keeps the original report.
+- Ingestor and API: record and expose the last successful sync separately from the latest attempt. The dashboard shows failed or unavailable freshness and keeps the Leaguepedia credit visible when metadata is unavailable.
+- Web: board empty states and query errors avoid promising a refresh time they cannot guarantee.
 - Web: feed date filters can no longer set a start date after the end date.
 - Web: the player page shows the same team codes as the rest of the board (`FNC`, not `FNA`), with league tags and source links.
 - Web: the current page is underlined in the header navigation again.

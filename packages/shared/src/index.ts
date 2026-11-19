@@ -2,6 +2,7 @@ export type SyncStatus = "ok" | "error" | "never";
 
 export interface MetaResponse {
   lastRunAt: string | null;
+  lastSuccessfulRunAt: string | null;
   lastRunStatus: SyncStatus;
   attribution: {
     text: string;

@@ -208,13 +208,16 @@ pub async fn record_run(
     stats: &Value,
 ) -> Result<()> {
     sqlx::query(
-        "insert into sync_state (id, last_synced_date, last_run_at, last_run_status, stats)
-         values (1, $1, now(), $2, $3)
+        "insert into sync_state
+           (id, last_synced_date, last_run_at, last_run_status, stats, last_successful_run_at)
+         values (1, $1, now(), $2, $3, case when $2 = 'ok' then now() end)
          on conflict (id) do update set
            last_synced_date = coalesce(excluded.last_synced_date, sync_state.last_synced_date),
            last_run_at = excluded.last_run_at,
            last_run_status = excluded.last_run_status,
-           stats = excluded.stats",
+           stats = excluded.stats,
+           last_successful_run_at =
+             coalesce(excluded.last_successful_run_at, sync_state.last_successful_run_at)",
     )
     .bind(synced_date)
     .bind(status)

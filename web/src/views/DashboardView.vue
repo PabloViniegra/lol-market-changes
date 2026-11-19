@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FlowsResponse } from "@lol/shared";
-import { computed, defineAsyncComponent, ref } from "vue";
+import { computed, defineAsyncComponent } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useFeed } from "../api/feed";
 import { useFlows, useStats } from "../api/stats";
 import BoardLegend from "../components/BoardLegend.vue";
@@ -12,11 +13,20 @@ import { shortDate } from "../format";
 
 const FlowsChart = defineAsyncComponent(() => import("../components/FlowsChart.vue"));
 
-const latest = useFeed({ limit: 12 });
+const route = useRoute();
+const router = useRouter();
+const latest = useFeed({ view: "market", limit: 12 });
 const rumors = useFeed({ status: "rumor", limit: 6 });
 const stats = useStats("season");
-const flowLevel = ref<FlowsResponse["level"]>("league");
+const flowLevel = computed(() => (route.query.flow === "team" ? "team" : "league"));
 const flows = useFlows(flowLevel, "season");
+
+function setFlowLevel(level: FlowsResponse["level"]) {
+  void router.replace({
+    query: { ...route.query, flow: level === "team" ? level : undefined },
+    hash: route.hash,
+  });
+}
 
 const teamToTeam = computed(
   () => flows.data.value?.links.reduce((sum, link) => sum + link.value, 0) ?? 0,
@@ -36,18 +46,62 @@ const teamToTeam = computed(
         </RouterLink>
         <BoardLegend />
       </div>
+      <section class="relative mb-4 border-y border-line py-2" aria-label="Open rumors">
+        <details v-if="rumors.data.value?.items.length" class="group">
+          <summary
+            class="mr-28 inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-control type-label-md hover:text-primary md:min-h-8"
+          >
+            Rumors to watch
+            <span class="group-open:rotate-90" aria-hidden="true">▸</span>
+          </summary>
+          <div class="mt-2 mb-2">
+            <MoveBoard :items="rumors.data.value.items" :pending="false" />
+          </div>
+        </details>
+        <div
+          v-else
+          class="flex min-h-11 items-center pr-28 type-body-sm text-text-muted md:min-h-8"
+        >
+          <p v-if="rumors.isPending.value">Loading open rumors…</p>
+          <p v-else-if="rumors.isError.value">Open rumors</p>
+          <p v-else>No open rumors right now.</p>
+        </div>
+        <RouterLink
+          to="/rumors"
+          class="absolute top-2 right-0 inline-flex min-h-11 items-center rounded-control type-body-sm underline hover:text-primary md:min-h-8"
+        >
+          Rumor tracker
+        </RouterLink>
+        <QueryError v-if="rumors.isError.value" what="open rumors" @retry="rumors.refetch()" />
+      </section>
+      <div class="relative">
+        <a
+          href="#window-heading"
+          class="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:rounded-control focus:bg-surface-raised focus:p-3"
+          >Skip to window summary</a
+        >
+        <a
+          href="#flows-heading"
+          class="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:rounded-control focus:bg-surface-raised focus:p-3"
+          >Skip to player flows</a
+        >
+      </div>
       <QueryError v-if="latest.isError.value" what="moves" @retry="latest.refetch()" />
       <MoveBoard
         v-else
         :items="latest.data.value?.items"
         :pending="latest.isPending.value"
         :rows="12"
-        empty="No moves yet this window. New moves show up here within 30 minutes of Leaguepedia."
+        empty="No moves to show yet."
       />
     </section>
 
     <aside class="flex flex-col gap-4 xl:w-72" aria-labelledby="window-heading">
-      <h2 id="window-heading" class="type-heading-md xl:flex xl:min-h-10 xl:items-center">
+      <h2
+        id="window-heading"
+        tabindex="-1"
+        class="type-heading-md xl:flex xl:min-h-10 xl:items-center"
+      >
         This window
       </h2>
       <QueryError v-if="stats.isError.value" what="stats" @retry="stats.refetch()" />
@@ -154,12 +208,14 @@ const teamToTeam = computed(
 
   <section class="mt-12" aria-labelledby="flows-heading">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-4">
-      <h2 id="flows-heading" class="type-heading-md">Where players went</h2>
+      <h2 id="flows-heading" tabindex="-1" class="type-heading-md">Where players went</h2>
       <div class="flex gap-2" role="group" aria-label="Flow level">
-        <FilterChip :active="flowLevel === 'league'" @click="flowLevel = 'league'"
+        <FilterChip :active="flowLevel === 'league'" @click="setFlowLevel('league')"
           >By league</FilterChip
         >
-        <FilterChip :active="flowLevel === 'team'" @click="flowLevel = 'team'">By team</FilterChip>
+        <FilterChip :active="flowLevel === 'team'" @click="setFlowLevel('team')"
+          >By team</FilterChip
+        >
       </div>
     </div>
     <QueryError v-if="flows.isError.value" what="flows" @retry="flows.refetch()" />
@@ -211,7 +267,14 @@ const teamToTeam = computed(
             :key="`${link.source}-${link.target}`"
             class="flex items-baseline justify-between gap-4 py-2"
           >
-            <span class="min-w-0 type-body-md">
+            <span v-if="link.source === link.target" class="min-w-0 type-body-md">
+              {{
+                link.source === "Other"
+                  ? "Between teams outside the tracked leagues"
+                  : `Within ${link.source}`
+              }}
+            </span>
+            <span v-else class="min-w-0 type-body-md">
               {{ link.source }}
               <span class="text-text-muted" aria-hidden="true">▸</span>
               <span class="sr-only">to</span>
@@ -225,25 +288,5 @@ const teamToTeam = computed(
         <FlowsChart v-else :links="flows.data.value.links" />
       </template>
     </div>
-  </section>
-
-  <section
-    v-if="rumors.isPending.value || rumors.isError.value || rumors.data.value?.items.length"
-    class="mt-12"
-    aria-labelledby="rumors-heading"
-  >
-    <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
-      <h2 id="rumors-heading" class="type-heading-md">Rumors to watch</h2>
-      <RouterLink to="/rumors" class="type-body-sm underline hover:text-primary">
-        Rumor tracker
-      </RouterLink>
-    </div>
-    <QueryError v-if="rumors.isError.value" what="rumors" @retry="rumors.refetch()" />
-    <MoveBoard
-      v-else
-      :items="rumors.data.value?.items"
-      :pending="rumors.isPending.value"
-      empty="No open rumors right now."
-    />
   </section>
 </template>

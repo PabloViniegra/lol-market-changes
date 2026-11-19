@@ -10,6 +10,10 @@ const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean; hidePlay
 
 const muted = computed(() => props.item.status === "denied" || props.item.status === "stale");
 
+const status = computed(() =>
+  props.item.status === "official" && props.item.rumorId ? "confirmed" : props.item.status,
+);
+
 const leagues = computed(() => {
   const { fromLeague, toLeague } = props.item;
 
@@ -88,8 +92,8 @@ const details = computed(() =>
       <span v-if="leagues.length" class="flex items-center gap-1">
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />
       </span>
-      <StatusPill :status="item.status" :reliability="item.reliability" />
-      <span class="ml-auto flex items-center gap-2 md:ml-0">
+      <StatusPill :status="status" :reliability="item.reliability" />
+      <span class="ml-auto flex max-w-full items-center gap-2 md:ml-0">
         <time :datetime="item.date" class="text-right text-text-muted tabular-nums md:w-24">
           {{ relativeDay(item.date, now) }}
         </time>
@@ -99,11 +103,11 @@ const details = computed(() =>
           target="_blank"
           rel="noopener noreferrer"
           :title="`Source: ${source.outlet}`"
-          class="flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
+          class="flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-control px-1 py-1 text-text-muted hover:bg-line hover:text-text md:min-h-8 md:min-w-8"
         >
           <svg
             viewBox="0 0 20 20"
-            class="size-5"
+            class="size-5 shrink-0"
             fill="none"
             stroke="currentColor"
             stroke-width="1.5"
@@ -115,7 +119,17 @@ const details = computed(() =>
               d="M11 3.5h5.5V9M16.5 3.5 9 11M14 12v3.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8"
             />
           </svg>
-          <span class="sr-only">Source: {{ source.outlet }} (opens in a new tab)</span>
+          <span class="sr-only">Source: </span>
+          <span
+            :class="
+              item.status === 'official' || item.rumorId
+                ? 'sr-only'
+                : 'max-w-44 wrap-anywhere underline md:max-w-24'
+            "
+          >
+            {{ source.outlet }}
+          </span>
+          <span class="sr-only"> (opens in a new tab)</span>
         </a>
         <span v-else class="hidden w-8 md:block" aria-hidden="true" />
       </span>

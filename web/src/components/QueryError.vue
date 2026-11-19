@@ -6,7 +6,7 @@ defineEmits<{ retry: [] }>();
 
 <template>
   <div class="flex flex-wrap items-center gap-4 rounded-panel bg-surface p-6" role="alert">
-    <p>Couldn't load {{ what }}. Retrying in 30 seconds.</p>
+    <p>Couldn't load {{ what }}.</p>
     <button
       type="button"
       class="h-10 rounded-control bg-surface-raised px-4 type-label-md hover:bg-line"

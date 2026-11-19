@@ -6,23 +6,43 @@ import { formatAge, minutesAgo } from "./format";
 
 const STALE_AFTER_MINUTES = 60;
 
-const { data: meta } = useMeta();
+const { data: meta, isError: metaUnavailable } = useMeta();
 const now = useNow();
 
-const age = computed(() =>
-  meta.value?.lastRunAt ? minutesAgo(meta.value.lastRunAt, now.value) : null,
+const attribution = computed(
+  () =>
+    meta.value?.attribution ?? {
+      text: "Official roster data from Leaguepedia, licensed CC BY-SA",
+      url: "https://lol.fandom.com/",
+    },
 );
 
-const freshness = computed(() => {
-  if (!meta.value) return null;
+const age = computed(() => {
+  const lastSuccess =
+    meta.value?.lastSuccessfulRunAt ??
+    (meta.value?.lastRunStatus === "ok" ? meta.value.lastRunAt : null);
 
-  if (age.value === null) return "Not synced yet";
-
-  return `Updated ${formatAge(age.value)}`;
+  return lastSuccess ? minutesAgo(lastSuccess, now.value) : null;
 });
 
-const staleHours = computed(() =>
-  age.value !== null && age.value > STALE_AFTER_MINUTES ? Math.floor(age.value / 60) : null,
+const failedRefresh = computed(() => meta.value?.lastRunStatus === "error");
+
+const warning = computed(() => {
+  if (metaUnavailable.value) return "Couldn’t verify when data last refreshed.";
+
+  if (failedRefresh.value) return "The latest data refresh failed.";
+
+  if (age.value !== null && age.value > STALE_AFTER_MINUTES) {
+    const hours = Math.floor(age.value / 60);
+
+    return `Data hasn’t refreshed for ${hours} ${hours === 1 ? "hour" : "hours"}.`;
+  }
+
+  return null;
+});
+
+const freshness = computed(() =>
+  age.value === null ? "Not synced yet" : `Updated ${formatAge(age.value)}`,
 );
 </script>
 
@@ -50,13 +70,13 @@ const staleHours = computed(() =>
           >Rumors</RouterLink
         >
       </nav>
-      <p v-if="freshness && staleHours === null" class="type-body-sm text-text-muted md:ml-auto">
+      <p v-if="meta && !warning" class="type-body-sm text-text-muted md:ml-auto">
         {{ freshness }}
       </p>
     </header>
 
     <div
-      v-if="staleHours !== null"
+      v-if="warning"
       class="mt-4 flex items-start gap-3 rounded-panel bg-surface-raised px-6 py-3 type-body-sm"
       role="status"
     >
@@ -73,10 +93,10 @@ const staleHours = computed(() =>
         <path d="M10 3 2.5 16.5h15L10 3ZM10 8.5v3.5M10 14.5v.01" />
       </svg>
       <p>
-        <span class="type-label-md"
-          >Data hasn't refreshed for {{ staleHours }}
-          {{ staleHours === 1 ? "hour" : "hours" }}.</span
-        >
+        <span class="type-label-md">{{ warning }}</span>
+        <template v-if="(failedRefresh || metaUnavailable) && age !== null">
+          Last successful refresh {{ formatAge(age) }}.
+        </template>
         Moves from Leaguepedia may be missing.
       </p>
     </div>
@@ -86,8 +106,8 @@ const staleHours = computed(() =>
     </main>
 
     <footer class="border-t border-line py-4 type-body-sm text-text-muted">
-      <a v-if="meta" :href="meta.attribution.url" class="underline hover:text-text">
-        {{ meta.attribution.text }}
+      <a :href="attribution.url" class="underline hover:text-text">
+        {{ attribution.text }}
       </a>
     </footer>
   </div>

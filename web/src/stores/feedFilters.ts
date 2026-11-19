@@ -14,7 +14,7 @@ export interface FeedFilters {
   to: string | null;
 }
 
-export const DEFAULT_STATUSES: FeedStatus[] = ["official", "rumor"];
+export const DEFAULT_STATUSES: FeedStatus[] = ["official", "confirmed", "rumor"];
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -65,7 +65,7 @@ export const useFeedFilters = defineStore("feedFilters", () => {
   const apiParams = computed(() => {
     const { statuses, ...rest } = filters.value;
 
-    return { ...rest, status: statuses.join(","), limit: 50 };
+    return { ...rest, view: "market", status: statuses.join(","), limit: 50 };
   });
 
   const hasNonTeamFilters = computed(() => {
