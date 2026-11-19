@@ -10,8 +10,9 @@ export function useTeam(name: MaybeRefOrGetter<string>) {
   });
 }
 
-export function useTeams() {
+export function useTeams(enabled: MaybeRefOrGetter<boolean> = true) {
   return useQuery({
+    enabled,
     queryKey: ["teams"],
     queryFn: () => getJson<TeamsResponse>("/api/teams"),
     staleTime: 60 * 60_000,

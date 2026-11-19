@@ -10,6 +10,7 @@ colors:
   surface: "#133536"
   surface-raised: "#1A4243"
   line: "#2A5556"
+  control-border: "#728F8E"
   text: "#EEF3EF"
   text-muted: "#A9BDB8"
   league-lck: "#7FB7E6"
@@ -232,6 +233,7 @@ The palette is dark-first. A light theme is out of scope for v1.
 - **Surface (#133536):** Panels and board rows. One step up from the page.
 - **Surface raised (#1A4243):** Flaps, inputs and secondary buttons: things that sit on a panel.
 - **Line (#2A5556):** Dividers between board rows and the seam across each flap. Used as a 1px fill, never as a decorative border around cards.
+- **Control border (#728F8E):** Identifies input boundaries on both panel surfaces with at least 3:1 contrast.
 - **Text (#EEF3EF):** Primary text, slightly green-tinted white so it belongs to the petrol family.
 - **Text muted (#A9BDB8):** Metadata, dates, sources, denied and faded rumors. Passes AA on every surface.
 

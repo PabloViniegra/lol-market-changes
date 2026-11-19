@@ -38,7 +38,7 @@ const fresh = useNewIds(computed(() => props.items?.map((item) => item.id)));
     />
   </ul>
   <div v-else-if="!items?.length && empty" class="rounded-panel bg-surface p-6 text-text-muted">
-    <p class="max-w-prose">{{ empty }}</p>
+    <p class="max-w-prose wrap-anywhere">{{ empty }}</p>
   </div>
   <ul v-else-if="items?.length" class="flex flex-col gap-px overflow-hidden rounded-panel bg-line">
     <BoardRow

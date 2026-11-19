@@ -5,10 +5,18 @@
   "buildCommand": "pnpm --filter @lol/web build",
   "devCommand": "pnpm --filter @lol/web dev --port $PORT",
   "outputDirectory": "web/dist",
-  "rewrites": [
+  "trailingSlash": false,
+  "headers": [
     {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
+      "source": "/assets/:path*",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
+  ],
+  "rewrites": [
+    { "source": "/([fF][eE][eE][dD])", "destination": "/index.html" },
+    { "source": "/([rR][uU][mM][oO][rR][sS])", "destination": "/index.html" },
+    { "source": "/([rR][uU][mM][oO][rR][sS])/([nN][eE][wW])", "destination": "/index.html" },
+    { "source": "/([tT][eE][aA][mM][sS])/:name", "destination": "/index.html" },
+    { "source": "/([pP][lL][aA][yY][eE][rR][sS])/:name", "destination": "/index.html" }
   ]
 }

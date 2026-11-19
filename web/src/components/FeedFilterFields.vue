@@ -63,9 +63,9 @@ const setDate = (key: "from" | "to", event: Event) => {
         :value="filters.player ?? ''"
         autocomplete="off"
         placeholder="Name, e.g. Faker"
-        :aria-keyshortcuts="collapsible ? '/' : undefined"
+        :aria-keyshortcuts="collapsible ? 'Control+/' : undefined"
         :class="fieldBg"
-        class="h-11 w-full rounded-control px-3 type-body-md text-text placeholder:text-text-muted sm:w-64 md:h-8"
+        class="h-11 w-full rounded-control border border-control-border px-3 type-body-md text-text placeholder:text-text-muted sm:w-64 md:h-8"
         @change="setPlayer"
       />
     </div>
@@ -179,7 +179,7 @@ const setDate = (key: "from" | "to", event: Event) => {
             :value="filters.from ?? ''"
             :max="filters.to ?? undefined"
             :class="fieldBg"
-            class="h-11 rounded-control px-3 type-body-md text-text md:h-10"
+            class="h-11 rounded-control border border-control-border px-3 type-body-md text-text md:h-10"
             @change="setDate('from', $event)"
           />
         </label>
@@ -190,7 +190,7 @@ const setDate = (key: "from" | "to", event: Event) => {
             :value="filters.to ?? ''"
             :min="filters.from ?? undefined"
             :class="fieldBg"
-            class="h-11 rounded-control px-3 type-body-md text-text md:h-10"
+            class="h-11 rounded-control border border-control-border px-3 type-body-md text-text md:h-10"
             @change="setDate('to', $event)"
           />
         </label>

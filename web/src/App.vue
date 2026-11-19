@@ -49,6 +49,11 @@ const freshness = computed(() =>
 
 <template>
   <div class="mx-auto flex min-h-dvh max-w-content flex-col px-4 md:px-6">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:rounded-control focus:bg-surface-raised focus:p-3"
+      >Skip to main content</a
+    >
     <header class="flex flex-wrap items-center gap-x-8 border-b border-line pt-3 md:pt-0">
       <RouterLink
         to="/"
@@ -72,7 +77,8 @@ const freshness = computed(() =>
         >
       </nav>
       <p
-        v-if="meta && !warning"
+        v-if="!warning"
+        :class="{ 'invisible md:hidden': !meta }"
         class="order-last -mt-1 basis-full pb-3 type-body-sm text-text-muted md:order-none md:mt-0 md:ml-auto md:basis-auto md:pb-0"
       >
         {{ freshness }}
@@ -109,7 +115,7 @@ const freshness = computed(() =>
       </p>
     </div>
 
-    <main class="flex-1 pt-6 pb-8 md:pt-8 md:pb-12">
+    <main id="main-content" tabindex="-1" class="flex-1 pt-6 pb-8 md:pt-8 md:pb-12">
       <RouterView />
     </main>
 

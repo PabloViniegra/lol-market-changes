@@ -100,7 +100,7 @@ onClickOutside(root, () => (open.value = false));
       :aria-activedescendant="visible && active >= 0 ? optionId(active) : undefined"
       autocomplete="off"
       spellcheck="false"
-      class="w-full rounded-control border-2 border-transparent px-3 type-body-md text-text placeholder:text-text-muted aria-invalid:border-text"
+      class="w-full rounded-control border-2 border-control-border px-3 type-body-md text-text placeholder:text-text-muted aria-invalid:border-text"
       :class="[fieldClass, { 'pr-24': known }]"
       @input="show"
       @click="show"

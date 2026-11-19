@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lol-market-changes.vercel.app/sitemap.xml

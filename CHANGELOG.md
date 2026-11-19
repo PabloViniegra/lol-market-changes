@@ -102,6 +102,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Web: keep the mobile dashboard layout steady while fonts and sync status load. Fetch team metadata only when the flows chart needs it, and offer a list of full team routes on narrow screens.
+- Web: improve form field contrast and required-field labels, add a skip link, announce empty feed results, use Ctrl+/ for player search and wrap long team filters.
+- Web: serve crawlable robots and sitemap files, add search descriptions and canonical links for the main pages, restrict SPA rewrites to known routes and cache fingerprinted assets.
+
 - Web: on mobile the "Updated X min ago" text moves under the navigation instead of being cut off at the right edge of the header.
 - Web: official moves that confirm a rumor show the Confirmed badge and match the Confirmed filter. The feed shows one row per match when both entries qualify, and the tracker keeps the original report.
 - Ingestor and API: record and expose the last successful sync separately from the latest attempt. The dashboard shows failed or unavailable freshness and keeps the Leaguepedia credit visible when metadata is unavailable.

@@ -120,7 +120,7 @@ const activeFilters = computed(() => {
 });
 
 function focusPlayerSearch(event: KeyboardEvent) {
-  if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.key !== "/" || !event.ctrlKey || event.altKey || event.metaKey) return;
 
   const target = event.target;
 
@@ -151,7 +151,7 @@ const closeOnBackdrop = (event: MouseEvent) => {
 <template>
   <div class="mb-6 flex flex-wrap items-baseline justify-between gap-4">
     <h1 class="type-heading-lg">Market feed</h1>
-    <p v-if="teamName" class="flex items-center gap-3 type-body-md">
+    <p v-if="teamName" class="min-w-0 type-body-md wrap-anywhere">
       Moves involving
       <RouterLink
         v-if="knownTeam"
@@ -248,16 +248,19 @@ const closeOnBackdrop = (event: MouseEvent) => {
     </button>
   </div>
 
-  <QueryError v-if="feed.isError.value" what="moves" @retry="feed.refetch()" />
-  <template v-else>
-    <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4">
-      <p class="type-body-sm text-text-muted" aria-live="polite">
+  <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4">
+    <p class="type-body-sm text-text-muted" aria-live="polite" aria-atomic="true">
+      <template v-if="!feed.isError.value && !feed.isPending.value">
         <template v-if="items?.length">
           Showing {{ items.length }} {{ items.length === 1 ? "move" : "moves" }}, newest first
         </template>
-      </p>
-      <BoardLegend />
-    </div>
+        <span v-else class="sr-only">{{ emptyMessage }}</span>
+      </template>
+    </p>
+    <BoardLegend v-if="!feed.isError.value" />
+  </div>
+  <QueryError v-if="feed.isError.value" what="moves" @retry="feed.refetch()" />
+  <template v-else>
     <div v-if="feed.hasNextPage.value" class="relative">
       <a
         href="#load-more"

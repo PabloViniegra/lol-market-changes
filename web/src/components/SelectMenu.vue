@@ -118,7 +118,7 @@ onClickOutside(root, () => (open.value = false));
       :aria-expanded="open"
       :aria-controls="listId"
       :aria-activedescendant="open ? optionId(active) : undefined"
-      class="group flex h-10 w-full items-center gap-2 rounded-control border-2 border-transparent bg-surface-raised px-3 text-left type-body-md text-text hover:bg-line aria-expanded:bg-line aria-invalid:border-text"
+      class="group flex h-10 w-full items-center gap-2 rounded-control border-2 border-control-border bg-surface-raised px-3 text-left type-body-md text-text hover:bg-line aria-expanded:bg-line aria-invalid:border-text"
       @click="open ? (open = false) : show()"
       @keydown="onKeydown"
     >

@@ -148,7 +148,7 @@ function sendAnother() {
 }
 
 const input =
-  "h-10 w-full rounded-control border-2 border-transparent bg-surface-raised px-3 type-body-md text-text placeholder:text-text-muted aria-invalid:border-text";
+  "h-10 w-full rounded-control border-2 border-control-border bg-surface-raised px-3 type-body-md text-text placeholder:text-text-muted aria-invalid:border-text";
 </script>
 
 <template>
@@ -213,22 +213,24 @@ const input =
             id="rumor-player"
             v-slot="{ describedBy, invalid }"
             label="Player"
-            hint="Use the name on Leaguepedia."
+            hint="Required. Use the name on Leaguepedia."
             :error="errors.player"
           >
             <input
               id="rumor-player"
               v-model="player"
               v-bind="playerAttrs"
+              required
               :aria-describedby="describedBy"
               :aria-invalid="invalid || undefined"
               autocomplete="off"
               spellcheck="false"
               placeholder="Caps"
-              class="h-14 w-full rounded-control border-2 border-transparent bg-surface-raised px-4 type-board-player text-text placeholder:text-text-muted aria-invalid:border-text"
+              class="h-14 w-full rounded-control border-2 border-control-border bg-surface-raised px-4 type-board-player text-text placeholder:text-text-muted aria-invalid:border-text"
             />
           </FormField>
 
+          <p class="type-body-sm text-text-muted">Enter at least one team.</p>
           <div class="grid gap-6 md:grid-cols-2">
             <FormField
               id="rumor-fromTeam"
@@ -313,7 +315,7 @@ const input =
               id="rumor-sourceUrl"
               v-slot="{ describedBy, invalid }"
               label="Source link"
-              hint="The article or post that reports it."
+              hint="Required. Link to the article or post that reports it."
               :error="errors.sourceUrl"
             >
               <input
@@ -321,6 +323,7 @@ const input =
                 v-model="sourceUrl"
                 v-bind="sourceUrlAttrs"
                 type="url"
+                required
                 inputmode="url"
                 placeholder="https://"
                 :aria-describedby="describedBy"

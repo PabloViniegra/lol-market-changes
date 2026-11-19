@@ -32,7 +32,7 @@ interface Layout {
   ribbons: Ribbon[];
 }
 
-const props = defineProps<{ links: FlowsResponse["links"] }>();
+const props = defineProps<{ links: FlowsResponse["links"]; level: FlowsResponse["level"] }>();
 
 const MAX_LINKS = 24;
 const NODE_WIDTH = 12;
@@ -229,7 +229,7 @@ function ribbonPath({ sy, ty, h }: Ribbon) {
 
 const isLeague = (name: string) => LEAGUES.some((league) => league === name);
 
-const teams = useTeams();
+const teams = useTeams(() => props.level === "team");
 
 const teamLeague = computed(
   () => new Map(teams.data.value?.teams.map((team) => [team.name, team.league]) ?? []),
@@ -425,6 +425,23 @@ function onFocus(ribbon: Ribbon, index: number) {
         >
       </div>
     </div>
+    <details v-if="level === 'team'" class="mt-3 md:hidden">
+      <summary
+        class="inline-flex min-h-11 cursor-pointer items-center rounded-control type-label-md"
+      >
+        View team routes
+      </summary>
+      <ul class="divide-y divide-line type-body-sm">
+        <li
+          v-for="ribbon in goal.ribbons"
+          :key="ribbon.key"
+          class="flex items-baseline justify-between gap-3 py-2"
+        >
+          <span class="min-w-0 wrap-anywhere">{{ routeName(ribbon.link) }}</span>
+          <span class="shrink-0 text-text-muted tabular-nums">{{ moves(ribbon.link.value) }}</span>
+        </li>
+      </ul>
+    </details>
   </div>
 </template>
 

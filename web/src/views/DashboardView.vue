@@ -50,7 +50,7 @@ const teamToTeam = computed(
   <div class="flex flex-col gap-12 xl:flex-row xl:gap-6">
     <section class="min-w-0 flex-1" aria-labelledby="latest-heading">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 id="latest-heading" class="type-heading-lg">Latest moves</h1>
+        <h1 id="latest-heading" class="basis-full type-heading-lg sm:basis-auto">Latest moves</h1>
         <div class="mr-auto flex gap-2" role="group" aria-label="Moves shown">
           <FilterChip :active="!allMoves" @click="setAllMoves(false)">Transfers</FilterChip>
           <FilterChip :active="allMoves" @click="setAllMoves(true)">All moves</FilterChip>
@@ -61,7 +61,9 @@ const teamToTeam = computed(
         >
           {{ allMoves ? "See all moves" : "See all transfers" }}
         </RouterLink>
-        <BoardLegend />
+        <div class="basis-full sm:contents">
+          <BoardLegend />
+        </div>
       </div>
       <section
         v-if="rumors.isError.value || rumors.data.value?.items.length"
@@ -271,7 +273,7 @@ const teamToTeam = computed(
             Other covers teams outside LCK, LPL, LEC and LCS.
           </template>
         </p>
-        <FlowsChart :links="flows.data.value.links" />
+        <FlowsChart :links="flows.data.value.links" :level="flows.data.value.level" />
       </div>
     </div>
   </section>
