@@ -29,3 +29,16 @@ export function findTeam(teams: TeamsResponse["teams"] | undefined, query: strin
     teams?.find((team) => team.short?.toLowerCase() === key)
   );
 }
+
+export function searchTeams(teams: TeamsResponse["teams"], query: string) {
+  const key = query.trim().toLowerCase();
+
+  const hits = key
+    ? teams.filter(
+        (team) =>
+          team.name.toLowerCase().includes(key) || team.short?.toLowerCase().startsWith(key),
+      )
+    : teams;
+
+  return hits.toSorted((a, b) => a.league.localeCompare(b.league) || a.name.localeCompare(b.name));
+}

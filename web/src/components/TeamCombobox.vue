@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TeamsResponse } from "@lol/shared";
 import { computed, nextTick, ref, useId } from "vue";
-import { findTeam } from "../api/teams";
+import { findTeam, searchTeams } from "../api/teams";
 import { onClickOutside } from "../composables/onClickOutside";
 import { teamCode } from "../format";
 import LeagueTag from "./LeagueTag.vue";
@@ -21,20 +21,7 @@ const root = ref<HTMLElement | null>(null);
 const listId = useId();
 const optionId = (index: number) => `${listId}-${index}`;
 
-const matches = computed(() => {
-  const key = model.value.trim().toLowerCase();
-
-  const hits = key
-    ? props.teams.filter(
-        (team) =>
-          team.name.toLowerCase().includes(key) || team.short?.toLowerCase().startsWith(key),
-      )
-    : props.teams;
-
-  return hits
-    .toSorted((a, b) => a.league.localeCompare(b.league) || a.name.localeCompare(b.name))
-    .slice(0, 40);
-});
+const matches = computed(() => searchTeams(props.teams, model.value).slice(0, 40));
 
 const known = computed(() => findTeam(props.teams, model.value));
 

@@ -6,6 +6,7 @@ import BoardFlap from "../components/BoardFlap.vue";
 import FlapSkeleton from "../components/FlapSkeleton.vue";
 import LeagueTag from "../components/LeagueTag.vue";
 import MoveBoard from "../components/MoveBoard.vue";
+import MoveMark from "../components/MoveMark.vue";
 import PlayerPortrait from "../components/PlayerPortrait.vue";
 import QueryError from "../components/QueryError.vue";
 import RoleIcon from "../components/RoleIcon.vue";
@@ -186,9 +187,7 @@ const rosterRows = computed(() => {
                     >
                       {{ playerHandle(entry.player) }}
                     </RouterLink>
-                    <span v-if="departures.has(entry.player)" class="type-label-md text-text-muted">
-                      Left
-                    </span>
+                    <MoveMark v-if="departures.has(entry.player)" change="left" />
                   </li>
                 </ul>
                 <template v-else>
@@ -215,9 +214,7 @@ const rosterRows = computed(() => {
                     >
                       {{ playerHandle(entry.player) }}
                     </RouterLink>
-                    <span v-if="arrivals.has(entry.player)" class="type-label-md text-primary">
-                      Joined
-                    </span>
+                    <MoveMark v-if="arrivals.has(entry.player)" change="joined" />
                   </li>
                 </ul>
                 <template v-else>
