@@ -8,7 +8,7 @@
   "trailingSlash": false,
   "functions": {
     "api/og.ts": {
-      "includeFiles": "{api/_fonts/**,api/node_modules/@resvg/resvg-wasm/index_bg.wasm}"
+      "includeFiles": "{api/_fonts/**,node_modules/.pnpm/@resvg+resvg-wasm@*/node_modules/@resvg/resvg-wasm/index_bg.wasm,node_modules/.pnpm/harfbuzzjs@*/node_modules/harfbuzzjs/hb.wasm}"
     }
   },
   "headers": [
