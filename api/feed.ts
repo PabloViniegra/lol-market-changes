@@ -55,7 +55,8 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
     select id, display_status as status, player, from_team, to_team, from_league, to_league, role, kind,
            date::text as date, reliability, sources, notes, rumor_id, transfer_id,
            (select short from teams where name = from_team) as from_short,
-           (select short from teams where name = to_team) as to_short
+           (select short from teams where name = to_team) as to_short,
+           (select image_url from players where name = m.player) as player_image
     from matching m
     where (m.status <> 'confirmed' or not exists (
       select 1 from matching official

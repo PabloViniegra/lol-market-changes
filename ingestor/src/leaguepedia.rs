@@ -25,6 +25,7 @@ pub struct Query {
     pub tables: String,
     pub fields: String,
     pub where_clause: String,
+    pub join_on: String,
     pub order_by: String,
 }
 
@@ -38,7 +39,11 @@ impl Query {
             ("limit", MAX_LIMIT.to_string()),
             ("offset", offset.to_string()),
         ];
-        for (key, value) in [("where", &self.where_clause), ("order_by", &self.order_by)] {
+        for (key, value) in [
+            ("join_on", &self.join_on),
+            ("where", &self.where_clause),
+            ("order_by", &self.order_by),
+        ] {
             if !value.is_empty() {
                 params.push((key, value.clone()));
             }

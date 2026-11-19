@@ -11,6 +11,10 @@ defineProps<{ nameWidth: string; hidePlayer?: boolean }>();
       <span class="text-line">▸</span>
       <FlapSkeleton />
     </div>
+    <span
+      v-if="!hidePlayer"
+      class="size-12 shrink-0 rounded-flap bg-surface-raised max-md:hidden"
+    />
     <div class="min-w-0 flex-1">
       <span
         v-if="!hidePlayer"

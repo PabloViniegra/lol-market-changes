@@ -4,6 +4,8 @@ import { computed } from "vue";
 import { kindLabel, playerHandle, relativeDay, teamCode } from "../format";
 import BoardFlap from "./BoardFlap.vue";
 import LeagueTag from "./LeagueTag.vue";
+import PlayerPortrait from "./PlayerPortrait.vue";
+import RoleIcon from "./RoleIcon.vue";
 import StatusPill from "./StatusPill.vue";
 
 const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean; hidePlayer?: boolean }>();
@@ -51,6 +53,7 @@ const details = computed(() =>
         placeholder="FA"
         empty-label="free agent"
         :team="item.fromTeam"
+        :logo="item.fromLogo"
         :flip="fresh"
       />
       <span class="text-text-muted" aria-hidden="true">▸</span>
@@ -60,9 +63,19 @@ const details = computed(() =>
         placeholder="OUT"
         empty-label="left team"
         :team="item.toTeam"
+        :logo="item.toLogo"
         :flip="fresh"
       />
     </div>
+
+    <PlayerPortrait
+      v-if="!hidePlayer"
+      :src="item.playerImage"
+      :role="item.role"
+      :size="48"
+      class="max-md:hidden"
+      :class="{ grayscale: muted }"
+    />
 
     <div class="min-w-0 flex-1">
       <RouterLink
@@ -88,7 +101,10 @@ const details = computed(() =>
     <div
       class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 type-body-sm md:w-auto md:shrink-0 md:justify-end"
     >
-      <span v-if="details" class="text-text-muted">{{ details }}</span>
+      <span v-if="details" class="flex items-center gap-1 text-text-muted">
+        <RoleIcon :role="item.role" />
+        {{ details }}
+      </span>
       <span v-if="leagues.length" class="flex items-center gap-1">
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />
       </span>

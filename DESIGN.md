@@ -289,11 +289,11 @@ Dashboard (`/`), desktop:
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Board row anatomy, left to right: origin flap, a direction glyph, destination flap, player name, role, league tag(s), status pill, relative date, source icon (an external-link outline icon whose accessible name and tooltip give the outlet). A missing origin shows an empty flap with `FA` (free agent). A missing destination shows `OUT`.
+Board row anatomy, left to right: origin flap, a direction glyph, destination flap, player portrait (48px, hidden below 768px), player name, role, league tag(s), status pill, relative date, source icon (an external-link outline icon whose accessible name and tooltip give the outlet). A missing origin shows an empty flap with `FA` (free agent). A missing destination shows `OUT`.
 
 Spacing comes from a 4px base (`xs` 4 → `3xl` 48). Board rows are 64px tall with `md` (12px) internal padding. Panels use `xl` (24px). Sections are separated by `3xl` (48px) and a heading, never by stacking cards.
 
-Below 768px the board row reflows to two lines: flaps and name on the first, role, tag, status and date on the second. Flaps shrink to 56×36 and `board-code` drops to 25px. The right column moves under the board.
+Below 768px the board row reflows to two lines: flaps and name on the first, role, tag, status and date on the second. Flaps shrink to at least 80×36 and `board-code` drops to 25px. The right column moves under the board.
 
 ## Elevation & Depth
 
@@ -312,13 +312,19 @@ Radius signals what kind of object something is, so it changes with hierarchy ra
 - **panel (10px):** panels and dialogs.
 - **pill (9999px):** status pills only. The round shape is reserved for "how sure is this", so status is recognisable by shape before it is read.
 
-The direction glyph between flaps is a solid right-pointing triangle (`▸`), not an arrow, matching departure-board iconography. Icons elsewhere are 1.5px-stroke outline icons at 20px.
+The direction glyph between flaps is a solid right-pointing triangle (`▸`), not an arrow, matching departure-board iconography. Icons elsewhere are 1.5px-stroke outline icons at 20px. Role icons are the exception: filled 20px glyphs in the minimap language players already read (a lane corner for Top and Bot, a diagonal for Mid, a fang for Jungle, a shield for Support).
 
 ## Components
 
 **Board row.** The core component. A `surface` row 64px tall, separated from its neighbours by a 1px `divider`, not by gaps or cards. Rows are clickable: the player name is a stretched link, so the whole row opens the player page while team codes, the source icon and other links inside stay separately clickable. Hover lifts the row to `surface-raised`. Keyboard focus draws a 2px signal-yellow outline inset by 2px.
 
-**Flap.** `surface-raised`, 72×44, `board-code` type, centred text, with a 1px `line` seam across the middle. Team codes are at most 4 characters. Empty states: `FA` for free agent origin, `OUT` for release or retirement, both in `text-muted`.
+**Flap.** `surface-raised`, at least 104×44, `board-code` type, centred text, with a 1px `line` seam across the middle. Team codes are at most 4 characters. When the team has a Leaguepedia square logo, a 24px logo (20px below 768px) sits before the code; the flap grows with its content. Logos drawn mostly in near-black, which vanish on petrol, sit on a `text` plate with `flap` radius and 2px padding; the tone is measured once per logo in the browser. Empty states: `FA` for free agent origin, `OUT` for release or retirement, both in `text-muted`.
+
+**Team crest.** On the team page, the logo sits in an 80px tile (96px from 768px) with `flap` radius and the flap seam, on `surface-raised`, or on `text` for near-black logos. It is omitted when the logo fails to load.
+
+**Player portrait.** The Leaguepedia tournament photo, cropped to the top of a square tile with `flap` radius on `surface-raised`: 48px in board rows, 32px in rosters (hidden below 768px), 112px in the player header. Departed and muted players render in greyscale. Without a photo, rows and rosters show the role icon in `line` so columns stay aligned; the player header omits the tile.
+
+**Role icon.** Shown before the role in board rows, roster role cells and the player header, in the colour of its text.
 
 **Status pills.** Five states, distinguished by fill, outline and decoration, not only by colour:
 
@@ -366,7 +372,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 - Don't add all-caps eyebrow labels above headings or tracked-out micro labels. Team codes are the only capitals.
 - Don't use monospace for data, gradients for decoration, or glows of any kind.
 - Don't use league colours for status, buttons or highlights.
-- Don't use official team logos or Riot/league brand marks as decoration. Codes on flaps are the visual identity.
+- Don't use team logos or player photos as decoration. They identify a team or player next to its code or name, never alone, and never in backgrounds, banners or patterns. Riot and league marks are not used at all.
 - Don't animate section entrances, card hovers or chart loading.
 - Don't use numbered markers or step indicators: nothing on this site is a sequence except time, and time is shown as dates.
 - Don't append arrows to button or link text. The only directional glyph is the `▸` between flaps.

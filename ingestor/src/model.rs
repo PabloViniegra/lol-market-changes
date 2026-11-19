@@ -142,7 +142,6 @@ pub struct TeamInfo {
     pub short: Option<String>,
     pub region: Option<String>,
     pub org: Option<String>,
-    pub image: Option<String>,
     pub renamed_to: Option<String>,
 }
 
@@ -155,7 +154,6 @@ impl TryFrom<&Row> for TeamInfo {
             short: optional(row, "Short"),
             region: optional(row, "Region"),
             org: optional(row, "OrganizationPage"),
-            image: optional(row, "Image"),
             renamed_to: optional(row, "RenamedTo"),
         })
     }
@@ -180,6 +178,25 @@ impl TryFrom<&Row> for PlayerInfo {
             country: optional(row, "Country"),
             role: optional(row, "Role"),
             image: optional(row, "Image"),
+        })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PlayerImage {
+    pub player: String,
+    pub file: String,
+    pub date: NaiveDate,
+}
+
+impl TryFrom<&Row> for PlayerImage {
+    type Error = anyhow::Error;
+
+    fn try_from(row: &Row) -> Result<Self> {
+        Ok(Self {
+            player: required(row, "Link")?,
+            file: required(row, "FileName")?,
+            date: date(row, "DateStart")?,
         })
     }
 }

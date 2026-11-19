@@ -1,14 +1,13 @@
 import type { RosterEntry, TeamResponse } from "@lol/shared";
 import { NotFound, db, handler, pathName, windowStart } from "../_lib/http.js";
+import { teamLogo, storedImage } from "../_lib/images.js";
 import { toRumor } from "../_lib/rumors.js";
-
-const toEntry = ({ player, role }: Record<string, any>): RosterEntry => ({ player, role });
 
 export const GET = handler(async (url): Promise<TeamResponse> => {
   const requested = pathName(url);
   const seasonStart = windowStart("season");
   const sql = db();
-  const [team] = await sql`select name, short, league, region, logo_url from teams
+  const [team] = await sql`select name, short, league, region from teams
                            where lower(name) = lower(${requested})
                            order by name = ${requested} desc
                            limit 1`;
@@ -19,7 +18,12 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
   // current one applies every later move to it.
   const [[base] = [], current = [], rumors = []] = await sql.transaction(
     [
-      sql`select tournament, roster from team_seasons
+      sql`select tournament, roster,
+                 (select coalesce(jsonb_object_agg(p.name, p.image_url), '{}')
+                  from players p
+                  where p.image_url is not null
+                    and p.name in (select r->>'player' from jsonb_array_elements(roster) r)) as images
+          from team_seasons
           where team = ${name} and date_start < ${seasonStart}::date and roster <> '[]'
           order by date_start desc limit 1`,
       sql`with base as (
@@ -33,7 +37,7 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
             where date >= coalesce((select date_start from base), '-infinity'::date)
             order by player, date desc, id desc
           )
-          select distinct on (player) player, role
+          select distinct on (members.player) members.player, members.role, p.image_url
           from (
             select r->>'player' as player, r->>'role' as role, 0 as priority
             from base, jsonb_array_elements(base.roster) r
@@ -44,7 +48,8 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
             union all
             select player, role, 1 from latest where to_team = ${name}
           ) members
-          order by player, priority`,
+          left join players p on p.name = members.player
+          order by members.player, members.priority`,
       sql`select id, status, player, from_team, to_team, role, kind,
                  reported_at::text as reported_at, reliability, sources, notes,
                  transfer_id::text as transfer_id
@@ -54,6 +59,16 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
     ],
     { readOnly: true },
   );
+
+  const imageOf = new Map<string, string | null>([
+    ...Object.entries<string>(base?.images ?? {}),
+    ...current.map((row): [string, string | null] => [row.player, row.image_url]),
+  ]);
+  const toEntry = ({ player, role }: Record<string, any>): RosterEntry => ({
+    player,
+    role,
+    imageUrl: storedImage(imageOf.get(player) ?? null, 96),
+  });
 
   const roster = current.map(toEntry);
   const previousRoster: RosterEntry[] = (base?.roster ?? []).map(toEntry);
@@ -66,7 +81,7 @@ export const GET = handler(async (url): Promise<TeamResponse> => {
       short: team.short,
       league: team.league,
       region: team.region,
-      logoUrl: team.logo_url,
+      logoUrl: teamLogo(team.name, 192),
     },
     seasonStart,
     previousTournament: base?.tournament ?? null,

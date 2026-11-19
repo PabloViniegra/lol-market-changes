@@ -22,5 +22,6 @@ pub fn probe_snapshot() -> Snapshot {
         roster_changes: load("roster_changes"),
         player_redirects: load("player_redirects"),
         players: load("players"),
+        player_images: load("player_images"),
     }
 }

@@ -1,5 +1,6 @@
 import type { PlayerResponse } from "@lol/shared";
 import { toFeedItem } from "../_lib/feed.js";
+import { storedImage, teamLogo } from "../_lib/images.js";
 import { NotFound, db, handler, pathName } from "../_lib/http.js";
 
 export const GET = handler(async (url): Promise<PlayerResponse> => {
@@ -24,7 +25,8 @@ export const GET = handler(async (url): Promise<PlayerResponse> => {
       sql`select id, status, player, from_team, to_team, from_league, to_league, role, kind,
                  date::text as date, reliability, sources, notes, rumor_id, transfer_id,
                  (select short from teams where name = from_team) as from_short,
-                 (select short from teams where name = to_team) as to_short
+                 (select short from teams where name = to_team) as to_short,
+                 (select image_url from players where name = ${name}) as player_image
           from market_feed
           where player = ${name}
           order by date desc, id desc`,
@@ -40,15 +42,18 @@ export const GET = handler(async (url): Promise<PlayerResponse> => {
   const fromRoster = lastRoster && (!latestMove || lastRoster.date_start > latestMove.date);
   const items = feed.map(toFeedItem);
 
+  const currentTeam: string | null = fromRoster ? lastRoster.team : (latestMove?.to_team ?? null);
+
   return {
     player: {
       name: player.name,
       realName: player.real_name,
       country: player.country,
       role: player.role,
-      imageUrl: player.image_url,
+      imageUrl: storedImage(player.image_url, 320),
     },
-    currentTeam: fromRoster ? lastRoster.team : (latestMove?.to_team ?? null),
+    currentTeam,
+    currentTeamLogo: teamLogo(currentTeam),
     currentTeamShort: fromRoster ? lastRoster.short : (latestMove?.to_short ?? null),
     timeline: items.filter((item) => item.status === "official"),
     rumors: items.filter((item) => item.status !== "official"),

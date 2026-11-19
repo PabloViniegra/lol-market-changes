@@ -44,6 +44,7 @@ async fn main() -> Result<()> {
         ("roster_changes", &snapshot.roster_changes),
         ("player_redirects", &snapshot.player_redirects),
         ("players", &snapshot.players),
+        ("player_images", &snapshot.player_images),
     ];
     for (name, rows) in tables {
         write(&cli.out, name, rows)?;
@@ -65,6 +66,7 @@ async fn main() -> Result<()> {
                     in_list("RosterChangeIdLeave", chunk)?
                 ),
                 order_by: "Player,DateJoin".into(),
+                ..Default::default()
             })
         },
     )

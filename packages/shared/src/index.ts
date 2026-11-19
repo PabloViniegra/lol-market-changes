@@ -45,6 +45,9 @@ export interface FeedItem {
   toTeam: string | null;
   fromShort: string | null;
   toShort: string | null;
+  fromLogo: string | null;
+  toLogo: string | null;
+  playerImage: string | null;
   fromLeague: League | null;
   toLeague: League | null;
   role: string | null;
@@ -99,6 +102,7 @@ export interface TeamsResponse {
 export interface RosterEntry {
   player: string;
   role: string | null;
+  imageUrl: string | null;
 }
 
 export interface Rumor {
@@ -139,6 +143,7 @@ export interface PlayerResponse {
   };
   currentTeam: string | null;
   currentTeamShort: string | null;
+  currentTeamLogo: string | null;
   timeline: FeedItem[];
   rumors: FeedItem[];
 }

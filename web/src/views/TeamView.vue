@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useFeed } from "../api/feed";
 import { useTeam } from "../api/teams";
 import BoardFlap from "../components/BoardFlap.vue";
 import FlapSkeleton from "../components/FlapSkeleton.vue";
 import LeagueTag from "../components/LeagueTag.vue";
 import MoveBoard from "../components/MoveBoard.vue";
+import PlayerPortrait from "../components/PlayerPortrait.vue";
 import QueryError from "../components/QueryError.vue";
+import RoleIcon from "../components/RoleIcon.vue";
 import RosterSkeleton from "../components/RosterSkeleton.vue";
 import { HttpError } from "../api/client";
+import { isDarkLogo, measureLogo } from "../composables/useLogoTone";
 import { LEAGUES, ROLES, playerHandle, shortDate, teamCode, tournamentLabel } from "../format";
 
 const props = defineProps<{ name: string }>();
@@ -31,6 +34,14 @@ const notFound = computed(
 );
 
 const info = computed(() => team.data.value?.team);
+
+const logoFailed = ref(false);
+
+watch(
+  () => info.value?.logoUrl,
+  () => (logoFailed.value = false),
+);
+
 const league = computed(() => LEAGUES.find((item) => item === info.value?.league) ?? null);
 const arrivals = computed(() => new Set(team.data.value?.arrivals));
 const departures = computed(() => new Set(team.data.value?.departures));
@@ -69,20 +80,43 @@ const rosterRows = computed(() => {
   <QueryError v-else-if="team.isError.value" what="this team" @retry="team.refetch()" />
   <div v-else-if="team.isPending.value" aria-busy="true">
     <span class="sr-only">Loading team</span>
-    <div class="mb-10 flex flex-wrap items-center gap-4" aria-hidden="true">
-      <FlapSkeleton />
-      <span class="h-9 w-56 max-w-full rounded-flap bg-surface-raised" />
-      <span class="h-5 w-10 rounded-flap bg-surface-raised" />
+    <div class="mb-10 flex items-center gap-4 md:gap-6" aria-hidden="true">
+      <span class="size-20 shrink-0 rounded-flap bg-surface-raised md:size-24" />
+      <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+        <span class="h-9 w-full max-w-56 rounded-flap bg-surface-raised" />
+        <FlapSkeleton />
+        <span class="h-5 w-10 rounded-flap bg-surface-raised" />
+      </div>
     </div>
     <span class="mb-4 block h-6 w-24 rounded-flap bg-surface-raised" aria-hidden="true" />
     <RosterSkeleton />
   </div>
   <template v-else-if="team.data.value && info">
-    <header class="mb-10 flex flex-wrap items-center gap-4">
-      <BoardFlap :code="teamCode(info.name, info.short)" placeholder="" :team="null" />
-      <h1 class="type-heading-lg">{{ info.name }}</h1>
-      <LeagueTag v-if="league" :league="league" />
-      <span v-if="info.region" class="type-body-sm text-text-muted">{{ info.region }}</span>
+    <header class="mb-10 flex items-center gap-4 md:gap-6">
+      <span
+        v-if="info.logoUrl && !logoFailed"
+        class="crest relative flex size-20 shrink-0 items-center justify-center rounded-flap p-3 md:size-24"
+        :class="isDarkLogo(info.logoUrl) ? 'bg-text' : 'bg-surface-raised'"
+      >
+        <img
+          :src="info.logoUrl"
+          alt=""
+          width="72"
+          height="72"
+          decoding="async"
+          referrerpolicy="no-referrer"
+          crossorigin="anonymous"
+          class="size-full object-contain"
+          @load="measureLogo(info.logoUrl, $event.target as HTMLImageElement)"
+          @error="logoFailed = true"
+        />
+      </span>
+      <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+        <h1 class="w-full type-heading-lg wrap-anywhere">{{ info.name }}</h1>
+        <BoardFlap :code="teamCode(info.name, info.short)" placeholder="" :team="null" />
+        <LeagueTag v-if="league" :league="league" />
+        <span v-if="info.region" class="type-body-sm text-text-muted">{{ info.region }}</span>
+      </div>
     </header>
 
     <section aria-labelledby="roster-heading">
@@ -118,18 +152,28 @@ const rosterRows = computed(() => {
           <tbody class="divide-y divide-line">
             <tr v-for="row in rosterRows" :key="row.role ?? 0">
               <th scope="row" class="py-3 pr-2 align-top wrap-anywhere type-label-md">
-                {{ row.role ?? "Unknown" }}
+                <span class="flex min-h-8 items-center gap-2">
+                  <RoleIcon :role="row.role" class="text-text-muted max-md:hidden" />
+                  {{ row.role ?? "Unknown" }}
+                </span>
               </th>
               <td class="py-3 pr-3 align-top">
                 <ul v-if="row.previous.length" class="flex flex-col gap-2">
                   <li
                     v-for="entry in row.previous"
                     :key="entry.player"
-                    class="flex flex-wrap items-baseline gap-x-2"
+                    class="flex items-center gap-x-2 md:gap-x-3"
                   >
+                    <PlayerPortrait
+                      :src="entry.imageUrl"
+                      :role="entry.role"
+                      :size="32"
+                      class="max-md:hidden"
+                      :class="{ grayscale: departures.has(entry.player) }"
+                    />
                     <RouterLink
                       :to="`/players/${encodeURIComponent(entry.player)}`"
-                      class="wrap-anywhere underline hover:text-primary"
+                      class="min-w-0 wrap-anywhere underline hover:text-primary"
                       :class="{ 'text-text-muted': departures.has(entry.player) }"
                     >
                       {{ playerHandle(entry.player) }}
@@ -149,11 +193,17 @@ const rosterRows = computed(() => {
                   <li
                     v-for="entry in row.current"
                     :key="entry.player"
-                    class="flex flex-wrap items-baseline gap-x-2"
+                    class="flex items-center gap-x-2 md:gap-x-3"
                   >
+                    <PlayerPortrait
+                      :src="entry.imageUrl"
+                      :role="entry.role"
+                      :size="32"
+                      class="max-md:hidden"
+                    />
                     <RouterLink
                       :to="`/players/${encodeURIComponent(entry.player)}`"
-                      class="wrap-anywhere underline hover:text-primary"
+                      class="min-w-0 wrap-anywhere underline hover:text-primary"
                     >
                       {{ playerHandle(entry.player) }}
                     </RouterLink>
@@ -203,3 +253,14 @@ const rosterRows = computed(() => {
     </section>
   </template>
 </template>
+
+<style scoped>
+.crest::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background-color: var(--color-line);
+}
+</style>

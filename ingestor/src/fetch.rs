@@ -5,10 +5,13 @@ use chrono::{Days, NaiveDate};
 use serde_json::{Value, json};
 
 use crate::leaguepedia::{Client, Query, Row, in_list};
+use crate::model::TournamentRoster;
 use crate::normalize::{LEAGUE_NAMES, Snapshot, page_title};
 
 // Long enough to include the previous season's rosters, so off-season moves stay in scope.
 const TOURNAMENT_LOOKBACK_DAYS: u64 = 365;
+// Older photos are not worth the extra pages: a player active in the window has a recent one.
+const PLAYER_IMAGE_LOOKBACK_DAYS: u64 = 730;
 // Queries are POSTed, so the ~8 KB URL limit of GET does not apply; a 69 KB `where` was
 // accepted in testing. This keeps two IN lists well below that.
 const MAX_IN_CHARS: usize = 20_000;
@@ -71,6 +74,7 @@ pub async fn fetch_scope(client: &mut Client, since: NaiveDate) -> Result<ScopeR
                 since - Days::new(TOURNAMENT_LOOKBACK_DAYS)
             ),
             order_by: "DateStart".into(),
+            ..Default::default()
         })
         .await?;
 
@@ -81,6 +85,7 @@ pub async fn fetch_scope(client: &mut Client, since: NaiveDate) -> Result<ScopeR
                 fields: "Team,OverviewPage,Region,Short,RosterLinks,Roles".into(),
                 where_clause: in_list("OverviewPage", chunk)?,
                 order_by: "OverviewPage,Team".into(),
+                ..Default::default()
             })
         })
         .await?;
@@ -134,17 +139,25 @@ pub async fn fetch_snapshot(
     let teams = query_chunked(client, &team_pages, |chunk| {
         Ok(Query {
             tables: "Teams".into(),
-            fields: "_pageName=Page,Name,Short,Region,OrganizationPage,Image,IsDisbanded,RenamedTo"
+            fields: "_pageName=Page,Name,Short,Region,OrganizationPage,IsDisbanded,RenamedTo"
                 .into(),
             where_clause: in_list("_pageName", chunk)?,
             order_by: "_pageName".into(),
+            ..Default::default()
         })
     })
     .await?;
 
-    let player_titles = union([distinct(&roster_changes, "Player")
+    let roster_links = tournament_rosters
         .iter()
-        .map(|name| page_title(name))
+        .map(TournamentRoster::try_from)
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .flat_map(|roster| roster.players.into_iter().map(|(player, _)| player));
+    let player_titles = union([distinct(&roster_changes, "Player")
+        .into_iter()
+        .chain(roster_links)
+        .map(|name| page_title(&name))
         .collect()]);
     let player_redirects = query_chunked(client, &player_titles, |chunk| {
         Ok(Query {
@@ -152,6 +165,7 @@ pub async fn fetch_snapshot(
             fields: "AllName,OverviewPage,ID".into(),
             where_clause: in_list("AllName", chunk)?,
             order_by: "OverviewPage,AllName".into(),
+            ..Default::default()
         })
     })
     .await?;
@@ -167,6 +181,26 @@ pub async fn fetch_snapshot(
                     .into(),
                 where_clause: in_list("OverviewPage", chunk)?,
                 order_by: "OverviewPage".into(),
+                ..Default::default()
+            })
+        },
+    )
+    .await?;
+
+    let player_images = query_chunked(
+        client,
+        &distinct(&player_redirects, "OverviewPage"),
+        |chunk| {
+            Ok(Query {
+                tables: "PlayerImages=PI,Tournaments=T".into(),
+                fields: "PI.Link=Link,PI.FileName=FileName,T.DateStart=DateStart".into(),
+                join_on: "PI.Tournament=T.OverviewPage".into(),
+                where_clause: format!(
+                    "{} AND T.DateStart>=\"{}\"",
+                    in_list("PI.Link", chunk)?,
+                    since - Days::new(PLAYER_IMAGE_LOOKBACK_DAYS)
+                ),
+                order_by: "PI.Link,PI.FileName".into(),
             })
         },
     )
@@ -180,6 +214,7 @@ pub async fn fetch_snapshot(
         roster_changes,
         player_redirects,
         players,
+        player_images,
     };
     let scope = Scope {
         teams: scope_names,
@@ -208,6 +243,7 @@ async fn fetch_team_redirects(
             fields: "_pageName=Page,AllName".into(),
             where_clause,
             order_by: "_pageName,AllName".into(),
+            ..Default::default()
         })
     })
     .await
@@ -219,6 +255,7 @@ fn roster_changes(since: NaiveDate, filter: &str) -> Result<Query> {
         fields: ROSTER_CHANGE_FIELDS.into(),
         where_clause: format!("Date_Sort>=\"{since}\" AND {filter}"),
         order_by: "Date_Sort,NewsId,N_LineInNews".into(),
+        ..Default::default()
     })
 }
 

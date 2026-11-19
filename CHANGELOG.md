@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: team logos on flaps and a team crest, player photos on board rows, rosters and the player page, and minimap-style role icons. Near-black logos sit on a light plate so they stay visible on petrol.
+- Ingestor: store every player on a tracked tournament roster, not only players with moves, and fetch each player's photo from the latest tournament in the last two years (`PlayerImages`) when Leaguepedia has no profile image.
+- API: feed items include `fromLogo`, `toLogo` and `playerImage`; roster entries include `imageUrl`; the player response includes `currentTeamLogo`. Images are served as Leaguepedia CDN thumbnails.
 - Web: dashboard (`/`) with the latest moves board, per-league move counts, free agents, rumor confirmation rate, busiest teams, a league or team flows Sankey and rumors to watch.
 - Web: market feed (`/feed`) with league, role, move type, status and date filters mirrored in the URL, and paginated loading.
 - Web: team page (`/teams/:name`) with the previous and current roster, arrivals, departures, moves since the season start and related rumors.
@@ -76,6 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: the rumor tracker merges empty sections into one note on how rumors are tracked.
 - Web: the dashboard puts open rumors and a tracker link above the latest board, links the season counts to league-filtered feeds, and shares the flow view in the URL. Keyboard links jump directly to the season summary and flows.
 - Web: rumor rows name their sources, all board source links have larger mobile tap targets, and the flow list labels moves within a league explicitly.
+
+### Removed
+
+- Ingestor: the unused `teams.logo_url` column (migration `0006`); the API builds logos from the team name.
 
 ### Fixed
 

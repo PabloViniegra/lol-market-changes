@@ -6,7 +6,8 @@ use serde::Serialize;
 
 use crate::leaguepedia::Row;
 use crate::model::{
-    Direction, PlayerInfo, Redirect, RosterChange, TeamInfo, Tournament, TournamentRoster,
+    Direction, PlayerImage, PlayerInfo, Redirect, RosterChange, TeamInfo, Tournament,
+    TournamentRoster,
 };
 
 pub const FILE_URL: &str = "https://lol.fandom.com/wiki/Special:FilePath/";
@@ -21,6 +22,7 @@ pub struct Snapshot {
     pub roster_changes: Vec<Row>,
     pub player_redirects: Vec<Row>,
     pub players: Vec<Row>,
+    pub player_images: Vec<Row>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -30,7 +32,6 @@ pub struct Team {
     pub league: String,
     pub region: Option<String>,
     pub org: Option<String>,
-    pub logo_url: Option<String>,
     pub renamed_to: Option<String>,
 }
 
@@ -132,6 +133,7 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
     let changes = parse::<RosterChange>(&snapshot.roster_changes)?;
     let team_infos = parse::<TeamInfo>(&snapshot.teams)?;
     let player_infos = parse::<PlayerInfo>(&snapshot.players)?;
+    let player_images = parse::<PlayerImage>(&snapshot.player_images)?;
     let team_aliases = aliases(&snapshot.team_redirects, Redirect::team)?;
     let player_aliases = aliases(&snapshot.player_redirects, Redirect::player)?;
 
@@ -230,7 +232,6 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
                 league: latest_league.get(name).unwrap_or(&"other").to_string(),
                 region: info.and_then(|i| i.region.clone()),
                 org: info.and_then(|i| i.org.clone()),
-                logo_url: info.and_then(|i| i.image.as_deref()).map(file_url),
                 renamed_to: info.and_then(|i| i.renamed_to.clone()),
             }
         })
@@ -240,8 +241,24 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
         .iter()
         .map(|info| (info.page.as_str(), info))
         .collect();
+    // Cargo matches `PI.Link` case-insensitively but returns it as typed (`SeRiN` for `Serin`).
+    let mut latest_image: HashMap<String, &PlayerImage> = HashMap::new();
+    for image in &player_images {
+        let key = image.player.to_lowercase();
+        let entry = latest_image.entry(key).or_insert(image);
+        if (image.date, &image.file) > (entry.date, &entry.file) {
+            *entry = image;
+        }
+    }
+    let roster_players = team_seasons
+        .iter()
+        .flat_map(|season| season.roster.iter().map(|slot| slot.player.clone()));
     let players = players_in_scope
         .iter()
+        .cloned()
+        .chain(roster_players)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
         .map(|name| {
             let info = player_info.get(name.as_str());
             Player {
@@ -249,7 +266,14 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
                 real_name: info.and_then(|i| i.real_name.clone()),
                 country: info.and_then(|i| i.country.clone()),
                 role: info.and_then(|i| i.role.clone()),
-                image_url: info.and_then(|i| i.image.as_deref()).map(file_url),
+                image_url: info
+                    .and_then(|i| i.image.as_deref())
+                    .or_else(|| {
+                        latest_image
+                            .get(&name.to_lowercase())
+                            .map(|i| i.file.as_str())
+                    })
+                    .map(file_url),
             }
         })
         .collect();

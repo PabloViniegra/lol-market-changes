@@ -39,7 +39,7 @@ Leaguepedia records events; news sites scatter rumors. This product pairs events
 ## Brand Commitments
 
 - Leaguepedia data is CC BY-SA: the UI must keep the attribution footer linking to Leaguepedia.
-- No official team logos or Riot/league brand marks as decoration.
+- Team logos and player photos from Leaguepedia only identify a team or player next to its code or name, never as decoration. No Riot or league brand marks.
 
 ## Evidence on Hand
 

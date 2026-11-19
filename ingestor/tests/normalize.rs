@@ -129,3 +129,62 @@ fn output_is_deterministic() {
     assert_eq!(a.teams, b.teams);
     assert_eq!(a.team_seasons, b.team_seasons);
 }
+
+#[test]
+fn player_image_is_the_photo_from_the_latest_tournament() {
+    let data = probe();
+    let image = |name: &str| {
+        data.players
+            .iter()
+            .find(|player| player.name == name)
+            .and_then(|player| player.image_url.as_deref())
+    };
+    assert_eq!(
+        image("APA (Eain Stearns)"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/C9_APA_2026_Split_1.png")
+    );
+    assert_eq!(
+        image("Canyon"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/GEN_Canyon_2026_Split_1.png")
+    );
+    // PlayerImages returns links as typed, in any case.
+    assert_eq!(
+        image("Kyeahoo"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/KC_kyeahoo_2026_Split_2.png")
+    );
+    assert_eq!(
+        image("Sajed"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/DSG_sajed_2026_Split_1.png")
+    );
+}
+
+#[test]
+fn roster_players_without_moves_get_a_photo() {
+    let snapshot = Snapshot {
+        tournaments: vec![row(json!({
+            "OverviewPage": "LCK/2026 Season", "League": "LoL Champions Korea",
+            "DateStart": "2026-01-14", "Date": "",
+        }))],
+        tournament_rosters: vec![row(json!({
+            "OverviewPage": "LCK/2026 Season", "Team": "T1",
+            "RosterLinks": "Faker;;Tom (Im Jae-hyeon)", "Roles": "Mid;;Coach",
+        }))],
+        player_images: vec![row(json!({
+            "Link": "Faker", "FileName": "T1 Faker 2026 LCK Cup.png", "DateStart": "2026-01-14",
+        }))],
+        ..Default::default()
+    };
+    let data = normalize(&snapshot).unwrap();
+    let players: Vec<(&str, Option<&str>)> = data
+        .players
+        .iter()
+        .map(|p| (p.name.as_str(), p.image_url.as_deref()))
+        .collect();
+    assert_eq!(
+        players,
+        [(
+            "Faker",
+            Some("https://lol.fandom.com/wiki/Special:FilePath/T1_Faker_2026_LCK_Cup.png")
+        )]
+    );
+}

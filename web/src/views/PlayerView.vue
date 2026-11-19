@@ -5,7 +5,9 @@ import { usePlayer } from "../api/players";
 import BoardFlap from "../components/BoardFlap.vue";
 import FlapSkeleton from "../components/FlapSkeleton.vue";
 import MoveBoard from "../components/MoveBoard.vue";
+import PlayerPortrait from "../components/PlayerPortrait.vue";
 import QueryError from "../components/QueryError.vue";
+import RoleIcon from "../components/RoleIcon.vue";
 import { playerHandle, teamCode } from "../format";
 
 const props = defineProps<{ name: string }>();
@@ -35,9 +37,12 @@ const details = computed(() => {
   <div v-else-if="player.isPending.value" aria-busy="true">
     <span class="sr-only">Loading player</span>
     <div class="mb-10 flex flex-wrap items-end justify-between gap-6" aria-hidden="true">
-      <div>
-        <span class="block h-9 w-48 max-w-full rounded-flap bg-surface-raised" />
-        <span class="mt-3 block h-3 w-56 max-w-full rounded-flap bg-surface-raised" />
+      <div class="flex items-end gap-4 md:gap-6">
+        <span class="size-28 shrink-0 rounded-flap bg-surface-raised" />
+        <div>
+          <span class="block h-9 w-48 max-w-full rounded-flap bg-surface-raised" />
+          <span class="mt-3 block h-3 w-56 max-w-full rounded-flap bg-surface-raised" />
+        </div>
       </div>
       <div class="flex items-center gap-3">
         <span class="h-3 w-12 rounded-flap bg-surface-raised" />
@@ -50,9 +55,22 @@ const details = computed(() => {
   </div>
   <template v-else-if="player.data.value">
     <header class="mb-10 flex flex-wrap items-end justify-between gap-6">
-      <div>
-        <h1 class="type-heading-lg">{{ playerHandle(player.data.value.player.name) }}</h1>
-        <p v-if="details" class="mt-1 type-body-sm text-text-muted">{{ details }}</p>
+      <div class="flex min-w-0 items-end gap-4 md:gap-6">
+        <PlayerPortrait
+          v-if="player.data.value.player.imageUrl"
+          :src="player.data.value.player.imageUrl"
+          :role="player.data.value.player.role"
+          :size="112"
+        />
+        <div class="min-w-0">
+          <h1 class="type-heading-lg wrap-anywhere">
+            {{ playerHandle(player.data.value.player.name) }}
+          </h1>
+          <p v-if="details" class="mt-1 flex items-center gap-1 type-body-sm text-text-muted">
+            <RoleIcon :role="player.data.value.player.role" />
+            {{ details }}
+          </p>
+        </div>
       </div>
       <div class="flex items-center gap-3">
         <span class="type-body-sm text-text-muted">
@@ -67,6 +85,7 @@ const details = computed(() => {
           placeholder="FA"
           empty-label="free agent"
           :team="player.data.value.currentTeam"
+          :logo="player.data.value.currentTeamLogo"
         />
         <span class="type-body-md">{{ player.data.value.currentTeam ?? "Free agent" }}</span>
       </div>

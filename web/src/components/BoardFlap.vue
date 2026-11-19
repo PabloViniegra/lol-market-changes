@@ -1,11 +1,22 @@
 <script setup lang="ts">
-defineProps<{
+import { ref, watch } from "vue";
+import { isDarkLogo, measureLogo } from "../composables/useLogoTone";
+
+const props = defineProps<{
   code: string | null;
   placeholder: string;
   team: string | null;
+  logo?: string | null;
   emptyLabel?: string;
   flip?: boolean;
 }>();
+
+const failed = ref(false);
+
+watch(
+  () => props.logo,
+  () => (failed.value = false),
+);
 </script>
 
 <template>
@@ -13,12 +24,32 @@ defineProps<{
     :is="team ? 'RouterLink' : 'span'"
     :to="team ? `/teams/${encodeURIComponent(team)}` : undefined"
     :title="team ?? undefined"
-    class="flap relative flex h-9 min-w-14 shrink-0 items-center justify-center rounded-flap bg-surface-raised px-1 type-board-code md:h-11 md:min-w-18"
+    class="flap relative flex h-9 min-w-20 shrink-0 items-center justify-center rounded-flap bg-surface-raised px-2 type-board-code md:h-11 md:min-w-26"
     :class="[code ? 'text-text' : 'text-text-muted', { 'flap-flip': flip, 'hover:bg-line': team }]"
   >
-    <span class="flap-half flap-top" aria-hidden="true">{{ code ?? placeholder }}</span>
-    <span class="flap-half flap-bottom" aria-hidden="true">{{ code ?? placeholder }}</span>
-    <span class="invisible" aria-hidden="true">{{ code ?? placeholder }}</span>
+    <span
+      v-for="half in ['flap-top', 'flap-bottom', 'flap-sizer']"
+      :key="half"
+      :class="half"
+      aria-hidden="true"
+    >
+      <img
+        v-if="logo && !failed"
+        :src="logo"
+        alt=""
+        width="24"
+        height="24"
+        loading="lazy"
+        decoding="async"
+        referrerpolicy="no-referrer"
+        crossorigin="anonymous"
+        class="size-5 shrink-0 object-contain md:size-6"
+        :class="{ 'logo-plate': isDarkLogo(logo) }"
+        @load="measureLogo(logo, $event.target as HTMLImageElement)"
+        @error="failed = true"
+      />
+      {{ code ?? placeholder }}
+    </span>
     <span class="sr-only">{{ team ?? emptyLabel }}</span>
   </component>
 </template>
@@ -33,22 +64,38 @@ defineProps<{
   background-color: var(--color-line);
 }
 
-.flap-half {
-  position: absolute;
-  inset: 0;
+.flap-top,
+.flap-bottom,
+.flap-sizer {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+}
+
+.flap-top,
+.flap-bottom {
+  position: absolute;
+  inset: 0;
+  transform-origin: center 50%;
 }
 
 .flap-top {
   clip-path: inset(0 0 50% 0);
-  transform-origin: center 50%;
 }
 
 .flap-bottom {
   clip-path: inset(50% 0 0 0);
-  transform-origin: center 50%;
+}
+
+.flap-sizer {
+  visibility: hidden;
+}
+
+.logo-plate {
+  padding: 2px;
+  border-radius: var(--radius-flap);
+  background-color: var(--color-text);
 }
 
 @media (prefers-reduced-motion: no-preference) {
