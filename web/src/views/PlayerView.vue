@@ -46,7 +46,7 @@ const details = computed(() => {
       </div>
     </div>
     <span class="mb-4 block h-6 w-20 rounded-flap bg-surface-raised" aria-hidden="true" />
-    <MoveBoard :items="undefined" pending :rows="4" empty="" />
+    <MoveBoard :items="undefined" pending :rows="4" hide-player />
   </div>
   <template v-else-if="player.data.value">
     <header class="mb-10 flex flex-wrap items-end justify-between gap-6">
@@ -78,6 +78,7 @@ const details = computed(() => {
         :key="name"
         :items="player.data.value.timeline"
         :pending="false"
+        hide-player
         empty="No official moves in the last two seasons."
       />
     </section>
@@ -88,6 +89,7 @@ const details = computed(() => {
         :key="name"
         :items="player.data.value.rumors"
         :pending="false"
+        hide-player
         empty="No rumors involve this player."
       />
     </section>

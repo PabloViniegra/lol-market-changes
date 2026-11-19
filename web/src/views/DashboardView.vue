@@ -48,33 +48,37 @@ const teamToTeam = computed(
       </RouterLink>
     </section>
 
-    <aside class="flex flex-col gap-8 lg:w-80" aria-labelledby="window-heading">
+    <aside class="flex flex-col gap-4 lg:w-80" aria-labelledby="window-heading">
       <h2 id="window-heading" class="type-heading-md">This window</h2>
       <QueryError v-if="stats.isError.value" what="stats" @retry="stats.refetch()" />
-      <template v-else-if="stats.data.value">
-        <div class="rounded-panel bg-surface p-6">
-          <p class="mb-4 type-body-sm text-text-muted">
-            {{ stats.data.value.totalMoves }} moves since {{ shortDate(stats.data.value.since) }}
-          </p>
-          <LeagueBars :stats="stats.data.value" />
-        </div>
-        <dl class="grid grid-cols-2 gap-6 rounded-panel bg-surface p-6">
-          <div>
-            <dt class="type-body-sm text-text-muted">Free agents</dt>
-            <dd class="type-data-tabular">{{ stats.data.value.freeAgents }} players</dd>
+      <div v-else-if="stats.data.value" class="rounded-panel bg-surface p-6">
+        <p class="mb-4 type-body-sm text-text-muted">
+          {{ stats.data.value.totalMoves }} moves since {{ shortDate(stats.data.value.since) }}
+        </p>
+        <LeagueBars :stats="stats.data.value" />
+        <dl class="my-4 flex flex-col gap-2 border-t border-line pt-4 type-body-sm">
+          <div class="flex items-baseline justify-between gap-4">
+            <dt class="text-text-muted">Players whose latest move was a release this window</dt>
+            <dd class="shrink-0 type-data-tabular">{{ stats.data.value.freeAgents }}</dd>
           </div>
-          <div>
-            <dt class="type-body-sm text-text-muted">Rumors confirmed</dt>
-            <dd class="type-data-tabular">
+          <div class="flex items-baseline justify-between gap-4">
+            <dt class="text-text-muted">
               {{
                 stats.data.value.rumorConfirmationRate === null
-                  ? "None yet"
+                  ? "Rumor confirmation rate"
+                  : "Share of resolved rumors confirmed"
+              }}
+            </dt>
+            <dd class="shrink-0 type-label-md tabular-nums">
+              {{
+                stats.data.value.rumorConfirmationRate === null
+                  ? "No resolved rumors"
                   : `${Math.round(stats.data.value.rumorConfirmationRate * 100)}%`
               }}
             </dd>
           </div>
         </dl>
-        <div v-if="stats.data.value.topTeamsByChurn.length" class="rounded-panel bg-surface p-6">
+        <div v-if="stats.data.value.topTeamsByChurn.length" class="border-t border-line pt-4">
           <div class="mb-1 flex justify-between gap-4">
             <h3 class="type-label-md">Busiest teams</h3>
             <span class="type-body-sm text-text-muted">Joined / left</span>
@@ -97,10 +101,10 @@ const teamToTeam = computed(
             </li>
           </ul>
         </div>
-      </template>
-      <div v-else-if="stats.isPending.value" class="contents" aria-busy="true">
+      </div>
+      <div v-else-if="stats.isPending.value" class="rounded-panel bg-surface p-6" aria-busy="true">
         <span class="sr-only">Loading stats</span>
-        <div class="rounded-panel bg-surface p-6" aria-hidden="true">
+        <div aria-hidden="true">
           <span class="mb-5 block h-3 w-40 rounded-flap bg-surface-raised" />
           <ul class="flex flex-col gap-2">
             <li
@@ -116,13 +120,13 @@ const teamToTeam = computed(
             </li>
           </ul>
         </div>
-        <div class="grid grid-cols-2 gap-6 rounded-panel bg-surface p-6" aria-hidden="true">
-          <div v-for="n in 2" :key="n" class="flex flex-col gap-2">
-            <span class="h-3 w-20 rounded-flap bg-surface-raised" />
-            <span class="h-4 w-16 rounded-flap bg-surface-raised" />
+        <div class="my-4 flex flex-col gap-3 border-t border-line pt-4" aria-hidden="true">
+          <div v-for="n in 2" :key="n" class="flex justify-between gap-4">
+            <span class="h-3 w-28 rounded-flap bg-surface-raised" />
+            <span class="h-3 w-12 rounded-flap bg-surface-raised" />
           </div>
         </div>
-        <div class="rounded-panel bg-surface p-6" aria-hidden="true">
+        <div class="border-t border-line pt-4" aria-hidden="true">
           <div class="mb-3 flex justify-between gap-4">
             <span class="h-3 w-24 rounded-flap bg-surface-raised" />
             <span class="h-3 w-20 rounded-flap bg-surface-raised" />

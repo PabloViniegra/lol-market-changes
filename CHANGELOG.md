@@ -50,6 +50,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: consolidated the dashboard summary and clarified how releases and resolved rumors are counted. The rumor tracker uses one empty message, player history foregrounds team destinations, and team rosters compare players by role.
+
 - Ingestor: Leaguepedia queries are sent as POST, so `IN` lists are split into chunks of 20,000 characters instead of 2,000 and runs need fewer requests.
 - Ingest workflow timeout raised from 15 to 30 minutes so a full backfill fits.
 - Ingest workflow schedule moved to minutes 4, 19, 34 and 49 (still every 15 minutes) so GitHub registers it again.

@@ -14,11 +14,9 @@ const stats = useStats("season");
 const rate = computed(() => {
   const value = stats.data.value?.rumorConfirmationRate;
 
-  if (value === undefined) return null;
-
-  return value === null
-    ? "No rumor has been confirmed this window yet."
-    : `${Math.round(value * 100)}% of rumors this window came true.`;
+  return value == null
+    ? null
+    : `${Math.round(value * 100)}% of resolved rumors reported this window were confirmed.`;
 });
 
 const sections = [
@@ -26,29 +24,21 @@ const sections = [
     id: "open",
     title: "Open",
     query: open,
-    empty: "No open rumors right now.",
   },
   {
     id: "confirmed",
     title: "Confirmed",
     query: confirmed,
-    empty: "No rumor has become an official move yet.",
   },
   {
     id: "closed",
     title: "Denied and faded",
     query: closed,
-    empty: "No rumors have been denied or gone 60 days without confirmation.",
   },
 ];
 
-const isEmpty = (section: (typeof sections)[number]) =>
-  section.query.data.value?.items.length === 0;
-
-const shown = computed(() => sections.filter((section) => !isEmpty(section)));
-
-const emptyNotes = computed(() =>
-  sections.flatMap((section) => (isEmpty(section) ? [section.empty] : [])),
+const shown = computed(() =>
+  sections.filter(({ query }) => query.isError.value || query.data.value?.items.length !== 0),
 );
 </script>
 
@@ -73,18 +63,10 @@ const emptyNotes = computed(() =>
       v-else
       :items="section.query.data.value?.items"
       :pending="section.query.isPending.value"
-      :empty="section.empty"
     />
   </section>
 
-  <div
-    v-if="emptyNotes.length"
-    class="rounded-panel bg-surface p-6 text-text-muted"
-    :class="{ 'mt-12': shown.length }"
-  >
-    <p class="max-w-prose">
-      {{ emptyNotes.join(" ") }} Rumors are added by hand from published reports and become
-      confirmed when Leaguepedia records the move.
-    </p>
+  <div v-if="!shown.length" class="rounded-panel bg-surface p-6 text-text-muted">
+    <p>No rumors have been added yet.</p>
   </div>
 </template>

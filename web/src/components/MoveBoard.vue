@@ -7,7 +7,13 @@ import BoardRow from "./BoardRow.vue";
 import BoardRowSkeleton from "./BoardRowSkeleton.vue";
 
 const props = withDefaults(
-  defineProps<{ items: FeedItem[] | undefined; pending: boolean; empty: string; rows?: number }>(),
+  defineProps<{
+    items: FeedItem[] | undefined;
+    pending: boolean;
+    empty?: string;
+    rows?: number;
+    hidePlayer?: boolean;
+  }>(),
   { rows: 6 },
 );
 
@@ -28,18 +34,20 @@ const fresh = useNewIds(computed(() => props.items?.map((item) => item.id)));
       v-for="n in rows"
       :key="n"
       :name-width="NAME_WIDTHS[(n - 1) % NAME_WIDTHS.length]!"
+      :hide-player="hidePlayer"
     />
   </ul>
-  <div v-else-if="!items?.length" class="rounded-panel bg-surface p-6 text-text-muted">
+  <div v-else-if="!items?.length && empty" class="rounded-panel bg-surface p-6 text-text-muted">
     <p class="max-w-prose">{{ empty }}</p>
   </div>
-  <ul v-else class="flex flex-col gap-px overflow-hidden rounded-panel bg-line">
+  <ul v-else-if="items?.length" class="flex flex-col gap-px overflow-hidden rounded-panel bg-line">
     <BoardRow
       v-for="item in items"
       :key="item.id"
       :item="item"
       :now="now"
       :fresh="fresh.has(item.id)"
+      :hide-player="hidePlayer"
     />
   </ul>
 </template>

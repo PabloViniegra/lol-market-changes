@@ -6,7 +6,7 @@ import BoardFlap from "./BoardFlap.vue";
 import LeagueTag from "./LeagueTag.vue";
 import StatusPill from "./StatusPill.vue";
 
-const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean }>();
+const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean; hidePlayer?: boolean }>();
 
 const muted = computed(() => props.item.status === "denied" || props.item.status === "stale");
 
@@ -34,8 +34,12 @@ const details = computed(() =>
 
 <template>
   <li
-    class="relative flex flex-wrap items-center gap-x-4 gap-y-2 bg-surface p-3 hover:bg-surface-raised md:min-h-16 md:flex-nowrap"
-    :class="{ 'text-text-muted': muted, 'row-fresh': fresh }"
+    class="relative flex flex-wrap items-center gap-x-4 gap-y-2 bg-surface p-3 md:min-h-16 md:flex-nowrap"
+    :class="{
+      'text-text-muted': muted,
+      'row-fresh': fresh,
+      'hover:bg-surface-raised': !hidePlayer,
+    }"
   >
     <div class="flex shrink-0 items-center gap-2">
       <BoardFlap
@@ -58,6 +62,7 @@ const details = computed(() =>
 
     <div class="min-w-0 flex-1">
       <RouterLink
+        v-if="!hidePlayer"
         :to="`/players/${encodeURIComponent(item.player)}`"
         :title="item.player"
         class="row-link block truncate type-board-player hover:text-primary"
@@ -65,7 +70,10 @@ const details = computed(() =>
       >
         {{ playerHandle(item.player) }}
       </RouterLink>
-      <p class="truncate type-body-sm text-text-muted" aria-hidden="true">
+      <p
+        :class="hidePlayer ? 'type-body-md wrap-anywhere' : 'truncate type-body-sm text-text-muted'"
+        aria-hidden="true"
+      >
         {{ item.fromTeam ?? "Free agent" }} ▸ {{ item.toTeam ?? "No team" }}
       </p>
       <p v-if="item.notes" class="truncate type-body-sm text-text-muted" :title="item.notes">

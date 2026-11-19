@@ -17,10 +17,9 @@ export function useFeed(
 export function useFeedPages(params: MaybeRefOrGetter<QueryParams>) {
   return useInfiniteQuery({
     queryKey: computed(() => ["feed-pages", toValue(params)]),
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
       getJson<FeedResponse>("/api/feed", { ...toValue(params), cursor: pageParam }),
-    // SAFETY: the first page has no cursor; later pages use the string cursor the API returns.
-    initialPageParam: null as string | null,
+    initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 }

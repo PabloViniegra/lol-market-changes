@@ -9,7 +9,7 @@ import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
 import RosterSkeleton from "../components/RosterSkeleton.vue";
 import { HttpError } from "../api/client";
-import { LEAGUES, playerHandle, shortDate, teamCode, tournamentLabel } from "../format";
+import { LEAGUES, ROLES, playerHandle, shortDate, teamCode, tournamentLabel } from "../format";
 
 const props = defineProps<{ name: string }>();
 
@@ -39,6 +39,24 @@ const feedLink = computed(() => `/feed?team=${encodeURIComponent(props.name)}`);
 const seasonLabel = computed(() =>
   team.data.value ? shortDate(team.data.value.seasonStart, true) : "",
 );
+
+const rosterRows = computed(() => {
+  const data = team.data.value;
+
+  if (!data) return [];
+
+  const roles = new Set<string | null>([
+    ...ROLES,
+    ...data.previousRoster.map((entry) => entry.role),
+    ...data.roster.map((entry) => entry.role),
+  ]);
+
+  return Array.from(roles, (role) => ({
+    role,
+    previous: data.previousRoster.filter((entry) => entry.role === role),
+    current: data.roster.filter((entry) => entry.role === role),
+  })).filter(({ previous, current }) => previous.length || current.length);
+});
 </script>
 
 <template>
@@ -57,10 +75,7 @@ const seasonLabel = computed(() =>
       <span class="h-5 w-10 rounded-flap bg-surface-raised" />
     </div>
     <span class="mb-4 block h-6 w-24 rounded-flap bg-surface-raised" aria-hidden="true" />
-    <div class="grid gap-6 md:grid-cols-2">
-      <RosterSkeleton />
-      <RosterSkeleton />
-    </div>
+    <RosterSkeleton />
   </div>
   <template v-else-if="team.data.value && info">
     <header class="mb-10 flex flex-wrap items-center gap-4">
@@ -72,64 +87,89 @@ const seasonLabel = computed(() =>
 
     <section aria-labelledby="roster-heading">
       <h2 id="roster-heading" class="mb-4 type-heading-md">Roster</h2>
-      <div class="grid gap-6 md:grid-cols-2">
-        <div class="rounded-panel bg-surface p-6">
-          <h3 class="type-label-md">Previous season</h3>
-          <p class="mb-4 type-body-sm text-text-muted">
-            {{
-              team.data.value.previousTournament
-                ? tournamentLabel(team.data.value.previousTournament)
-                : "No tournament roster before this season"
-            }}
-          </p>
-          <ul class="flex flex-col divide-y divide-line">
-            <li
-              v-for="entry in team.data.value.previousRoster"
-              :key="entry.player"
-              class="flex items-baseline justify-between gap-4 py-2"
-            >
-              <RouterLink
-                :to="`/players/${encodeURIComponent(entry.player)}`"
-                class="underline hover:text-primary"
-                :class="departures.has(entry.player) ? 'text-text-muted' : ''"
-              >
-                {{ playerHandle(entry.player) }}
-              </RouterLink>
-              <span class="flex gap-3 type-body-sm text-text-muted">
-                {{ entry.role }}
-                <span v-if="departures.has(entry.player)" class="type-label-md">Left</span>
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="rounded-panel bg-surface p-6">
-          <h3 class="type-label-md">Now</h3>
-          <p class="mb-4 type-body-sm text-text-muted">With every move since {{ seasonLabel }}</p>
-          <p v-if="!team.data.value.roster.length" class="text-text-muted">
-            No players under contract yet.
-          </p>
-          <ul v-else class="flex flex-col divide-y divide-line">
-            <li
-              v-for="entry in team.data.value.roster"
-              :key="entry.player"
-              class="flex items-baseline justify-between gap-4 py-2"
-            >
-              <RouterLink
-                :to="`/players/${encodeURIComponent(entry.player)}`"
-                class="underline hover:text-primary"
-              >
-                {{ playerHandle(entry.player) }}
-              </RouterLink>
-              <span class="flex gap-3 type-body-sm text-text-muted">
-                {{ entry.role }}
-                <span v-if="arrivals.has(entry.player)" class="type-label-md text-primary"
-                  >Joined</span
-                >
-              </span>
-            </li>
-          </ul>
-        </div>
+      <div class="rounded-panel bg-surface px-3 md:px-6">
+        <p v-if="!rosterRows.length" class="py-4 text-text-muted">No roster players recorded.</p>
+        <table v-else class="w-full table-fixed text-left" aria-labelledby="roster-heading">
+          <thead class="border-b border-line">
+            <tr>
+              <th scope="col" class="w-18 py-3 pr-2 align-top type-label-md md:w-32">Role</th>
+              <th scope="col" class="py-3 pr-3 align-top type-label-md">
+                Previous roster
+                <span class="mt-1 block wrap-anywhere type-body-sm text-text-muted">
+                  {{
+                    team.data.value.previousTournament
+                      ? tournamentLabel(team.data.value.previousTournament)
+                      : "No previous roster recorded"
+                  }}
+                </span>
+              </th>
+              <th scope="col" class="py-3 align-top type-label-md">
+                Current roster
+                <span class="mt-1 block type-body-sm text-text-muted">
+                  {{
+                    team.data.value.roster.length
+                      ? `Moves since ${seasonLabel}`
+                      : "No current players recorded"
+                  }}
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            <tr v-for="row in rosterRows" :key="row.role ?? 0">
+              <th scope="row" class="py-3 pr-2 align-top wrap-anywhere type-label-md">
+                {{ row.role ?? "Unknown" }}
+              </th>
+              <td class="py-3 pr-3 align-top">
+                <ul v-if="row.previous.length" class="flex flex-col gap-2">
+                  <li
+                    v-for="entry in row.previous"
+                    :key="entry.player"
+                    class="flex flex-wrap items-baseline gap-x-2"
+                  >
+                    <RouterLink
+                      :to="`/players/${encodeURIComponent(entry.player)}`"
+                      class="wrap-anywhere underline hover:text-primary"
+                      :class="{ 'text-text-muted': departures.has(entry.player) }"
+                    >
+                      {{ playerHandle(entry.player) }}
+                    </RouterLink>
+                    <span v-if="departures.has(entry.player)" class="type-label-md text-text-muted">
+                      Left
+                    </span>
+                  </li>
+                </ul>
+                <template v-else>
+                  <span class="text-text-muted" aria-hidden="true">—</span>
+                  <span class="sr-only">No player recorded</span>
+                </template>
+              </td>
+              <td class="py-3 align-top">
+                <ul v-if="row.current.length" class="flex flex-col gap-2">
+                  <li
+                    v-for="entry in row.current"
+                    :key="entry.player"
+                    class="flex flex-wrap items-baseline gap-x-2"
+                  >
+                    <RouterLink
+                      :to="`/players/${encodeURIComponent(entry.player)}`"
+                      class="wrap-anywhere underline hover:text-primary"
+                    >
+                      {{ playerHandle(entry.player) }}
+                    </RouterLink>
+                    <span v-if="arrivals.has(entry.player)" class="type-label-md text-primary">
+                      Joined
+                    </span>
+                  </li>
+                </ul>
+                <template v-else>
+                  <span class="text-text-muted" aria-hidden="true">—</span>
+                  <span class="sr-only">No player recorded</span>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
