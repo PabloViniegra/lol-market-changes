@@ -28,19 +28,25 @@ const staleHours = computed(() =>
 
 <template>
   <div class="mx-auto flex min-h-dvh max-w-content flex-col px-4 md:px-6">
-    <header class="flex flex-wrap items-center gap-x-8 gap-y-1 border-b border-line py-2">
-      <RouterLink to="/" class="flex items-center gap-3 type-heading-md hover:text-primary">
+    <header class="flex flex-wrap items-center gap-x-8 border-b border-line pt-3 md:pt-0">
+      <RouterLink
+        to="/"
+        class="mr-auto flex items-center gap-3 type-heading-md hover:text-text-muted md:mr-0"
+      >
         <img src="/logo.webp" alt="" width="32" height="32" class="size-8" />
         Transfer Board
       </RouterLink>
-      <nav aria-label="Main" class="flex gap-6 type-label-md">
-        <RouterLink to="/" class="nav-link py-3 text-text-muted hover:text-text"
+      <nav
+        aria-label="Main"
+        class="order-last mt-1 flex basis-full gap-6 type-label-md md:order-none md:mt-0 md:basis-auto"
+      >
+        <RouterLink to="/" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
           >Dashboard</RouterLink
         >
-        <RouterLink to="/feed" class="nav-link py-3 text-text-muted hover:text-text"
+        <RouterLink to="/feed" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
           >Feed</RouterLink
         >
-        <RouterLink to="/rumors" class="nav-link py-3 text-text-muted hover:text-text"
+        <RouterLink to="/rumors" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
           >Rumors</RouterLink
         >
       </nav>
@@ -75,7 +81,7 @@ const staleHours = computed(() =>
       </p>
     </div>
 
-    <main class="flex-1 py-8 md:py-12">
+    <main class="flex-1 pt-6 pb-8 md:pt-8 md:pb-12">
       <RouterView />
     </main>
 
@@ -88,11 +94,13 @@ const staleHours = computed(() =>
 </template>
 
 <style scoped>
+.nav-link {
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+}
+
 .nav-link.router-link-exact-active {
   color: var(--color-text);
-  text-decoration: underline;
-  text-decoration-color: var(--color-primary);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 6px;
+  border-color: var(--color-text-muted);
 }
 </style>

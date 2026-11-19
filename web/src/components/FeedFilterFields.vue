@@ -83,7 +83,7 @@ const setDate = (key: "from" | "to", event: Event) => {
       >
         <svg
           viewBox="0 0 20 20"
-          class="size-5 transition-transform"
+          class="size-5"
           :class="{ 'rotate-90': moreOpen }"
           fill="none"
           stroke="currentColor"
@@ -143,12 +143,12 @@ const setDate = (key: "from" | "to", event: Event) => {
             class="h-11 rounded-control px-3 type-body-md text-text placeholder:text-text-muted md:h-10"
             @change="setTeam"
           />
-          <datalist id="tracked-teams">
-            <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name">
-              {{ [team.short, team.league].filter(Boolean).join(" · ") }}
-            </option>
-          </datalist>
         </label>
+        <datalist id="tracked-teams">
+          <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name">
+            {{ [team.short, team.league].filter(Boolean).join(" · ") }}
+          </option>
+        </datalist>
         <label class="flex flex-col gap-1 type-body-sm text-text-muted">
           From
           <input

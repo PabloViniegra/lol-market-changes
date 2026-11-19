@@ -50,6 +50,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: moved the full-feed link next to the dashboard heading, clarified the season summary, aligned dates and sources on the board, and made the mobile filter actions stay in view while scrolling.
+- Web: shortened the split-flap animation for new moves and added a transition to the mobile filter sheet. Reduced-motion settings remove rotation and sliding.
+
 - Web: consolidated the dashboard summary and clarified how releases and resolved rumors are counted. The rumor tracker uses one empty message, player history foregrounds team destinations, and team rosters compare players by role.
 
 - Ingestor: Leaguepedia queries are sent as POST, so `IN` lists are split into chunks of 20,000 characters instead of 2,000 and runs need fewer requests.

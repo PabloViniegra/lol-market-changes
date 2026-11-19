@@ -24,12 +24,16 @@ const teamToTeam = computed(
 </script>
 
 <template>
-  <h1 class="sr-only">Dashboard</h1>
-
-  <div class="flex flex-col gap-12 lg:flex-row lg:gap-6">
+  <div class="flex flex-col gap-12 xl:flex-row xl:gap-6">
     <section class="min-w-0 flex-1" aria-labelledby="latest-heading">
-      <div class="mb-2 flex flex-wrap items-baseline justify-between gap-x-4">
-        <h2 id="latest-heading" class="type-heading-md">Latest moves</h2>
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h1 id="latest-heading" class="mr-auto type-heading-lg">Latest moves</h1>
+        <RouterLink
+          to="/feed"
+          class="inline-flex h-11 items-center rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover md:h-10"
+        >
+          See all moves
+        </RouterLink>
         <BoardLegend />
       </div>
       <QueryError v-if="latest.isError.value" what="moves" @retry="latest.refetch()" />
@@ -40,23 +44,22 @@ const teamToTeam = computed(
         :rows="12"
         empty="No moves yet this window. New moves show up here within 30 minutes of Leaguepedia."
       />
-      <RouterLink
-        to="/feed"
-        class="mt-4 inline-flex h-10 items-center rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover"
-      >
-        See all moves
-      </RouterLink>
     </section>
 
-    <aside class="flex flex-col gap-4 lg:w-80" aria-labelledby="window-heading">
-      <h2 id="window-heading" class="type-heading-md">This window</h2>
+    <aside class="flex flex-col gap-4 xl:w-72" aria-labelledby="window-heading">
+      <h2 id="window-heading" class="type-heading-md xl:flex xl:min-h-10 xl:items-center">
+        This window
+      </h2>
       <QueryError v-if="stats.isError.value" what="stats" @retry="stats.refetch()" />
       <div v-else-if="stats.data.value" class="rounded-panel bg-surface p-6">
-        <p class="mb-4 type-body-sm text-text-muted">
-          {{ stats.data.value.totalMoves }} moves since {{ shortDate(stats.data.value.since) }}
+        <p class="mb-4 flex flex-wrap items-baseline gap-x-2 type-body-sm text-text-muted">
+          <strong class="type-heading-lg text-text tabular-nums">{{
+            stats.data.value.totalMoves
+          }}</strong>
+          <span>moves since {{ shortDate(stats.data.value.since) }}</span>
         </p>
         <LeagueBars :stats="stats.data.value" />
-        <dl class="my-4 flex flex-col gap-2 border-t border-line pt-4 type-body-sm">
+        <dl class="my-4 flex flex-col gap-3 border-t border-line pt-4 type-body-sm">
           <div class="flex items-baseline justify-between gap-4">
             <dt class="text-text-muted">Players whose latest move was a release this window</dt>
             <dd class="shrink-0 type-data-tabular">{{ stats.data.value.freeAgents }}</dd>
@@ -69,7 +72,7 @@ const teamToTeam = computed(
                   : "Share of resolved rumors confirmed"
               }}
             </dt>
-            <dd class="shrink-0 type-label-md tabular-nums">
+            <dd class="shrink-0 text-right type-label-md tabular-nums">
               {{
                 stats.data.value.rumorConfirmationRate === null
                   ? "No resolved rumors"
@@ -105,7 +108,10 @@ const teamToTeam = computed(
       <div v-else-if="stats.isPending.value" class="rounded-panel bg-surface p-6" aria-busy="true">
         <span class="sr-only">Loading stats</span>
         <div aria-hidden="true">
-          <span class="mb-5 block h-3 w-40 rounded-flap bg-surface-raised" />
+          <div class="mb-4 flex h-10 items-baseline gap-2">
+            <span class="h-10 w-12 rounded-flap bg-surface-raised" />
+            <span class="h-3 w-28 rounded-flap bg-surface-raised" />
+          </div>
           <ul class="flex flex-col gap-2">
             <li
               v-for="width in ['w-full', 'w-3/4', 'w-1/2', 'w-2/3']"
@@ -157,7 +163,7 @@ const teamToTeam = computed(
       </div>
     </div>
     <QueryError v-if="flows.isError.value" what="flows" @retry="flows.refetch()" />
-    <div v-else class="rounded-panel bg-surface p-6">
+    <div v-else class="rounded-panel bg-surface p-4 md:p-6">
       <div v-if="flows.isPending.value" aria-busy="true">
         <span class="sr-only">Loading flows</span>
         <div class="mb-6 flex max-w-prose flex-col gap-2" aria-hidden="true">

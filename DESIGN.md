@@ -346,7 +346,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 
 **Empty and error states.** Plain sentences that say what to do. Empty filtered feed: "No moves match these filters. Try removing a role or widening the dates." API error: "Couldn't load moves. Retrying in 30 seconds." with a "Retry now" secondary button.
 
-**Motion.** One orchestrated moment only: when a refetch brings in a new move, its row is inserted at the top and its two flaps flip once (a 280ms rotateX on the top half, then the bottom half). Nothing else animates on its own. Hover and focus changes are instant colour swaps. With `prefers-reduced-motion`, the flip is replaced by a 1-second yellow left edge on the new row.
+**Motion.** When a refetch brings in a new move, each flap flips once around its seam. The upper half folds in for 140ms and the lower half unfolds for 140ms using `--ease-out` (`cubic-bezier(0.23, 1, 0.32, 1)`), with a 30ms delay on the destination flap to follow the direction of the move. The mobile filters sheet slides from and back to the bottom edge over 240ms using `--ease-drawer` (`cubic-bezier(0.32, 0.72, 0, 1)`). Hover, focus and inline disclosures update instantly. With `prefers-reduced-motion`, the flip is replaced by a 1-second yellow left edge and the sheet uses a 240ms opacity transition.
 
 ## Do's and Don'ts
 
@@ -367,6 +367,6 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 - Don't use monospace for data, gradients for decoration, or glows of any kind.
 - Don't use league colours for status, buttons or highlights.
 - Don't use official team logos or Riot/league brand marks as decoration. Codes on flaps are the visual identity.
-- Don't animate section entrances, card hovers or chart loading. The flap flip on new moves is the only motion.
+- Don't animate section entrances, card hovers or chart loading.
 - Don't use numbered markers or step indicators: nothing on this site is a sequence except time, and time is shown as dates.
 - Don't append arrows to button or link text. The only directional glyph is the `▸` between flaps.

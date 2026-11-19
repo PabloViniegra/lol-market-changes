@@ -5,10 +5,7 @@ defineProps<{ nameWidth: string; hidePlayer?: boolean }>();
 </script>
 
 <template>
-  <li
-    class="flex flex-wrap items-center gap-x-4 gap-y-2 bg-surface p-3 md:min-h-16 md:flex-nowrap"
-    aria-hidden="true"
-  >
+  <li class="board-row" aria-hidden="true">
     <div class="flex shrink-0 items-center gap-2">
       <FlapSkeleton />
       <span class="text-line">▸</span>
@@ -22,10 +19,11 @@ defineProps<{ nameWidth: string; hidePlayer?: boolean }>();
       />
       <span class="block h-3 w-32 max-w-full rounded-flap bg-surface-raised" />
     </div>
-    <div class="flex w-full items-center gap-3 md:w-auto md:shrink-0 md:justify-end">
+    <div class="flex h-8 w-full items-center gap-3 md:w-auto md:shrink-0 md:justify-end">
       <span class="h-3 w-16 rounded-flap bg-surface-raised" />
       <span class="h-6 w-20 rounded-pill bg-surface-raised" />
-      <span class="h-3 w-12 rounded-flap bg-surface-raised md:w-24" />
+      <span class="ml-auto h-3 w-12 rounded-flap bg-surface-raised md:ml-0 md:w-24" />
+      <span class="hidden size-8 md:block" />
     </div>
   </li>
 </template>

@@ -34,7 +34,7 @@ const details = computed(() =>
 
 <template>
   <li
-    class="relative flex flex-wrap items-center gap-x-4 gap-y-2 bg-surface p-3 md:min-h-16 md:flex-nowrap"
+    class="board-row relative"
     :class="{
       'text-text-muted': muted,
       'row-fresh': fresh,
@@ -65,7 +65,7 @@ const details = computed(() =>
         v-if="!hidePlayer"
         :to="`/players/${encodeURIComponent(item.player)}`"
         :title="item.player"
-        class="row-link block truncate type-board-player hover:text-primary"
+        class="row-link block wrap-anywhere type-board-player hover:text-primary"
         :class="{ 'text-text-muted': !item.toTeam }"
       >
         {{ playerHandle(item.player) }}
@@ -89,8 +89,8 @@ const details = computed(() =>
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />
       </span>
       <StatusPill :status="item.status" :reliability="item.reliability" />
-      <span class="ml-auto flex items-center gap-3 md:ml-0">
-        <time :datetime="item.date" class="text-text-muted md:w-24 md:text-right">
+      <span class="ml-auto flex items-center gap-2 md:ml-0">
+        <time :datetime="item.date" class="text-right text-text-muted tabular-nums md:w-24">
           {{ relativeDay(item.date, now) }}
         </time>
         <a
@@ -99,7 +99,7 @@ const details = computed(() =>
           target="_blank"
           rel="noopener noreferrer"
           :title="`Source: ${source.outlet}`"
-          class="-m-1.5 flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
+          class="flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
         >
           <svg
             viewBox="0 0 20 20"
@@ -117,6 +117,7 @@ const details = computed(() =>
           </svg>
           <span class="sr-only">Source: {{ source.outlet }} (opens in a new tab)</span>
         </a>
+        <span v-else class="hidden w-8 md:block" aria-hidden="true" />
       </span>
     </div>
   </li>
@@ -136,6 +137,7 @@ const details = computed(() =>
 li:has(.row-link:focus-visible) {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
+  z-index: 1;
 }
 
 li :deep(a:not(.row-link)) {
@@ -151,6 +153,7 @@ li :deep(a:not(.row-link)) {
     left: 0;
     width: 4px;
     background-color: var(--color-primary);
+    pointer-events: none;
     animation: fresh-edge 1s steps(1, end) forwards;
   }
 }

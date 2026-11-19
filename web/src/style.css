@@ -110,8 +110,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+@utility board-row {
+  @apply flex flex-wrap items-center gap-x-3 gap-y-2 bg-surface px-3 py-2 md:min-h-16 md:flex-nowrap md:gap-x-4;
+}
+
 @layer base {
   :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --duration-sheet: 240ms;
     color-scheme: dark;
     accent-color: var(--color-primary);
     caret-color: var(--color-primary);

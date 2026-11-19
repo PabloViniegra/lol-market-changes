@@ -16,14 +16,14 @@ const STATUS_HELP: { status: FeedStatus; reliability: number | null; text: strin
 </script>
 
 <template>
-  <details class="group type-body-sm text-text-muted">
+  <details class="group type-body-sm text-text-muted open:basis-full">
     <summary
-      class="inline-flex h-8 cursor-pointer list-none items-center gap-1 rounded-control hover:text-text"
+      class="inline-flex h-11 cursor-pointer list-none items-center gap-1 rounded-control hover:text-text md:h-8"
     >
       How to read the board
       <span class="group-open:rotate-90" aria-hidden="true">▸</span>
     </summary>
-    <div class="mt-2 mb-4 grid gap-x-8 gap-y-3 rounded-panel bg-surface p-6 md:grid-cols-2">
+    <div class="mt-2 grid gap-x-8 gap-y-3 rounded-panel bg-surface p-4 md:grid-cols-2 md:p-6">
       <p class="md:col-span-2">
         <span class="type-label-md text-text">Origin ▸ destination.</span>
         {{ " " }}<span class="type-label-md text-text">FA</span> means the player was a free agent;

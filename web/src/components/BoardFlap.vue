@@ -52,24 +52,34 @@ defineProps<{
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .flap-flip {
+    --flap-half-duration: 140ms;
+    --flap-delay: 0ms;
+  }
+
+  .flap-flip ~ .flap-flip {
+    --flap-delay: 30ms;
+  }
+
   .flap-flip .flap-top {
-    animation: flap-top 280ms ease-in;
+    animation: flap-top var(--flap-half-duration) var(--ease-out) var(--flap-delay);
   }
 
   .flap-flip .flap-bottom {
-    animation: flap-bottom 280ms ease-out 280ms backwards;
+    animation: flap-bottom var(--flap-half-duration) var(--ease-out)
+      calc(var(--flap-half-duration) + var(--flap-delay)) backwards;
   }
 }
 
 @keyframes flap-top {
-  from {
-    transform: perspective(200px) rotateX(90deg);
+  to {
+    transform: perspective(200px) rotateX(-90deg);
   }
 }
 
 @keyframes flap-bottom {
   from {
-    transform: perspective(200px) rotateX(-90deg);
+    transform: perspective(200px) rotateX(90deg);
   }
 }
 </style>

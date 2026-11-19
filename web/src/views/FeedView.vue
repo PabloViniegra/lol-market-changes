@@ -115,11 +115,13 @@ const closeOnBackdrop = (event: MouseEvent) => {
     v-if="isMobile"
     ref="sheet"
     aria-labelledby="filters-heading"
-    class="mx-0 mt-auto mb-0 max-h-5/6 w-full max-w-full rounded-t-panel bg-surface-raised text-text backdrop:bg-background/60"
+    class="filter-sheet mx-0 mt-auto mb-0 max-h-5/6 w-full max-w-full overscroll-contain scroll-pt-18 rounded-t-panel bg-surface-raised text-text backdrop:bg-background/60"
     @click="closeOnBackdrop"
   >
-    <form class="p-4" @submit.prevent>
-      <div class="mb-4 flex items-center justify-between gap-4">
+    <form @submit.prevent>
+      <div
+        class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-surface-raised px-4 py-3"
+      >
         <h2 id="filters-heading" class="type-heading-md">Filters</h2>
         <button
           type="button"
@@ -129,22 +131,24 @@ const closeOnBackdrop = (event: MouseEvent) => {
           Show moves
         </button>
       </div>
-      <FeedFilterFields />
+      <div class="p-4">
+        <FeedFilterFields />
+      </div>
     </form>
   </dialog>
-  <form v-else class="mb-6" aria-label="Filters" @submit.prevent>
+  <form v-else class="mb-4 rounded-panel bg-surface p-4" aria-label="Filters" @submit.prevent>
     <FeedFilterFields collapsible />
   </form>
 
   <div
     v-if="isMobile || activeFilters.length || isFiltered"
-    class="mb-6 flex flex-wrap items-center gap-2 md:pl-24"
+    class="mb-4 flex flex-wrap items-center gap-2 md:pl-28"
   >
     <button
       v-if="isMobile"
       type="button"
       aria-haspopup="dialog"
-      class="flex h-11 items-center gap-2 rounded-control bg-surface-raised px-4 type-label-md"
+      class="flex h-11 items-center gap-2 rounded-control bg-surface-raised px-4 type-label-md hover:bg-line"
       @click="sheet?.showModal()"
     >
       <svg
@@ -165,13 +169,13 @@ const closeOnBackdrop = (event: MouseEvent) => {
       :key="filter.key"
       type="button"
       :aria-label="`Remove filter: ${filter.label}`"
-      class="flex h-11 items-center gap-1 rounded-control bg-text pr-2 pl-3 type-label-md text-background md:h-8"
+      class="flex min-h-11 max-w-full items-center gap-1 rounded-control bg-text pr-2 pl-3 type-label-md wrap-anywhere text-background hover:bg-text-muted md:min-h-8"
       @click="filter.clear()"
     >
       {{ filter.label }}
       <svg
         viewBox="0 0 20 20"
-        class="size-5"
+        class="size-5 shrink-0"
         fill="none"
         stroke="currentColor"
         stroke-width="1.5"
@@ -218,3 +222,57 @@ const closeOnBackdrop = (event: MouseEvent) => {
     </button>
   </template>
 </template>
+
+<style scoped>
+@supports (transition-behavior: allow-discrete) {
+  .filter-sheet {
+    opacity: 0;
+    transition:
+      opacity var(--duration-sheet) var(--ease-drawer),
+      transform var(--duration-sheet) var(--ease-drawer),
+      display var(--duration-sheet) allow-discrete,
+      overlay var(--duration-sheet) allow-discrete;
+  }
+
+  .filter-sheet::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--duration-sheet) var(--ease-drawer),
+      display var(--duration-sheet) allow-discrete,
+      overlay var(--duration-sheet) allow-discrete;
+  }
+
+  .filter-sheet[open],
+  .filter-sheet[open]::backdrop {
+    opacity: 1;
+  }
+
+  .filter-sheet:not([open]),
+  .filter-sheet:not([open])::backdrop {
+    pointer-events: none;
+  }
+
+  @starting-style {
+    .filter-sheet[open],
+    .filter-sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .filter-sheet {
+      transform: translateY(100%);
+    }
+
+    .filter-sheet[open] {
+      transform: translateY(0);
+    }
+
+    @starting-style {
+      .filter-sheet[open] {
+        transform: translateY(100%);
+      }
+    }
+  }
+}
+</style>

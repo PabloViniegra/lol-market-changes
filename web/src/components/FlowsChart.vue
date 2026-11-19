@@ -54,9 +54,11 @@ const option = computed(() => {
   );
 
   return {
+    animation: false,
     textStyle: { fontFamily: getComputedStyle(document.body).fontFamily },
     tooltip: {
       trigger: "item",
+      transitionDuration: 0,
       backgroundColor: token("surface-raised"),
       borderColor: token("line"),
       textStyle: { color: token("text"), fontSize: 13 },
