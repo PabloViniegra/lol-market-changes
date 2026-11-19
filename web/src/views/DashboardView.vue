@@ -192,12 +192,36 @@ const teamToTeam = computed(
             Other covers teams outside LCK, LPL, LEC and LCS.
           </template>
         </p>
-        <FlowsChart :links="flows.data.value.links" />
+        <ul
+          v-if="flows.data.value.links.length < 8"
+          class="flex max-w-prose flex-col divide-y divide-line"
+        >
+          <li
+            v-for="link in flows.data.value.links.toSorted((a, b) => b.value - a.value)"
+            :key="`${link.source}-${link.target}`"
+            class="flex items-baseline justify-between gap-4 py-2"
+          >
+            <span class="min-w-0 type-body-md">
+              {{ link.source }}
+              <span class="text-text-muted" aria-hidden="true">▸</span>
+              <span class="sr-only">to</span>
+              {{ link.target }}
+            </span>
+            <span class="whitespace-nowrap type-data-tabular">
+              {{ link.value }} {{ link.value === 1 ? "move" : "moves" }}
+            </span>
+          </li>
+        </ul>
+        <FlowsChart v-else :links="flows.data.value.links" />
       </template>
     </div>
   </section>
 
-  <section class="mt-12" aria-labelledby="rumors-heading">
+  <section
+    v-if="rumors.isPending.value || rumors.isError.value || rumors.data.value?.items.length"
+    class="mt-12"
+    aria-labelledby="rumors-heading"
+  >
     <div class="mb-4 flex flex-wrap items-baseline justify-between gap-4">
       <h2 id="rumors-heading" class="type-heading-md">Rumors to watch</h2>
       <RouterLink to="/rumors" class="type-body-sm underline hover:text-primary">

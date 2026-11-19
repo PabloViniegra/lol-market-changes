@@ -50,7 +50,7 @@ function parse(query: LocationQuery): FeedFilters {
   };
 }
 
-function isDefaultStatuses(statuses: FeedStatus[]): boolean {
+export function isDefaultStatuses(statuses: FeedStatus[]): boolean {
   return (
     statuses.length === DEFAULT_STATUSES.length &&
     DEFAULT_STATUSES.every((status) => statuses.includes(status))
@@ -75,6 +75,12 @@ export const useFeedFilters = defineStore("feedFilters", () => {
   });
 
   const isFiltered = computed(() => hasNonTeamFilters.value || filters.value.team !== null);
+
+  const secondaryFilterCount = computed(() => {
+    const { role, kind, team, from, to } = filters.value;
+
+    return [role, kind, team, from, to].filter(Boolean).length;
+  });
 
   function update(patch: Partial<FeedFilters>) {
     const next = { ...filters.value, ...patch };
@@ -104,5 +110,14 @@ export const useFeedFilters = defineStore("feedFilters", () => {
     void router.replace({ query: {} });
   }
 
-  return { filters, apiParams, isFiltered, hasNonTeamFilters, update, toggleStatus, clear };
+  return {
+    filters,
+    apiParams,
+    isFiltered,
+    hasNonTeamFilters,
+    secondaryFilterCount,
+    update,
+    toggleStatus,
+    clear,
+  };
 });

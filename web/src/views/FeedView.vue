@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
 import { useFeedPages } from "../api/feed";
-import { useTeams } from "../api/teams";
+import { findTeam, useTeams } from "../api/teams";
 import BoardLegend from "../components/BoardLegend.vue";
-import FilterChip from "../components/FilterChip.vue";
+import FeedFilterFields from "../components/FeedFilterFields.vue";
 import MoveBoard from "../components/MoveBoard.vue";
 import QueryError from "../components/QueryError.vue";
-import { KIND_LABELS, KINDS, LEAGUES, ROLES, STATUS_LABELS, STATUSES } from "../format";
-import { useFeedFilters } from "../stores/feedFilters";
+import { useMediaQuery } from "../composables/useMediaQuery";
+import { KIND_LABELS, shortDate, STATUS_LABELS } from "../format";
+import { DEFAULT_STATUSES, isDefaultStatuses, useFeedFilters } from "../stores/feedFilters";
 
 const store = useFeedFilters();
 const { filters, apiParams, isFiltered, hasNonTeamFilters } = storeToRefs(store);
 const feed = useFeedPages(apiParams);
 const items = computed(() => feed.data.value?.pages.flatMap((page) => page.items));
 const teams = useTeams();
+const isMobile = useMediaQuery("(max-width: 767.98px)");
+const sheet = useTemplateRef<HTMLDialogElement>("sheet");
 
-const findTeam = (name: string) => {
-  const key = name.toLowerCase();
+const knownTeam = computed(() =>
+  filters.value.team ? findTeam(teams.data.value?.teams, filters.value.team) : undefined,
+);
 
-  return teams.data.value?.teams.find((team) => team.name.toLowerCase() === key);
-};
-
-const knownTeam = computed(() => (filters.value.team ? findTeam(filters.value.team) : undefined));
 const teamName = computed(() => knownTeam.value?.name ?? filters.value.team);
 
 const emptyMessage = computed(() => {
@@ -30,32 +30,68 @@ const emptyMessage = computed(() => {
     return "No moves match these filters. Try removing a role or widening the dates.";
   }
 
+  if (teams.data.value && !knownTeam.value) {
+    return `“${teamName.value}” isn't a tracked team. Pick one from the suggestions, by name or code, for example “Gen.G” or “FNC”.`;
+  }
+
   if (hasNonTeamFilters.value) {
     return `No moves involve “${teamName.value}” with these filters. Try removing a filter or widening the dates.`;
   }
 
-  return `No moves involve “${teamName.value}”. Team names follow Leaguepedia, for example “Gen.G”.`;
+  return `No moves involve “${teamName.value}” yet.`;
 });
 
-const toggle = <K extends "league" | "role" | "kind">(
-  key: K,
-  value: NonNullable<(typeof filters.value)[K]>,
-) => store.update({ [key]: filters.value[key] === value ? null : value });
+const activeFilters = computed(() => {
+  const { league, statuses, role, kind, from, to } = filters.value;
+  const active: { key: string; label: string; clear: () => void }[] = [];
 
-const setTeam = (event: Event) => {
-  const input = event.target;
+  if (isMobile.value && league) {
+    active.push({ key: "league", label: league, clear: () => store.update({ league: null }) });
+  }
 
-  if (!(input instanceof HTMLInputElement)) return;
+  if (isMobile.value && !isDefaultStatuses(statuses)) {
+    active.push({
+      key: "status",
+      label: statuses.map((status) => STATUS_LABELS[status]).join(", "),
+      clear: () => store.update({ statuses: DEFAULT_STATUSES }),
+    });
+  }
 
-  const value = input.value.trim();
+  if (role) active.push({ key: "role", label: role, clear: () => store.update({ role: null }) });
 
-  store.update({ team: value ? (findTeam(value)?.name ?? value) : null });
-};
+  if (kind) {
+    active.push({
+      key: "kind",
+      label: KIND_LABELS[kind],
+      clear: () => store.update({ kind: null }),
+    });
+  }
 
-const setDate = (key: "from" | "to", event: Event) => {
-  const input = event.target;
+  if (teamName.value) {
+    active.push({ key: "team", label: teamName.value, clear: () => store.update({ team: null }) });
+  }
 
-  if (input instanceof HTMLInputElement) store.update({ [key]: input.value || null });
+  if (from) {
+    active.push({
+      key: "from",
+      label: `From ${shortDate(from, true)}`,
+      clear: () => store.update({ from: null }),
+    });
+  }
+
+  if (to) {
+    active.push({
+      key: "to",
+      label: `To ${shortDate(to, true)}`,
+      clear: () => store.update({ to: null }),
+    });
+  }
+
+  return active;
+});
+
+const closeOnBackdrop = (event: MouseEvent) => {
+  if (event.target === sheet.value) sheet.value?.close();
 };
 </script>
 
@@ -75,112 +111,85 @@ const setDate = (key: "from" | "to", event: Event) => {
     </p>
   </div>
 
-  <form class="mb-8 flex flex-col gap-4" aria-label="Filters" @submit.prevent>
-    <fieldset class="filter-group">
-      <legend class="filter-legend">League</legend>
-      <div class="flex flex-wrap gap-2">
-        <FilterChip
-          v-for="league in LEAGUES"
-          :key="league"
-          :active="filters.league === league"
-          @click="toggle('league', league)"
+  <dialog
+    v-if="isMobile"
+    ref="sheet"
+    aria-labelledby="filters-heading"
+    class="mx-0 mt-auto mb-0 max-h-5/6 w-full max-w-full rounded-t-panel bg-surface-raised text-text backdrop:bg-background/60"
+    @click="closeOnBackdrop"
+  >
+    <form class="p-4" @submit.prevent>
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <h2 id="filters-heading" class="type-heading-md">Filters</h2>
+        <button
+          type="button"
+          class="h-11 rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover"
+          @click="sheet?.close()"
         >
-          {{ league }}
-        </FilterChip>
+          Show moves
+        </button>
       </div>
-    </fieldset>
-
-    <fieldset class="filter-group">
-      <legend class="filter-legend">Role</legend>
-      <div class="flex flex-wrap gap-2">
-        <FilterChip
-          v-for="role in ROLES"
-          :key="role"
-          :active="filters.role === role"
-          @click="toggle('role', role)"
-        >
-          {{ role }}
-        </FilterChip>
-      </div>
-    </fieldset>
-
-    <fieldset class="filter-group">
-      <legend class="filter-legend">Move</legend>
-      <div class="flex flex-wrap gap-2">
-        <FilterChip
-          v-for="kind in KINDS"
-          :key="kind"
-          :active="filters.kind === kind"
-          @click="toggle('kind', kind)"
-        >
-          {{ KIND_LABELS[kind] }}
-        </FilterChip>
-      </div>
-    </fieldset>
-
-    <fieldset class="filter-group">
-      <legend class="filter-legend">Status</legend>
-      <div class="flex flex-wrap gap-2">
-        <FilterChip
-          v-for="status in STATUSES"
-          :key="status"
-          :active="filters.statuses.includes(status)"
-          @click="store.toggleStatus(status)"
-        >
-          {{ STATUS_LABELS[status] }}
-        </FilterChip>
-      </div>
-    </fieldset>
-
-    <div class="flex flex-wrap items-end gap-x-6 gap-y-4 md:pl-24">
-      <label class="flex flex-col gap-1 type-body-sm text-text-muted">
-        Team
-        <input
-          type="search"
-          :value="teamName ?? ''"
-          list="tracked-teams"
-          autocomplete="off"
-          placeholder="Leaguepedia name, e.g. Gen.G"
-          class="h-10 w-64 rounded-control bg-surface-raised px-3 type-body-md text-text placeholder:text-text-muted"
-          @change="setTeam"
-        />
-        <datalist id="tracked-teams">
-          <option v-for="team in teams.data.value?.teams" :key="team.name" :value="team.name">
-            {{ team.league }}
-          </option>
-        </datalist>
-      </label>
-      <label class="flex flex-col gap-1 type-body-sm text-text-muted">
-        From
-        <input
-          type="date"
-          :value="filters.from ?? ''"
-          :max="filters.to ?? undefined"
-          class="h-10 rounded-control bg-surface-raised px-3 type-body-md text-text"
-          @change="setDate('from', $event)"
-        />
-      </label>
-      <label class="flex flex-col gap-1 type-body-sm text-text-muted">
-        To
-        <input
-          type="date"
-          :value="filters.to ?? ''"
-          :min="filters.from ?? undefined"
-          class="h-10 rounded-control bg-surface-raised px-3 type-body-md text-text"
-          @change="setDate('to', $event)"
-        />
-      </label>
-
-      <button
-        v-if="isFiltered"
-        type="button"
-        class="h-10 rounded-control bg-surface-raised px-4 type-label-md hover:bg-line"
-        @click="store.clear()"
-      >
-        Clear filters
-      </button>
-    </div>
+      <FeedFilterFields />
+    </form>
+  </dialog>
+  <form v-else class="mb-6" aria-label="Filters" @submit.prevent>
+    <FeedFilterFields collapsible />
   </form>
+
+  <div
+    v-if="isMobile || activeFilters.length || isFiltered"
+    class="mb-6 flex flex-wrap items-center gap-2 md:pl-24"
+  >
+    <button
+      v-if="isMobile"
+      type="button"
+      aria-haspopup="dialog"
+      class="flex h-11 items-center gap-2 rounded-control bg-surface-raised px-4 type-label-md"
+      @click="sheet?.showModal()"
+    >
+      <svg
+        viewBox="0 0 20 20"
+        class="size-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M3.5 6h13M6 10h8M8.5 14h3" />
+      </svg>
+      Filters
+    </button>
+    <button
+      v-for="filter in activeFilters"
+      :key="filter.key"
+      type="button"
+      :aria-label="`Remove filter: ${filter.label}`"
+      class="flex h-11 items-center gap-1 rounded-control bg-text pr-2 pl-3 type-label-md text-background md:h-8"
+      @click="filter.clear()"
+    >
+      {{ filter.label }}
+      <svg
+        viewBox="0 0 20 20"
+        class="size-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="m6 6 8 8m0-8-8 8" />
+      </svg>
+    </button>
+    <button
+      v-if="isFiltered"
+      type="button"
+      class="h-11 rounded-control px-3 type-label-md text-text-muted underline hover:text-text md:h-8"
+      @click="store.clear()"
+    >
+      Clear filters
+    </button>
+  </div>
 
   <QueryError v-if="feed.isError.value" what="moves" @retry="feed.refetch()" />
   <template v-else>
@@ -209,15 +218,3 @@ const setDate = (key: "from" | "to", event: Event) => {
     </button>
   </template>
 </template>
-
-<style scoped>
-@reference "../style.css";
-
-.filter-group {
-  @apply relative md:pl-24;
-}
-
-.filter-legend {
-  @apply mb-2 type-label-md text-text-muted md:absolute md:top-0 md:left-0 md:mb-0 md:flex md:h-8 md:items-center;
-}
-</style>

@@ -63,11 +63,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - API: the feed `team` filter and `GET /api/teams/:name`, including its rumors, ignore letter case, so `fnatic` finds Fnatic.
 - API: `GET /api/players/:name` returns moves and rumors as feed items, with team codes, leagues and sources, plus `currentTeamShort`; moves outside the tracked leagues are left out, as in the feed.
 - Web: an empty feed filtered by team names the team, and the "Moves involving" link only appears for a known team.
+- Web: board rows show the full team names under the player, and dates from another year include the year.
+- Web: the feed shows League and Status filters up front, with Role, Move, Team and dates behind a toggle; active filters appear as removable chips. On small screens all filters open in a bottom sheet so moves fill the first screen.
+- Web: the feed team filter accepts team codes such as `FNC` and says when a team isn't tracked.
+- Web: releases and retirements are dimmed on the board so transfers stand out; the date and source link stay together on small screens.
+- Web: the flows section lists moves as "from ▸ to" when there are fewer than 8, and Sankey labels wrap instead of being cut off.
+- Web: the rumor tracker merges empty sections into one note on how rumors are tracked, and the dashboard hides "Rumors to watch" when there are none.
 
 ### Fixed
 
 - Web: feed date filters can no longer set a start date after the end date.
 - Web: the player page shows the same team codes as the rest of the board (`FNC`, not `FNA`), with league tags and source links.
+- Web: the current page is underlined in the header navigation again.
 
 ## [0.1.0] - 2026-11-18
 

@@ -96,7 +96,7 @@ const option = computed(() => {
           fontSize: 13,
           fontWeight: 700,
           width: labelSpace.value - 8,
-          overflow: "truncate",
+          overflow: "break",
           formatter: (params: { name: string; value: number }) =>
             `${label(params.name)} ${params.value} ${direction(params.name)}`,
         },

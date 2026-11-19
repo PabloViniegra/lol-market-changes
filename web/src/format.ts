@@ -76,7 +76,7 @@ export function relativeDay(isoDay: string, now: Date): string {
 
   if (days < 30) return `${days}d ago`;
 
-  return shortDate(isoDay);
+  return shortDate(isoDay, isoDay.slice(0, 4) !== String(now.getUTCFullYear()));
 }
 
 export function shortDate(iso: string, withYear = false): string {

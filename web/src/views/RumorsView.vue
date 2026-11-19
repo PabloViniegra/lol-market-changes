@@ -41,6 +41,15 @@ const sections = [
     empty: "No rumors have been denied or gone 60 days without confirmation.",
   },
 ];
+
+const isEmpty = (section: (typeof sections)[number]) =>
+  section.query.data.value?.items.length === 0;
+
+const shown = computed(() => sections.filter((section) => !isEmpty(section)));
+
+const emptyNotes = computed(() =>
+  sections.flatMap((section) => (isEmpty(section) ? [section.empty] : [])),
+);
 </script>
 
 <template>
@@ -49,11 +58,11 @@ const sections = [
       <h1 class="type-heading-lg">Rumor tracker</h1>
       <p v-if="rate" class="mt-1 type-body-md text-text-muted">{{ rate }}</p>
     </div>
-    <BoardLegend />
+    <BoardLegend v-if="shown.length" />
   </div>
 
   <section
-    v-for="(section, index) in sections"
+    v-for="(section, index) in shown"
     :key="section.id"
     :class="{ 'mt-12': index > 0 }"
     :aria-labelledby="`rumors-${section.id}-heading`"
@@ -67,4 +76,15 @@ const sections = [
       :empty="section.empty"
     />
   </section>
+
+  <div
+    v-if="emptyNotes.length"
+    class="rounded-panel bg-surface p-6 text-text-muted"
+    :class="{ 'mt-12': shown.length }"
+  >
+    <p class="max-w-prose">
+      {{ emptyNotes.join(" ") }} Rumors are added by hand from published reports and become
+      confirmed when Leaguepedia records the move.
+    </p>
+  </div>
 </template>

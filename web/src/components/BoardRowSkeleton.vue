@@ -16,11 +16,12 @@ defineProps<{ nameWidth: string }>();
     </div>
     <div class="min-w-0 flex-1">
       <span class="block h-5 max-w-full rounded-flap bg-surface-raised" :class="nameWidth" />
+      <span class="mt-1 block h-3 w-32 max-w-full rounded-flap bg-surface-raised" />
     </div>
     <div class="flex w-full items-center gap-3 md:w-auto md:shrink-0 md:justify-end">
       <span class="h-3 w-16 rounded-flap bg-surface-raised" />
       <span class="h-6 w-20 rounded-pill bg-surface-raised" />
-      <span class="h-3 w-12 rounded-flap bg-surface-raised md:w-16" />
+      <span class="h-3 w-12 rounded-flap bg-surface-raised md:w-24" />
     </div>
   </li>
 </template>

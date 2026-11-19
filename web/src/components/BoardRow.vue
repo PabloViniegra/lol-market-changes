@@ -61,9 +61,13 @@ const details = computed(() =>
         :to="`/players/${encodeURIComponent(item.player)}`"
         :title="item.player"
         class="row-link block truncate type-board-player hover:text-primary"
+        :class="{ 'text-text-muted': !item.toTeam }"
       >
         {{ playerHandle(item.player) }}
       </RouterLink>
+      <p class="truncate type-body-sm text-text-muted" aria-hidden="true">
+        {{ item.fromTeam ?? "Free agent" }} ▸ {{ item.toTeam ?? "No team" }}
+      </p>
       <p v-if="item.notes" class="truncate type-body-sm text-text-muted" :title="item.notes">
         {{ item.notes }}
       </p>
@@ -77,33 +81,35 @@ const details = computed(() =>
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />
       </span>
       <StatusPill :status="item.status" :reliability="item.reliability" />
-      <time :datetime="item.date" class="text-text-muted md:w-16 md:text-right">
-        {{ relativeDay(item.date, now) }}
-      </time>
-      <a
-        v-if="source"
-        :href="source.url"
-        target="_blank"
-        rel="noopener noreferrer"
-        :title="`Source: ${source.outlet}`"
-        class="-m-1.5 flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
-      >
-        <svg
-          viewBox="0 0 20 20"
-          class="size-5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+      <span class="ml-auto flex items-center gap-3 md:ml-0">
+        <time :datetime="item.date" class="text-text-muted md:w-24 md:text-right">
+          {{ relativeDay(item.date, now) }}
+        </time>
+        <a
+          v-if="source"
+          :href="source.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          :title="`Source: ${source.outlet}`"
+          class="-m-1.5 flex size-8 items-center justify-center rounded-control text-text-muted hover:bg-line hover:text-text"
         >
-          <path
-            d="M11 3.5h5.5V9M16.5 3.5 9 11M14 12v3.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8"
-          />
-        </svg>
-        <span class="sr-only">Source: {{ source.outlet }} (opens in a new tab)</span>
-      </a>
+          <svg
+            viewBox="0 0 20 20"
+            class="size-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M11 3.5h5.5V9M16.5 3.5 9 11M14 12v3.5a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1H8"
+            />
+          </svg>
+          <span class="sr-only">Source: {{ source.outlet }} (opens in a new tab)</span>
+        </a>
+      </span>
     </div>
   </li>
 </template>

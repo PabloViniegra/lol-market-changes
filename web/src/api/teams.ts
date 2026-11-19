@@ -18,3 +18,12 @@ export function useTeams() {
     refetchInterval: false,
   });
 }
+
+export function findTeam(teams: TeamsResponse["teams"] | undefined, query: string) {
+  const key = query.trim().toLowerCase();
+
+  return (
+    teams?.find((team) => team.name.toLowerCase() === key) ??
+    teams?.find((team) => team.short?.toLowerCase() === key)
+  );
+}

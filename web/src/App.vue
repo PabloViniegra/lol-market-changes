@@ -88,7 +88,7 @@ const staleHours = computed(() =>
 </template>
 
 <style scoped>
-.nav-link.router-exact-active {
+.nav-link.router-link-exact-active {
   color: var(--color-text);
   text-decoration: underline;
   text-decoration-color: var(--color-primary);
