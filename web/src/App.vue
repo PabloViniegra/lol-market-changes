@@ -120,9 +120,11 @@ const freshness = computed(() =>
     </main>
 
     <footer class="flex flex-col gap-2 border-t border-line py-4 type-body-sm text-text-muted">
-      <a :href="attribution.url" class="self-start underline hover:text-text">
-        {{ attribution.text }}
-      </a>
+      <nav aria-label="Site information" class="flex flex-wrap gap-x-4 gap-y-2">
+        <a :href="attribution.url" class="underline hover:text-text">{{ attribution.text }}</a>
+        <RouterLink to="/credits" class="underline hover:text-text">Data and credits</RouterLink>
+        <RouterLink to="/privacy" class="underline hover:text-text">Privacy</RouterLink>
+      </nav>
       <p>
         Transfer Board isn’t endorsed by Riot Games and doesn’t reflect the views or opinions of
         Riot Games or anyone officially involved in producing or managing League of Legends. League

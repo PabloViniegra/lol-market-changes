@@ -24,6 +24,16 @@ export const router = createRouter({
     { path: "/teams/:name", component: () => import("./views/TeamView.vue"), props: true },
     { path: "/players/:name", component: () => import("./views/PlayerView.vue"), props: true },
     {
+      path: "/privacy",
+      component: () => import("./views/PrivacyView.vue"),
+      meta: { title: "Privacy" },
+    },
+    {
+      path: "/credits",
+      component: () => import("./views/CreditsView.vue"),
+      meta: { title: "Data and credits" },
+    },
+    {
       path: "/rumors",
       component: () => import("./views/RumorsView.vue"),
       meta: {

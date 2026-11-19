@@ -1,5 +1,5 @@
 import { addRumor, triggerIngest } from "./_lib/github.js";
-import { readToken } from "./_lib/submission.js";
+import { parseSubmission, publicationDraft, readToken } from "./_lib/submission.js";
 import { messagePage, reviewPage } from "./_lib/templates.js";
 
 function html(body: string, status = 200): Response {
@@ -11,7 +11,7 @@ function html(body: string, status = 200): Response {
       "Referrer-Policy": "no-referrer",
       "X-Robots-Tag": "noindex",
       "Content-Security-Policy":
-        "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; form-action 'self'; frame-ancestors 'none'",
+        "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'",
     },
   });
 }
@@ -35,16 +35,23 @@ export async function GET(request: Request): Promise<Response> {
 
 export async function POST(request: Request): Promise<Response> {
   const form = await request.formData().catch(() => null);
-  const token = form?.get("token");
-  const rumor = typeof token === "string" ? readToken(token) : null;
+  if (!form) return invalid();
+  const token = form.get("token");
+  if (typeof token !== "string") return invalid();
+  const rumor = readToken(token);
   if (!rumor) return invalid();
-  if (form?.get("decision") !== "accept") {
-    return html(messagePage("Rumor rejected", "Nothing was saved."));
+  if (form.get("decision") !== "accept") {
+    return html(messagePage("Rumor rejected", "Nothing was published."));
   }
+
+  const draft = publicationDraft(rumor);
+  const sourceUrl = form.get("sourceUrl") ?? draft.sourceUrl;
+  const candidate = parseSubmission({ ...draft, sourceUrl });
+  if ("error" in candidate) return html(reviewPage(rumor, token, "accept", candidate.error), 400);
 
   const origin = new URL(request.url).origin;
   try {
-    if ((await addRumor(rumor)) === "exists") {
+    if ((await addRumor(candidate.rumor)) === "exists") {
       return html(
         messagePage(
           "Already on the board",

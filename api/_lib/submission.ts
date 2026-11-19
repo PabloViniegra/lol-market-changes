@@ -1,4 +1,11 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 import type { MoveKind, Role, RumorSubmission } from "@lol/shared";
 import { z } from "zod";
 import { isIsoDate } from "./http.js";
@@ -37,7 +44,7 @@ const optionalText = (max: number, multiline = false) =>
     .nullish()
     .transform((value) => value || null);
 
-const schema = z
+const legacySchema = z
   .object({
     player: z.string().trim().min(1).max(60).refine(safe(false), HIDDEN),
     fromTeam: optionalText(80),
@@ -58,6 +65,16 @@ const schema = z
   })
   .refine((rumor) => rumor.fromTeam || rumor.toTeam, "fromTeam or toTeam is required");
 
+function isPublicSource(value: string): boolean {
+  const url = URL.parse(value);
+  return url !== null && !url.username && !url.password;
+}
+
+const schema = legacySchema.refine((rumor) => isPublicSource(rumor.sourceUrl), {
+  path: ["sourceUrl"],
+  message: "must be a public link without credentials",
+});
+
 export type Submission = z.output<typeof schema>;
 
 export function parseSubmission(body: unknown): { rumor: Submission } | { error: string } {
@@ -65,6 +82,14 @@ export function parseSubmission(body: unknown): { rumor: Submission } | { error:
   if (result.success) return { rumor: result.data };
   const issue = result.error.issues[0];
   return { error: issue ? `${issue.path.join(".") || "body"}: ${issue.message}` : "Invalid rumor" };
+}
+
+export function publicationDraft(rumor: Submission): Submission {
+  return {
+    ...rumor,
+    sourceUrl: isPublicSource(rumor.sourceUrl) ? rumor.sourceUrl : "",
+    notes: null,
+  };
 }
 
 export function isSpam(body: unknown): boolean {
@@ -82,23 +107,45 @@ function sign(payload: string): Buffer {
 }
 
 export function createToken(submission: Submission, now = Date.now()): string {
-  const payload = Buffer.from(JSON.stringify({ s: submission, exp: now + TOKEN_TTL_MS })).toString(
-    "base64url",
+  const nonce = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", reviewKey(), nonce);
+  const payload = JSON.stringify({ s: submission, exp: now + TOKEN_TTL_MS });
+  const encrypted = Buffer.concat([cipher.update(payload, "utf8"), cipher.final()]);
+  return ["v2", Buffer.concat([nonce, cipher.getAuthTag(), encrypted]).toString("base64url")].join(
+    ".",
   );
-  return `${payload}.${sign(payload).toString("base64url")}`;
 }
 
-/** Returns the signed submission, or null when the token is forged, malformed or expired. */
-export function readToken(token: string, now = Date.now()): Submission | null {
-  const [payload, signature, extra] = token.split(".");
-  if (!payload || !signature || extra !== undefined) return null;
+function reviewKey(): Buffer {
+  return createHash("sha256").update("transfer-board-review:v2\0").update(secret()).digest();
+}
+
+function readLegacyPayload(payload: string, signature: string): string | null {
   const given = Buffer.from(signature, "base64url");
   const expected = sign(payload);
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
+  return Buffer.from(payload, "base64url").toString("utf8");
+}
+
+function decryptPayload(payload: string): string | null {
+  const bytes = Buffer.from(payload, "base64url");
+  if (bytes.length <= 28 || bytes.toString("base64url") !== payload) return null;
+  const decipher = createDecipheriv("aes-256-gcm", reviewKey(), bytes.subarray(0, 12));
+  decipher.setAuthTag(bytes.subarray(12, 28));
+  return Buffer.concat([decipher.update(bytes.subarray(28)), decipher.final()]).toString("utf8");
+}
+
+/** Returns the submission, or null when the token is forged, malformed or expired. */
+export function readToken(token: string, now = Date.now()): Submission | null {
+  if (token.length > 12_000) return null;
+  const [first, second, extra] = token.split(".");
+  if (!first || !second || extra !== undefined) return null;
   try {
-    const { s, exp } = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    const payload = first === "v2" ? decryptPayload(second) : readLegacyPayload(first, second);
+    if (payload === null) return null;
+    const { s, exp } = JSON.parse(payload);
     if (typeof exp !== "number" || exp < now) return null;
-    return schema.parse(s);
+    return (first === "v2" ? schema : legacySchema).parse(s);
   } catch {
     return null;
   }

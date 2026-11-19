@@ -1,5 +1,5 @@
 import type { MoveKind } from "@lol/shared";
-import type { Submission } from "./submission.js";
+import { publicationDraft, type Submission } from "./submission.js";
 
 // Mirrors the DESIGN.md tokens; email clients cannot read web/src/style.css.
 const C = {
@@ -14,8 +14,6 @@ const C = {
 };
 const DISPLAY = "'Big Shoulders Display','Arial Narrow',Arial,sans-serif";
 const BODY = "'Atkinson Hyperlegible Next','Segoe UI',Helvetica,Arial,sans-serif";
-const FONTS =
-  "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Big+Shoulders+Display:wght@700;800&display=swap";
 
 const KIND_LABELS: Record<MoveKind, string> = {
   transfer: "Transfer",
@@ -65,8 +63,9 @@ function row(name: string, value: string): string {
 
 function details(rumor: Submission): string {
   // The link text is the real host so a crafted outlet name cannot disguise where it points.
-  const host = new URL(rumor.sourceUrl).hostname;
-  const source = `<a href="${escape(rumor.sourceUrl)}" style="color:${C.text};text-decoration:underline">${escape(host)}</a>${rumor.outlet ? ` <span style="color:${C.muted}">· ${escape(rumor.outlet)}</span>` : ""}`;
+  const source = rumor.sourceUrl
+    ? `<a href="${escape(rumor.sourceUrl)}" style="color:${C.text};text-decoration:underline">${escape(new URL(rumor.sourceUrl).hostname)}</a>${rumor.outlet ? ` <span style="color:${C.muted}">· ${escape(rumor.outlet)}</span>` : ""}`
+    : "A public source URL is required.";
   const rows = [
     row("Player", escape(rumor.player)),
     row("From", escape(rumor.fromTeam ?? "Free agent")),
@@ -101,7 +100,6 @@ function layout(title: string, content: string): string {
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
 <title>${escape(title)}</title>
-<link rel="stylesheet" href="${FONTS}">
 </head>
 <body style="margin:0;padding:0;background:${C.background};color:${C.text}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.background}">
@@ -162,20 +160,27 @@ export function reviewPage(
   rumor: Submission,
   token: string,
   decision: "accept" | "reject",
+  error?: string,
 ): string {
   const accept = decision === "accept";
+  const draft = publicationDraft(rumor);
+  const sourceField = `<label for="source-url" style="${label}">Public source URL</label>
+      <input id="source-url" name="sourceUrl" type="url" required maxlength="500" value="${escape(draft.sourceUrl)}" aria-describedby="source-help" style="box-sizing:border-box;width:100%;margin:6px 0;padding:8px;${bodySm}">
+      <p id="source-help" style="margin:0 0 16px;${bodySm}">Use a link that anyone can open. Remove private or tracking parameters and check that the link still opens the report.</p>`;
   return layout(
     accept ? "Accept rumor" : "Reject rumor",
     `<h1 style="margin:0 0 4px;color:${C.text};${headingMd}">${accept ? "Accept this rumor?" : "Reject this rumor?"}</h1>
     <p style="margin:0 0 24px;color:${C.muted};${bodyMd}">${
       accept
-        ? "It is added to rumors.yaml and shows on the board after the next sync."
-        : "Nothing is saved. The submission is discarded."
+        ? "These details will be added to the public GitHub repository and appear on the board after the next sync. Private notes stay in the review email."
+        : "The submission will not be published."
     }</p>
     ${board(rumor)}
-    ${details(rumor)}
-    <form method="post" style="margin:24px 0 0">
+    ${details(draft)}
+    <form method="post" action="/api/review" style="margin:24px 0 0">
       <input type="hidden" name="token" value="${escape(token)}">
+      ${error ? `<p role="alert" style="${bodyMd}">${escape(error)}</p>` : ""}
+      ${accept ? sourceField : ""}
       <button type="submit" name="decision" value="${decision}" style="${accept ? primaryButton : secondaryButton};border:0;cursor:pointer">${accept ? "Accept rumor" : "Reject rumor"}</button>
     </form>`,
   );

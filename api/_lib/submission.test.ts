@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
+import { GET, POST } from "../review.js";
 import {
   appendRumor,
   createToken,
@@ -7,6 +9,7 @@ import {
   isSpam,
   latestReportDate,
   parseSubmission,
+  publicationDraft,
   readToken,
   rumorId,
   type Submission,
@@ -154,6 +157,13 @@ describe("review tokens", () => {
     assert.deepEqual(readToken(createToken(rumor, now), now), rumor);
   });
 
+  it("conceals the content of new review tokens", () => {
+    const [version, payload] = createToken(rumor, now).split(".");
+    assert.equal(version, "v2");
+    assert.ok(payload);
+    assert.equal(Buffer.from(payload, "base64url").includes("Line one"), false);
+  });
+
   it("expires after 14 days", () => {
     const token = createToken(rumor, now);
     assert.deepEqual(readToken(token, now + 14 * day), rumor);
@@ -161,14 +171,48 @@ describe("review tokens", () => {
   });
 
   it("rejects a token whose payload was changed", () => {
-    const [, signature] = createToken(rumor, now).split(".");
-    const forged = Buffer.from(
-      JSON.stringify({ s: { ...rumor, toTeam: "Other" }, exp: now + day }),
-    ).toString("base64url");
-    assert.equal(readToken(`${forged}.${signature}`, now), null);
+    const [, payload] = createToken(rumor, now).split(".");
+    assert.ok(payload);
+    const tampered = Buffer.from(payload, "base64url");
+    tampered[tampered.length - 1] = tampered.at(-1)! ^ 1;
+    assert.equal(readToken(`v2.${tampered.toString("base64url")}`, now), null);
   });
 
-  it("rejects a token signed with another secret", () => {
+  it("keeps previously emailed links valid until they expire", () => {
+    const payload = Buffer.from(JSON.stringify({ s: rumor, exp: now + day })).toString("base64url");
+    const signature = createHmac("sha256", "s".repeat(32)).update(payload).digest("base64url");
+    const token = `${payload}.${signature}`;
+    assert.deepEqual(readToken(token, now), rumor);
+    assert.equal(readToken(token, now + day + 1), null);
+  });
+
+  it("opens a legacy review but requires a replacement for a source with credentials", async () => {
+    const sourceUrl = "https://review-user:fixture-password@example.com/report";
+    const submission = { ...rumor, sourceUrl };
+    const payload = Buffer.from(JSON.stringify({ s: submission, exp: now + day })).toString(
+      "base64url",
+    );
+    const signature = createHmac("sha256", "s".repeat(32)).update(payload).digest("base64url");
+    const token = `${payload}.${signature}`;
+    const endpoint = "https://example.com/api/review";
+    const page = await GET(new Request(`${endpoint}?token=${token}`));
+    assert.equal(page.status, 200);
+
+    const markup = await page.text();
+    assert.match(markup, /id="source-url"[^>]*value=""/);
+    assert.doesNotMatch(markup, /fixture-password/);
+
+    const approval = await POST(
+      new Request(endpoint, {
+        method: "POST",
+        body: new URLSearchParams({ token, decision: "accept", sourceUrl }),
+      }),
+    );
+    assert.equal(approval.status, 400);
+    assert.match(await approval.text(), /must be a public link without credentials/);
+  });
+
+  it("rejects a token encrypted with another secret", () => {
     const token = createToken(rumor, now);
     process.env.REVIEW_SECRET = "t".repeat(32);
     assert.equal(readToken(token, now), null);
@@ -180,7 +224,7 @@ describe("review tokens", () => {
     }
   });
 
-  it("refuses to sign without a strong secret", () => {
+  it("refuses to encrypt without a strong secret", () => {
     process.env.REVIEW_SECRET = "short";
     assert.throws(() => createToken(rumor, now), /REVIEW_SECRET/);
   });
@@ -189,6 +233,15 @@ describe("review tokens", () => {
 describe("rumors.yaml entries", () => {
   beforeEach(() => mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-11-18T12:00:00Z") }));
   afterEach(() => mock.timers.reset());
+
+  it("publishes the original Unicode URL and fragment without private notes", () => {
+    const sourceUrl = `https://example.com/${"é".repeat(100)}#/posts/42`;
+    const draft = publicationDraft(accept({ ...valid, sourceUrl }));
+    const yaml = appendRumor("[]\n", accept(draft));
+    assert.equal(draft.sourceUrl, sourceUrl);
+    assert.ok(yaml.includes(sourceUrl));
+    assert.doesNotMatch(yaml, /notes:/);
+  });
 
   it("builds a readable id from the date, player and teams", () => {
     assert.equal(rumorId(accept(valid)), "2026-11-18-faker-t1-to-gen-g");

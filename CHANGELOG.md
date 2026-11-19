@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: privacy and data credits pages, a privacy notice at rumor submission, and the software and font license notices in the published site.
 - Web: "Send a rumor" form (`/rumors/new`, linked from the rumor tracker) validated with vee-validate and Zod, grouped into the move and the source, with team suggestions, a live preview of the board row on wide screens, a specific message when the rate limit is hit and a spam honeypot.
 - API: `POST /api/submissions` emails each submitted rumor through Resend, in the Transfer Board design, with signed accept and reject links. `/api/review` asks for confirmation and, on accept, commits the rumor to `data/rumors.yaml` and starts the Ingest workflow. Needs `RESEND_API_KEY`, `REVIEW_EMAIL_TO`, `REVIEW_SECRET` and `GITHUB_TOKEN` in Vercel.
 - Security: a Vercel WAF rule limits `POST /api/submissions` to 3 requests per IP every 10 minutes, and submissions with control or hidden characters are rejected so an accepted rumor can't break `rumors.yaml` parsing.
@@ -61,6 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- API: encrypt new review links, keep private notes out of published rumors, and let reviewers clean up the public source URL before approving. Review pages and emails use local system fonts.
 - Web: the feed date filters and rumor report date use a shared calendar styled like the dropdowns, with keyboard navigation and the relevant date limits.
 - Web: "Send a rumor" form uses its own role and move dropdowns, a team combobox with codes and league tags, and a reliability dot meter instead of native selects and datalists, so every option follows the design system. The player name is typed in board type, the preview flips its flaps when a team changes and the success state shows the rumor waiting for review.
 - Web: the feed team filter uses the same team combobox, with codes and league tags.
@@ -103,6 +105,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Web and API: validate rumor sources in Safari 17, preserve the moderator-approved URL including Unicode and fragments, and let reviewers replace credential-bearing sources from previously issued review links.
 - Web: keep the mobile dashboard layout steady while fonts and sync status load. Fetch team metadata only when the flows chart needs it, and offer a list of full team routes on narrow screens.
 - Web: improve form field contrast and required-field labels, add a skip link, announce empty feed results, use Ctrl+/ for player search and wrap long team filters.
 - Web: serve crawlable robots and sitemap files, add search descriptions and canonical links for the main pages, restrict SPA rewrites to known routes and cache fingerprinted assets.

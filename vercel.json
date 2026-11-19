@@ -13,6 +13,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/privacy", "destination": "/index.html" },
+    { "source": "/credits", "destination": "/index.html" },
     { "source": "/([fF][eE][eE][dD])", "destination": "/index.html" },
     { "source": "/([rR][uU][mM][oO][rR][sS])", "destination": "/index.html" },
     { "source": "/([rR][uU][mM][oO][rR][sS])/([nN][eE][wW])", "destination": "/index.html" },

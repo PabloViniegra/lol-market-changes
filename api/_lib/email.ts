@@ -10,6 +10,6 @@ export async function sendEmail(message: { subject: string; html: string; text: 
     body: JSON.stringify({ from: FROM, to: [to], ...message }),
   });
   if (!response.ok) {
-    throw new Error(`Resend failed with ${response.status}: ${await response.text()}`);
+    throw new Error(`Resend failed with ${response.status}`);
   }
 }

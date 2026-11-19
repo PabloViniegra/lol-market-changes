@@ -106,7 +106,13 @@ See [`.env.example`](.env.example).
 | `REVIEW_SECRET`         | `api/submissions`, `api/review` (Vercel env)                   | 32+ random characters that sign review links.                                                                                             |
 | `GITHUB_TOKEN`          | `api/review` (Vercel env)                                      | Fine-grained token for this repo: Contents and Actions read/write. Commits accepted rumors to `data/rumors.yaml` and starts `ingest.yml`. |
 
-Submitted rumors are not stored anywhere until they are accepted: the review email carries a signed link that expires after 14 days, and accepting it commits the rumor to `data/rumors.yaml`. A Vercel WAF rate-limit rule (Firewall settings, not in the repo) allows 3 `POST /api/submissions` per IP every 10 minutes; Hobby allows one such rule per project.
+Submissions go to Resend and the review inbox. New review links carry an authenticated, encrypted payload and expire after 14 days. Previously issued signed links still work until their original expiry. Approval commits the reviewed public source and report details to `data/rumors.yaml`. Private notes are kept in the review email and excluded from the commit. A Vercel WAF rate-limit rule (Firewall settings, not in the repo) allows 3 `POST /api/submissions` per IP every 10 minutes; Hobby allows one such rule per project.
+
+### Privacy requests and review retention
+
+- Review the proposed public record, remove private or tracking parameters and confirm the source opens the report before approval. If a previously issued link opens a review with an empty source, enter a public URL without credentials. Decline reports containing personal details unrelated to the move.
+- Remove review emails and any copies in your control once the review no longer needs them. Check pending mail at link expiry and record any reason to retain individual messages for a dispute or request. Confirm provider log and message retention, processing terms and transfer safeguards against the published privacy notice.
+- Handle requests from the contact shown in `/privacy` within one month. Verify identity only as needed. For a correction or removal, update the upstream Leaguepedia record where applicable and prevent the next sync from restoring the disputed data. For a submitted rumor, update or remove it from `data/rumors.yaml`, run ingestion and check the web and API. Review the public Git history and third-party copies separately if the request concerns them.
 
 ## Roadmap
 
@@ -120,7 +126,7 @@ Submitted rumors are not stored anywhere until they are accepted: the review ema
 
 ## Attribution
 
-Official roster data comes from [Leaguepedia](https://lol.fandom.com/) and is licensed [CC BY-SA](https://creativecommons.org/licenses/by-sa/3.0/).
+Official roster data comes from [Leaguepedia and its contributors](https://lol.fandom.com/wiki/Leaguepedia:Copyrights). Transfer Board normalizes names and groups related roster events into transfers. The source data and these adaptations are licensed [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/). The [MIT license](LICENSE) applies to the software.
 
 LoL Market Changes isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
 

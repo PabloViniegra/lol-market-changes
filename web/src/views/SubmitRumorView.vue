@@ -16,6 +16,7 @@ import TeamCombobox from "../components/TeamCombobox.vue";
 import WarningIcon from "../components/WarningIcon.vue";
 import { zodSchema } from "../forms";
 import { KIND_LABELS, KINDS, localToday, ROLES } from "../format";
+import { privacyController } from "../privacy";
 
 const UNSAFE = /[\p{Cc}\u2028\u2029\uFEFF]/u;
 const HIDDEN = "Remove hidden characters, they often come from copy and paste.";
@@ -41,7 +42,16 @@ const schema = z
     sourceUrl: z
       .url({ protocol: /^https?$/, error: "Paste a link that starts with https://." })
       .max(500, "Use a shorter link.")
-      .refine(clean, HIDDEN),
+      .refine(clean, HIDDEN)
+      .refine((value) => {
+        try {
+          const { username, password } = new URL(value);
+
+          return !username && !password;
+        } catch {
+          return false;
+        }
+      }, "Use a public link without credentials."),
     outlet: z.string().trim().max(80, "Keep the outlet under 80 characters.").refine(clean, HIDDEN),
     reliability: z.number().int().min(1).max(5),
     notes: z
@@ -310,7 +320,7 @@ const input =
               id="rumor-sourceUrl"
               v-slot="{ describedBy, invalid }"
               label="Source link"
-              hint="Required. Link to the article or post that reports it."
+              hint="Required. Link to a public article or post that reports it."
               :error="errors.sourceUrl"
             >
               <input
@@ -378,7 +388,8 @@ const input =
           <FormField
             id="rumor-notes"
             v-slot="{ describedBy, invalid }"
-            label="Notes"
+            label="Private notes"
+            hint="For the reviewer only. Leave out contact details and other private information."
             optional
             :error="errors.notes"
           >
@@ -408,6 +419,13 @@ const input =
         </div>
 
         <div class="flex flex-col gap-4">
+          <p class="type-body-sm text-text-muted">
+            {{ privacyController }} uses your submission to review the rumor. Approved report
+            details and the source may appear on the board and in the public GitHub history. Read
+            the
+            <RouterLink to="/privacy" class="underline hover:text-text">privacy notice</RouterLink>
+            for access, correction and other data rights.
+          </p>
           <p
             v-if="submit.isError.value"
             class="flex items-center gap-2 rounded-control bg-surface-raised px-4 py-3 type-body-sm"
