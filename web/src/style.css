@@ -119,6 +119,7 @@
   :root {
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
     --duration-sheet: 240ms;
     color-scheme: dark;
     accent-color: var(--color-primary);
@@ -174,5 +175,85 @@
 
   [aria-expanded="true"] > .menu-chevron {
     transform: rotate(180deg);
+  }
+}
+
+@layer base {
+  .screen-turn .screen {
+    view-transition-name: screen;
+  }
+
+  .screen-turn .site-footer {
+    view-transition-name: site-footer;
+  }
+
+  ::view-transition-group(*) {
+    animation-duration: 440ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  /* Gliding between scroll positions would expose parts of the old snapshot the browser never captured, so the box jumps while the flap is edge-on. */
+  ::view-transition-group(screen) {
+    animation-duration: 160ms;
+    animation-timing-function: steps(1, end);
+  }
+
+  ::view-transition-old(screen),
+  ::view-transition-new(screen) {
+    backface-visibility: hidden;
+  }
+
+  ::view-transition-old(screen) {
+    transform-origin: 50% var(--screen-hinge-old);
+    animation: screen-fold 160ms var(--ease-in) both;
+  }
+
+  ::view-transition-new(screen) {
+    transform-origin: 50% var(--screen-hinge-new);
+    animation: screen-unfold 280ms var(--ease-out) 160ms both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*) {
+      animation-duration: 0s;
+    }
+
+    ::view-transition-group(screen) {
+      animation-duration: 80ms;
+    }
+
+    ::view-transition-old(screen) {
+      animation: screen-fade-out 80ms linear both;
+    }
+
+    ::view-transition-new(screen) {
+      animation: screen-fade-in 80ms linear 80ms both;
+    }
+  }
+}
+
+@keyframes screen-fold {
+  to {
+    transform: perspective(1600px) rotateX(90deg);
+    filter: brightness(0.4);
+  }
+}
+
+@keyframes screen-unfold {
+  from {
+    transform: perspective(1600px) rotateX(-90deg);
+    filter: brightness(0.4);
+  }
+}
+
+@keyframes screen-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes screen-fade-in {
+  from {
+    opacity: 0;
   }
 }

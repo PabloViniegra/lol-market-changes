@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { START_LOCATION, createRouter, createWebHistory } from "vue-router";
 import DashboardView from "./views/DashboardView.vue";
 
 declare module "vue-router" {
@@ -49,6 +49,55 @@ export const router = createRouter({
   ],
   scrollBehavior: (to, from, saved) =>
     saved ?? (to.hash ? { el: to.hash, top: 24 } : to.path === from.path ? undefined : { top: 0 }),
+});
+
+const root = document.documentElement;
+let finishScreenTurn: (() => void) | undefined;
+let currentScreenTurn: ViewTransition | undefined;
+
+function setScreenHinge(snapshot: "old" | "new") {
+  const top = document.getElementById("main-content")?.getBoundingClientRect().top ?? 0;
+
+  root.style.setProperty(`--screen-hinge-${snapshot}`, `${innerHeight / 2 - top}px`);
+}
+
+router.beforeResolve(async (to, from) => {
+  if (!document.startViewTransition || from === START_LOCATION || to.path === from.path) return;
+
+  setScreenHinge("old");
+  // The names are only set during a turn: a view-transition-name always creates a stacking context, which would put the footer above menus opened in main.
+  root.classList.add("screen-turn");
+
+  await new Promise<void>((captured) => {
+    const transition = document.startViewTransition(
+      () =>
+        new Promise<void>((done) => {
+          finishScreenTurn = done;
+          captured();
+        }),
+    );
+
+    currentScreenTurn = transition;
+    void transition.finished.finally(() => {
+      if (currentScreenTurn !== transition) return;
+
+      currentScreenTurn = undefined;
+      root.classList.remove("screen-turn");
+    });
+  });
+});
+
+router.afterEach(async () => {
+  const finish = finishScreenTurn;
+
+  finishScreenTurn = undefined;
+
+  if (!finish) return;
+
+  // The router applies scrollBehavior a few microtasks after nextTick; a macrotask lets the new hinge see the final scroll.
+  await new Promise((resolve) => setTimeout(resolve));
+  setScreenHinge("new");
+  finish();
 });
 
 const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')!;

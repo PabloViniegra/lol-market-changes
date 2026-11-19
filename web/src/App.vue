@@ -67,14 +67,14 @@ const freshness = computed(() =>
         class="order-last mt-1 flex basis-full gap-6 type-label-md md:order-none md:mt-0 md:basis-auto"
       >
         <RouterLink to="/" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
-          >Dashboard</RouterLink
-        >
+          >Dashboard<span class="nav-indicator" aria-hidden="true"></span
+        ></RouterLink>
         <RouterLink to="/feed" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
-          >Feed</RouterLink
-        >
+          >Feed<span class="nav-indicator" aria-hidden="true"></span
+        ></RouterLink>
         <RouterLink to="/rumors" class="nav-link py-3 text-text-muted hover:text-text md:py-4"
-          >Rumors</RouterLink
-        >
+          >Rumors<span class="nav-indicator" aria-hidden="true"></span
+        ></RouterLink>
       </nav>
       <p
         v-if="!warning"
@@ -115,11 +115,13 @@ const freshness = computed(() =>
       </p>
     </div>
 
-    <main id="main-content" tabindex="-1" class="flex-1 pt-6 pb-8 md:pt-8 md:pb-12">
+    <main id="main-content" tabindex="-1" class="screen flex-1 pt-6 pb-8 md:pt-8 md:pb-12">
       <RouterView />
     </main>
 
-    <footer class="flex flex-col gap-2 border-t border-line py-4 type-body-sm text-text-muted">
+    <footer
+      class="site-footer flex flex-col gap-2 border-t border-line py-4 type-body-sm text-text-muted"
+    >
       <nav aria-label="Site information" class="flex flex-wrap gap-x-4 gap-y-2">
         <a :href="attribution.url" class="underline hover:text-text">{{ attribution.text }}</a>
         <RouterLink to="/credits" class="underline hover:text-text">Data and credits</RouterLink>
@@ -136,12 +138,23 @@ const freshness = computed(() =>
 
 <style scoped>
 .nav-link {
-  margin-bottom: -1px;
-  border-bottom: 2px solid transparent;
+  position: relative;
+  border-bottom: 1px solid transparent;
+}
+
+.nav-indicator {
+  position: absolute;
+  inset-inline: 0;
+  bottom: -2px;
+  height: 2px;
 }
 
 .nav-link.router-link-exact-active {
   color: var(--color-text);
-  border-color: var(--color-text-muted);
+}
+
+.nav-link.router-link-exact-active .nav-indicator {
+  background-color: var(--color-text-muted);
+  view-transition-name: nav-indicator;
 }
 </style>

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: screen changes turn the page content like a large split-flap around its seam, the nav underline slides to the new tab and the footer follows the new height (a short fade with reduced motion). Filter changes on the same screen don't turn.
 - Web: privacy and data credits pages, a privacy notice at rumor submission, and the software and font license notices in the published site. The privacy page opens with a board of where your data goes and a contact panel with a copy-email button, and its section links can be shared; credits list the licenses as board rows.
 - Web: "Send a rumor" form (`/rumors/new`, linked from the rumor tracker) validated with vee-validate and Zod, grouped into the move and the source, with team suggestions, a live preview of the board row on wide screens, a specific message when the rate limit is hit and a spam honeypot.
 - API: `POST /api/submissions` emails each submitted rumor through Resend, in the Transfer Board design, with signed accept and reject links. `/api/review` asks for confirmation and, on accept, commits the rumor to `data/rumors.yaml` and starts the Ingest workflow. Needs `RESEND_API_KEY`, `REVIEW_EMAIL_TO`, `REVIEW_SECRET` and `GITHUB_TOKEN` in Vercel.
