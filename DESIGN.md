@@ -216,7 +216,7 @@ components:
 
 Transfer Board treats the League of Legends offseason like a terminal departures hall. Players leave one team and arrive at another, and the interface shows each move the way a split-flap board shows a flight: origin code, destination code, a name, a status.
 
-That metaphor is the one bold idea, and it lives in a single place: **the board**, the feed of moves that opens the dashboard and the feed page. Team codes sit on raised "flaps" set in condensed signage type, with a hairline seam across the middle of each flap like a real Solari board. Everything around the board stays quiet: plain panels, small type, flat surfaces.
+That metaphor is the one bold idea, and it lives in a single place: **the board**, the feed of moves that opens the dashboard and the feed page. Team codes sit on raised "flaps" set in condensed signage type, with a hairline seam across the middle of each flap like a real Solari board. Everything around the board stays quiet: plain panels, small type, flat surfaces. The only echo elsewhere is the info row on the privacy and credits pages.
 
 The palette comes from the same place. Departure boards are dark with bright yellow characters, so the base here is a deep petrol green (a real colour, not a tinted black) and the single signal colour is a sodium-lamp yellow. Yellow means **this changed**: a rumor that came true is filled with it, rumors are outlined in it, and plain official moves, the bulk of the board, stay neutral so the changes stand out. Uncertainty is shown by taking the fill away, never by adding a new colour.
 
@@ -323,6 +323,8 @@ The direction glyph between flaps is a solid right-pointing triangle (`▸`), no
 **Flap.** `surface-raised`, at least 104×44, `board-code` type, centred text, with a 1px `line` seam across the middle. Team codes are at most 4 characters. When the team has a Leaguepedia square logo, a 24px logo (20px below 768px) sits before the code; the flap grows with its content. Logos drawn mostly in near-black, which vanish on petrol, sit on a `text` plate with `flap` radius and 2px padding; the tone is measured once per logo in the browser. Empty states: `FA` for free agent origin, `OUT` for release or retirement, both in `text-muted`.
 
 **Team crest.** On the team page, the logo sits in an 80px tile (96px from 768px) with `flap` radius and the flap seam, on `surface-raised`, or on `text` for near-black logos. It is omitted when the logo fails to load.
+
+**Info row.** Only on the privacy and credits pages, to summarise where data goes and which licenses apply. It is a board row with one flap, or two flaps joined by `▸`, followed by a `board-player` title and a `body-sm` muted line. Flaps hold short sentence-case labels ("You", "Site", "Font"), never team codes, and are not links. The title is a stretched link to a section anchor or a license file, with the board row's hover and focus treatment.
 
 **Player portrait.** The Leaguepedia tournament photo, cropped to the top of a square tile with `flap` radius on `surface-raised`: 48px in board rows, 32px in rosters (hidden below 768px), 112px in the player header. Departed and muted players render in greyscale. Without a photo, rows and rosters show the role icon in `line` so columns stay aligned; the player header omits the tile.
 

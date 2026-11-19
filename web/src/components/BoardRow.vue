@@ -157,22 +157,6 @@ const kind = computed(() => kindLabel(props.item.kind));
 </template>
 
 <style scoped>
-.row-link::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-}
-
-.row-link:focus-visible {
-  outline: none;
-}
-
-li:has(.row-link:focus-visible) {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-  z-index: 1;
-}
-
 li :deep(a:not(.row-link)) {
   position: relative;
   z-index: 1;

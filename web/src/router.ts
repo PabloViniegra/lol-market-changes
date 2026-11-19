@@ -47,7 +47,8 @@ export const router = createRouter({
       meta: { title: "Send a rumor" },
     },
   ],
-  scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? undefined : { top: 0 }),
+  scrollBehavior: (to, from, saved) =>
+    saved ?? (to.hash ? { el: to.hash, top: 24 } : to.path === from.path ? undefined : { top: 0 }),
 });
 
 const description = document.querySelector<HTMLMetaElement>('meta[name="description"]')!;
