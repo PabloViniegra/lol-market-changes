@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: League of Legends wordmark at the right end of the header and a Riot Games non-endorsement disclaimer in the footer.
 - Web: team logos on flaps and a team crest, player photos on board rows, rosters and the player page, and minimap-style role icons. Near-black logos sit on a light plate so they stay visible on petrol.
 - Ingestor: store every player on a tracked tournament roster, not only players with moves, and fetch each player's photo from the latest tournament in the last two years (`PlayerImages`) when Leaguepedia has no profile image.
 - API: feed items include `fromLogo`, `toLogo` and `playerImage`; roster entries include `imageUrl`; the player response includes `currentTeamLogo`. Images are served as Leaguepedia CDN thumbnails.

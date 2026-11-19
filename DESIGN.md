@@ -364,6 +364,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 - Label every chart series and node directly; pair league colours with text.
 - Write status and UI copy in sentence case with plain verbs: "Show faded rumors", not "Toggle stale".
 - Credit Leaguepedia in the footer: "Official moves from Leaguepedia, licensed CC BY-SA."
+- Keep the Riot disclaimer under the Leaguepedia credit: the site is not endorsed by Riot Games, and League of Legends is a Riot Games trademark.
 - Hit AA contrast on every text pair, visible focus on every interactive element, and full keyboard reachability of rows, chips and charts.
 
 **Don't**
@@ -372,7 +373,7 @@ Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`
 - Don't add all-caps eyebrow labels above headings or tracked-out micro labels. Team codes are the only capitals.
 - Don't use monospace for data, gradients for decoration, or glows of any kind.
 - Don't use league colours for status, buttons or highlights.
-- Don't use team logos or player photos as decoration. They identify a team or player next to its code or name, never alone, and never in backgrounds, banners or patterns. Riot and league marks are not used at all.
+- Don't use team logos or player photos as decoration. They identify a team or player next to its code or name, never alone, and never in backgrounds, banners or patterns. The only Riot mark is the League of Legends wordmark at the right end of the header, 24px tall in `text-muted`, so visitors place the site in competitive LoL. League marks are not used.
 - Don't animate section entrances, card hovers or chart loading.
 - Don't use numbered markers or step indicators: nothing on this site is a sequence except time, and time is shown as dates.
 - Don't append arrows to button or link text. The only directional glyph is the `▸` between flaps.

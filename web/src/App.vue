@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useMeta } from "./api/meta";
+import LolLogo from "./components/LolLogo.vue";
 import { useNow } from "./composables/useNow";
 import { formatAge, minutesAgo } from "./format";
 
@@ -73,6 +74,10 @@ const freshness = computed(() =>
       <p v-if="meta && !warning" class="type-body-sm text-text-muted md:ml-auto">
         {{ freshness }}
       </p>
+      <LolLogo
+        class="h-6 w-auto shrink-0 text-text-muted"
+        :class="{ 'md:ml-auto': !meta || warning }"
+      />
     </header>
 
     <div
@@ -105,10 +110,15 @@ const freshness = computed(() =>
       <RouterView />
     </main>
 
-    <footer class="border-t border-line py-4 type-body-sm text-text-muted">
-      <a :href="attribution.url" class="underline hover:text-text">
+    <footer class="flex flex-col gap-2 border-t border-line py-4 type-body-sm text-text-muted">
+      <a :href="attribution.url" class="self-start underline hover:text-text">
         {{ attribution.text }}
       </a>
+      <p>
+        Transfer Board isn’t endorsed by Riot Games and doesn’t reflect the views or opinions of
+        Riot Games or anyone officially involved in producing or managing League of Legends. League
+        of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.
+      </p>
     </footer>
   </div>
 </template>
