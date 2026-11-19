@@ -32,7 +32,12 @@ const names = computed(() => ({ a: queryTeam("a"), b: queryTeam("b") }));
 const drafts = ref({ a: names.value.a, b: names.value.b });
 const missing = ref<Key | null>(null);
 
-watch(names, (value) => (drafts.value = { ...value }));
+const flipped = ref({ a: false, b: false });
+
+watch(names, (value, previous) => {
+  drafts.value = { ...value };
+  flipped.value = { a: value.a !== previous.a, b: value.b !== previous.b };
+});
 
 watch(
   drafts,
@@ -315,15 +320,17 @@ const summary = computed(() => {
                   <template v-if="side.data">
                     <RouterLink
                       :to="`/teams/${encodeURIComponent(side.data.team.name)}`"
-                      class="flex flex-wrap items-center gap-x-3 gap-y-2 hover:text-primary"
+                      class="flex flex-wrap items-center gap-x-3 gap-y-2 hover:text-primary max-md:flex-col max-md:items-start"
                     >
                       <BoardFlap
+                        :key="side.data.team.name"
                         :code="teamCode(side.data.team.name, side.data.team.short)"
                         :logo="side.data.team.logoUrl"
                         placeholder=""
                         :team="null"
+                        :flip="flipped[side.key]"
                       />
-                      <span class="wrap-anywhere type-body-md underline">
+                      <span class="wrap-anywhere type-board-player underline">
                         {{ side.data.team.name }}
                       </span>
                     </RouterLink>
@@ -334,8 +341,10 @@ const summary = computed(() => {
                         v-if="league(side.data.team.league)"
                         :league="league(side.data.team.league)!"
                       />
-                      {{ side.data.arrivals.length }} joined ·
-                      {{ side.data.departures.length }} left
+                      <span class="tabular-nums">
+                        {{ side.data.arrivals.length }} joined ·
+                        {{ side.data.departures.length }} left
+                      </span>
                     </span>
                   </template>
                   <span v-else class="text-text-muted">—</span>
@@ -370,7 +379,7 @@ const summary = computed(() => {
                       />
                       <RouterLink
                         :to="`/players/${encodeURIComponent(entry.player)}`"
-                        class="min-w-0 wrap-anywhere underline hover:text-primary"
+                        class="min-w-0 wrap-anywhere type-board-player underline hover:text-primary"
                         :class="{ 'text-text-muted': entry.change === 'left' }"
                       >
                         {{ playerHandle(entry.player) }}
