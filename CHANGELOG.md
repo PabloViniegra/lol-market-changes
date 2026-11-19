@@ -62,6 +62,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: dropdowns, team suggestions, calendar, reliability dots, live rumor preview and flow routes update immediately. Split-flap motion marks new moves and rumor submission confirmations, and the rumor submit button gives brief press feedback.
 - Web: the dashboard "See all" button sits under the latest moves board and the legend at the right of its heading; player names line up across board rows even when a team code is long.
 - API: encrypt new review links, keep private notes out of published rumors, and let reviewers clean up the public source URL before approving. Review pages and emails use local system fonts.
 - Web: the feed date filters and rumor report date use a shared calendar styled like the dropdowns, with keyboard navigation and the relevant date limits.

@@ -139,43 +139,35 @@ onClickOutside(root, () => (open.value = false));
       </svg>
     </button>
 
-    <Transition name="menu">
-      <ul
-        v-show="open"
-        :id="listId"
-        role="listbox"
-        @pointerdown.prevent
-        class="menu-panel max-h-96"
+    <ul v-show="open" :id="listId" role="listbox" @pointerdown.prevent class="menu-panel max-h-96">
+      <li
+        v-for="(option, index) in options"
+        :id="optionId(index)"
+        :key="String(option.value)"
+        role="option"
+        :aria-selected="option.value === model"
+        class="menu-option gap-2 type-body-md"
+        :class="index === active ? 'bg-line text-text' : 'text-text-muted'"
+        @pointermove="active = index"
+        @click="choose(index)"
       >
-        <li
-          v-for="(option, index) in options"
-          :id="optionId(index)"
-          :key="String(option.value)"
-          role="option"
-          :aria-selected="option.value === model"
-          class="menu-option gap-2 type-body-md"
-          :class="index === active ? 'bg-line text-text' : 'text-text-muted'"
-          @pointermove="active = index"
-          @click="choose(index)"
+        <slot name="option" :option="option" :selected="option.value === model">
+          <span class="truncate">{{ option.label }}</span>
+        </slot>
+        <svg
+          v-if="option.value === model"
+          viewBox="0 0 20 20"
+          class="ml-auto size-5 shrink-0 text-primary"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          <slot name="option" :option="option" :selected="option.value === model">
-            <span class="truncate">{{ option.label }}</span>
-          </slot>
-          <svg
-            v-if="option.value === model"
-            viewBox="0 0 20 20"
-            class="ml-auto size-5 shrink-0 text-primary"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="m5 10.5 3 3 7-7" />
-          </svg>
-        </li>
-      </ul>
-    </Transition>
+          <path d="m5 10.5 3 3 7-7" />
+        </svg>
+      </li>
+    </ul>
   </div>
 </template>

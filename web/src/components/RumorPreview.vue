@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TeamsResponse } from "@lol/shared";
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { KIND_LABELS, KINDS, playerHandle, teamCode } from "../format";
 import BoardFlap from "./BoardFlap.vue";
 import RoleIcon from "./RoleIcon.vue";
@@ -36,12 +36,6 @@ function code(typed: string): string | null {
 const from = computed(() => code(props.fromTeam));
 const to = computed(() => code(props.toTeam));
 const kindLabel = computed(() => KINDS.find((item) => item === props.kind));
-
-const flips = ref({ from: props.flipOnMount ? 1 : 0, to: props.flipOnMount ? 1 : 0 });
-
-watch(from, () => flips.value.from++);
-
-watch(to, () => flips.value.to++);
 </script>
 
 <template>
@@ -54,22 +48,20 @@ watch(to, () => flips.value.to++);
     </h2>
     <div class="mt-5 flex items-center gap-3">
       <BoardFlap
-        :key="`from-${flips.from}`"
         :code="from"
         placeholder="FA"
         empty-label="free agent"
         :team="null"
-        :flip="flips.from > 0"
+        :flip="flipOnMount"
       />
       <span class="text-text-muted" aria-hidden="true">▸</span>
       <span class="sr-only">to</span>
       <BoardFlap
-        :key="`to-${flips.to}`"
         :code="to"
         placeholder="OUT"
         empty-label="left team"
         :team="null"
-        :flip="flips.to > 0"
+        :flip="flipOnMount"
       />
     </div>
     <div class="mt-5 h-px bg-line" aria-hidden="true" />

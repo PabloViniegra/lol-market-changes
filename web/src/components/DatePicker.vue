@@ -117,6 +117,7 @@ function show() {
   draftError.value = "";
   open.value = true;
   setActive(selected.value || today.value);
+  void nextTick(() => panel.value?.scrollIntoView({ block: "nearest" }));
 }
 
 function close(restoreFocus = false) {
@@ -213,111 +214,109 @@ onClickOutside(root, () => close());
       </svg>
     </button>
 
-    <Transition name="menu" @after-enter="panel?.scrollIntoView({ block: 'nearest' })">
-      <div
-        v-show="open"
-        :id="id"
-        ref="panel"
-        role="dialog"
-        :aria-labelledby="`${id}-month`"
-        :inert="!open"
-        class="menu-panel max-w-80 p-2 max-md:static"
-      >
-        <div v-if="active" class="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            aria-label="Previous month"
-            class="calendar-nav"
-            :disabled="!canMoveMonth(-1)"
-            @click="setActive(offsetMonth(active, -1))"
-          >
-            <svg viewBox="0 0 20 20" class="size-5 rotate-180" fill="none" aria-hidden="true">
-              <path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-          </button>
-          <h2 :id="`${id}-month`" aria-live="polite" class="type-label-md text-text">
-            {{ monthFormat.format(new Date(monthStart)) }}
-          </h2>
-          <button
-            type="button"
-            aria-label="Next month"
-            class="calendar-nav"
-            :disabled="!canMoveMonth(1)"
-            @click="setActive(offsetMonth(active, 1))"
-          >
-            <svg viewBox="0 0 20 20" class="size-5" fill="none" aria-hidden="true">
-              <path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-          </button>
-        </div>
-        <div v-if="active" role="grid" :aria-labelledby="`${id}-month`" @keydown="onDayKeydown">
-          <div role="row" class="grid grid-cols-7 text-center type-body-sm text-text-muted">
-            <span v-for="weekday in weekdays" :key="weekday" role="columnheader" class="py-1">
-              {{ weekday }}
-            </span>
-          </div>
-          <div v-for="(week, index) in weeks" :key="index" role="row" class="grid grid-cols-7">
-            <div
-              v-for="(day, column) in week"
-              :key="column"
-              role="gridcell"
-              :aria-selected="day ? day === selected : undefined"
-            >
-              <button
-                v-if="day"
-                type="button"
-                :aria-label="dayFormat.format(new Date(day))"
-                :aria-current="day === today ? 'date' : undefined"
-                :tabindex="day === active ? 0 : -1"
-                :disabled="!inRange(day)"
-                class="h-9 w-full rounded-flap type-body-sm enabled:cursor-pointer disabled:text-text-muted/60 aria-current:underline"
-                :class="
-                  day === selected ? 'bg-text text-background' : 'text-text enabled:hover:bg-line'
-                "
-                @click="choose(day)"
-              >
-                {{ Number(day.slice(8)) }}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="mt-1 border-t border-line pt-2">
-          <div class="flex gap-2">
-            <input
-              v-model="draft"
-              type="text"
-              aria-label="Enter date (YYYY-MM-DD)"
-              :aria-invalid="draftError ? true : undefined"
-              :aria-describedby="draftError ? `${id}-error` : undefined"
-              placeholder="YYYY-MM-DD"
-              autocomplete="off"
-              spellcheck="false"
-              class="h-9 min-w-0 flex-1 rounded-control border border-control-border bg-surface px-2 type-body-sm text-text placeholder:text-text-muted aria-invalid:border-text"
-              @input="draftError = ''"
-              @keydown.enter.prevent="applyDraft"
-            />
-            <button
-              type="button"
-              class="h-9 rounded-control bg-line px-2 type-label-md text-text hover:bg-surface"
-              @click="applyDraft"
-            >
-              Apply
-            </button>
-          </div>
-          <p v-if="draftError" :id="`${id}-error`" role="alert" class="mt-1 type-body-sm text-text">
-            {{ draftError }}
-          </p>
-        </div>
+    <div
+      v-show="open"
+      :id="id"
+      ref="panel"
+      role="dialog"
+      :aria-labelledby="`${id}-month`"
+      :inert="!open"
+      class="menu-panel max-w-80 p-2 max-md:static"
+    >
+      <div v-if="active" class="flex items-center justify-between gap-2">
         <button
-          v-if="clearable && selected"
           type="button"
-          class="mt-1 h-9 w-full rounded-flap px-2 text-left type-body-sm text-text-muted hover:bg-line hover:text-text"
-          @click="choose('')"
+          aria-label="Previous month"
+          class="calendar-nav"
+          :disabled="!canMoveMonth(-1)"
+          @click="setActive(offsetMonth(active, -1))"
         >
-          Clear date
+          <svg viewBox="0 0 20 20" class="size-5 rotate-180" fill="none" aria-hidden="true">
+            <path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+        </button>
+        <h2 :id="`${id}-month`" aria-live="polite" class="type-label-md text-text">
+          {{ monthFormat.format(new Date(monthStart)) }}
+        </h2>
+        <button
+          type="button"
+          aria-label="Next month"
+          class="calendar-nav"
+          :disabled="!canMoveMonth(1)"
+          @click="setActive(offsetMonth(active, 1))"
+        >
+          <svg viewBox="0 0 20 20" class="size-5" fill="none" aria-hidden="true">
+            <path d="m8 5 5 5-5 5" stroke="currentColor" stroke-width="1.5" />
+          </svg>
         </button>
       </div>
-    </Transition>
+      <div v-if="active" role="grid" :aria-labelledby="`${id}-month`" @keydown="onDayKeydown">
+        <div role="row" class="grid grid-cols-7 text-center type-body-sm text-text-muted">
+          <span v-for="weekday in weekdays" :key="weekday" role="columnheader" class="py-1">
+            {{ weekday }}
+          </span>
+        </div>
+        <div v-for="(week, index) in weeks" :key="index" role="row" class="grid grid-cols-7">
+          <div
+            v-for="(day, column) in week"
+            :key="column"
+            role="gridcell"
+            :aria-selected="day ? day === selected : undefined"
+          >
+            <button
+              v-if="day"
+              type="button"
+              :aria-label="dayFormat.format(new Date(day))"
+              :aria-current="day === today ? 'date' : undefined"
+              :tabindex="day === active ? 0 : -1"
+              :disabled="!inRange(day)"
+              class="h-9 w-full rounded-flap type-body-sm enabled:cursor-pointer disabled:text-text-muted/60 aria-current:underline"
+              :class="
+                day === selected ? 'bg-text text-background' : 'text-text enabled:hover:bg-line'
+              "
+              @click="choose(day)"
+            >
+              {{ Number(day.slice(8)) }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-1 border-t border-line pt-2">
+        <div class="flex gap-2">
+          <input
+            v-model="draft"
+            type="text"
+            aria-label="Enter date (YYYY-MM-DD)"
+            :aria-invalid="draftError ? true : undefined"
+            :aria-describedby="draftError ? `${id}-error` : undefined"
+            placeholder="YYYY-MM-DD"
+            autocomplete="off"
+            spellcheck="false"
+            class="h-9 min-w-0 flex-1 rounded-control border border-control-border bg-surface px-2 type-body-sm text-text placeholder:text-text-muted aria-invalid:border-text"
+            @input="draftError = ''"
+            @keydown.enter.prevent="applyDraft"
+          />
+          <button
+            type="button"
+            class="h-9 rounded-control bg-line px-2 type-label-md text-text hover:bg-surface"
+            @click="applyDraft"
+          >
+            Apply
+          </button>
+        </div>
+        <p v-if="draftError" :id="`${id}-error`" role="alert" class="mt-1 type-body-sm text-text">
+          {{ draftError }}
+        </p>
+      </div>
+      <button
+        v-if="clearable && selected"
+        type="button"
+        class="mt-1 h-9 w-full rounded-flap px-2 text-left type-body-sm text-text-muted hover:bg-line hover:text-text"
+        @click="choose('')"
+      >
+        Clear date
+      </button>
+    </div>
   </div>
 </template>
 

@@ -150,7 +150,6 @@
     @apply absolute inset-x-0 top-full z-20 mt-1 overflow-y-auto rounded-control bg-surface-raised p-1;
     outline: 1px solid var(--color-line);
     outline-offset: -1px;
-    transform-origin: top center;
   }
 
   .row-link::before {
@@ -173,40 +172,7 @@
     @apply flex min-h-10 cursor-pointer items-center rounded-flap px-2;
   }
 
-  .menu-enter-active {
-    transition:
-      opacity 140ms var(--ease-out),
-      transform 140ms var(--ease-out);
-  }
-
-  .menu-leave-active {
-    transition: opacity 90ms ease-in;
-  }
-
-  .menu-enter-from {
-    opacity: 0;
-    transform: translateY(-4px) scaleY(0.96);
-  }
-
-  .menu-leave-to {
-    opacity: 0;
-  }
-
-  .menu-chevron {
-    transition: transform 150ms var(--ease-out);
-  }
-
   [aria-expanded="true"] > .menu-chevron {
     transform: rotate(180deg);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .menu-enter-from {
-      transform: none;
-    }
-
-    .menu-chevron {
-      transition: none;
-    }
   }
 }

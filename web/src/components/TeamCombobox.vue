@@ -115,33 +115,31 @@ onClickOutside(root, () => (open.value = false));
       <LeagueTag :league="known.league" />
     </span>
 
-    <Transition name="menu">
-      <ul
-        v-show="visible"
-        :id="listId"
-        role="listbox"
-        @pointerdown.prevent
-        :aria-label="`Teams matching ${model || 'any name'}`"
-        class="menu-panel max-h-72"
+    <ul
+      v-show="visible"
+      :id="listId"
+      role="listbox"
+      @pointerdown.prevent
+      :aria-label="`Teams matching ${model || 'any name'}`"
+      class="menu-panel max-h-72"
+    >
+      <li
+        v-for="(team, index) in matches"
+        :id="optionId(index)"
+        :key="team.name"
+        role="option"
+        :aria-selected="index === active"
+        class="menu-option gap-3"
+        :class="index === active ? 'bg-line text-text' : 'text-text-muted'"
+        @pointermove="active = index"
+        @click="choose(index)"
       >
-        <li
-          v-for="(team, index) in matches"
-          :id="optionId(index)"
-          :key="team.name"
-          role="option"
-          :aria-selected="index === active"
-          class="menu-option gap-3"
-          :class="index === active ? 'bg-line text-text' : 'text-text-muted'"
-          @pointermove="active = index"
-          @click="choose(index)"
-        >
-          <span class="w-12 shrink-0 type-label-md text-text">
-            {{ teamCode(team.name, team.short) }}
-          </span>
-          <span class="truncate type-body-md">{{ team.name }}</span>
-          <LeagueTag class="ml-auto shrink-0" :league="team.league" />
-        </li>
-      </ul>
-    </Transition>
+        <span class="w-12 shrink-0 type-label-md text-text">
+          {{ teamCode(team.name, team.short) }}
+        </span>
+        <span class="truncate type-body-md">{{ team.name }}</span>
+        <LeagueTag class="ml-auto shrink-0" :league="team.league" />
+      </li>
+    </ul>
   </div>
 </template>

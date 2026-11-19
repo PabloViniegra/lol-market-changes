@@ -441,10 +441,14 @@ const input =
           <div class="flex flex-wrap gap-3">
             <button
               type="submit"
-              class="h-10 rounded-control bg-primary px-4 type-label-md text-on-primary hover:bg-primary-hover disabled:opacity-60"
+              class="submit-button group inline-flex rounded-control disabled:opacity-60"
               :disabled="submit.isPending.value"
             >
-              {{ submit.isPending.value ? "Sending…" : "Send for review" }}
+              <span
+                class="pointer-events-none inline-flex h-10 items-center rounded-control bg-primary px-4 type-label-md text-on-primary group-hover:bg-primary-hover"
+              >
+                {{ submit.isPending.value ? "Sending…" : "Send for review" }}
+              </span>
             </button>
             <RouterLink
               to="/rumors"
@@ -471,3 +475,22 @@ const input =
     </template>
   </div>
 </template>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  .submit-button > span {
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .submit-button:enabled:active:not(:focus-visible) > span {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit-button:enabled:active:not(:focus-visible) {
+    outline: 2px solid var(--color-on-primary);
+    outline-offset: -4px;
+  }
+}
+</style>

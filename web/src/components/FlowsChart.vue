@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { FlowsResponse } from "@lol/shared";
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useTeams } from "../api/teams";
-import { useMediaQuery } from "../composables/useMediaQuery";
 import { LEAGUES } from "../format";
 
 type Link = FlowsResponse["links"][number];
@@ -38,15 +37,12 @@ const MAX_LINKS = 24;
 const NODE_WIDTH = 12;
 const NODE_GAP = 16;
 const PADDING_Y = 16;
-const MORPH_MS = 360;
 
 const container = useTemplateRef("container");
 const width = ref(0);
 const observer = new ResizeObserver(([entry]) => (width.value = entry?.contentRect.width ?? 0));
 
 onMounted(() => container.value && observer.observe(container.value));
-
-const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
 const labelSpace = computed(() => Math.min(200, Math.max(96, Math.round(width.value * 0.24))));
 
@@ -131,92 +127,9 @@ function layout(links: Link[]): Layout {
   };
 }
 
-const goal = computed(() => layout(props.links));
-const frame = shallowRef(goal.value);
+const diagram = computed(() => layout(props.links));
 
-// Elements that exist in both layouts morph in place; the rest pair up by rank so a level switch
-// reflows the diagram instead of swapping it, and anything left over grows from its centre line.
-function startOf<T extends { key: string }>(
-  prev: T[],
-  next: T[],
-  collapsed: (item: T) => T,
-  group: (item: T) => string = () => "",
-) {
-  const prevByKey = new Map(prev.map((item) => [item.key, item]));
-  const nextKeys = new Set(next.map((item) => item.key));
-  const spare = prev.filter((item) => !nextKeys.has(item.key));
-
-  return next.map((item) => {
-    const same = prevByKey.get(item.key);
-
-    if (same) return same;
-    const index = spare.findIndex((candidate) => group(candidate) === group(item));
-
-    return index === -1 ? collapsed(item) : spare.splice(index, 1)[0]!;
-  });
-}
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-
-let raf = 0;
-
-watch(goal, (next) => {
-  cancelAnimationFrame(raf);
-
-  if (reducedMotion.value) {
-    frame.value = next;
-
-    return;
-  }
-
-  const shown = frame.value;
-
-  const nodeStart = startOf(
-    shown.nodes,
-    next.nodes,
-    (node) => ({ ...node, y: node.y + node.h / 2, h: 0 }),
-    (node) => node.side,
-  );
-
-  const ribbonStart = startOf(shown.ribbons, next.ribbons, (ribbon) => ({
-    ...ribbon,
-    sy: ribbon.sy + ribbon.h / 2,
-    ty: ribbon.ty + ribbon.h / 2,
-    h: 0,
-  }));
-
-  const startHeight = shown.height;
-  const began = performance.now();
-
-  const step = (now: number) => {
-    const t = Math.min(1, (now - began) / MORPH_MS);
-    const e = 1 - (1 - t) ** 4;
-    frame.value = {
-      ...next,
-      height: lerp(startHeight, next.height, e),
-      nodes: next.nodes.map((node, i) => ({
-        ...node,
-        y: lerp(nodeStart[i]!.y, node.y, e),
-        h: lerp(nodeStart[i]!.h, node.h, e),
-      })),
-      ribbons: next.ribbons.map((ribbon, i) => ({
-        ...ribbon,
-        sy: lerp(ribbonStart[i]!.sy, ribbon.sy, e),
-        ty: lerp(ribbonStart[i]!.ty, ribbon.ty, e),
-        h: lerp(ribbonStart[i]!.h, ribbon.h, e),
-      })),
-    };
-
-    if (t < 1) raf = requestAnimationFrame(step);
-  };
-
-  raf = requestAnimationFrame(step);
-});
-
-onBeforeUnmount(() => {
-  observer.disconnect();
-  cancelAnimationFrame(raf);
-});
+onBeforeUnmount(() => observer.disconnect());
 
 function ribbonPath({ sy, ty, h }: Ribbon) {
   const a = labelSpace.value + NODE_WIDTH;
@@ -260,7 +173,7 @@ const active = computed(
     [hovered.value, focused.value].find(
       (candidate) =>
         candidate &&
-        (candidate.kind === "route" ? frame.value.ribbons : frame.value.nodes).some(
+        (candidate.kind === "route" ? diagram.value.ribbons : diagram.value.nodes).some(
           (item) => item.key === candidate.key,
         ),
     ) ?? null,
@@ -268,13 +181,13 @@ const active = computed(
 
 const activeRoute = computed(() =>
   active.value?.kind === "route"
-    ? frame.value.ribbons.find((ribbon) => ribbon.key === active.value!.key)
+    ? diagram.value.ribbons.find((ribbon) => ribbon.key === active.value!.key)
     : undefined,
 );
 
 const activeNode = computed(() =>
   active.value?.kind === "node"
-    ? frame.value.nodes.find((node) => node.key === active.value!.key)
+    ? diagram.value.nodes.find((node) => node.key === active.value!.key)
     : undefined,
 );
 
@@ -292,7 +205,7 @@ function ribbonLit(ribbon: Ribbon) {
 function nodeLit(node: Node) {
   if (!active.value) return true;
 
-  return frame.value.ribbons.some(
+  return diagram.value.ribbons.some(
     (ribbon) =>
       ribbonLit(ribbon) &&
       (node.key === `from:${ribbon.link.source}` || node.key === `to:${ribbon.link.target}`),
@@ -303,12 +216,12 @@ const focusIndex = ref(0);
 const ribbonEls = useTemplateRef<SVGPathElement[]>("ribbonEls");
 
 watch(
-  () => frame.value.ribbons.length,
+  () => diagram.value.ribbons.length,
   (count) => (focusIndex.value = Math.min(focusIndex.value, Math.max(0, count - 1))),
 );
 
 function onKeydown(event: KeyboardEvent, index: number) {
-  const last = frame.value.ribbons.length - 1;
+  const last = diagram.value.ribbons.length - 1;
 
   const next =
     event.key === "ArrowDown" || event.key === "ArrowRight"
@@ -360,7 +273,7 @@ function onFocus(ribbon: Ribbon, index: number) {
     <div
       ref="container"
       class="relative"
-      :style="{ height: `${frame.height}px` }"
+      :style="{ height: `${diagram.height}px` }"
       @pointerleave="hovered = null"
     >
       <svg
@@ -368,12 +281,12 @@ function onFocus(ribbon: Ribbon, index: number) {
         role="group"
         aria-label="Flows diagram"
         :width="width"
-        :height="frame.height"
+        :height="diagram.height"
         class="absolute inset-0 block"
       >
         <g role="list" aria-label="Routes, largest first">
           <path
-            v-for="(ribbon, i) in frame.ribbons"
+            v-for="(ribbon, i) in diagram.ribbons"
             ref="ribbonEls"
             :key="ribbon.key"
             role="listitem"
@@ -390,7 +303,7 @@ function onFocus(ribbon: Ribbon, index: number) {
           />
         </g>
         <rect
-          v-for="node in frame.nodes"
+          v-for="node in diagram.nodes"
           :key="node.key"
           :x="node.side === 'from' ? labelSpace : x1"
           :y="node.y"
@@ -404,7 +317,7 @@ function onFocus(ribbon: Ribbon, index: number) {
         />
       </svg>
       <div
-        v-for="node in frame.nodes"
+        v-for="node in diagram.nodes"
         :key="node.key"
         class="absolute flex -translate-y-1/2 items-baseline gap-1.5 whitespace-nowrap type-label-md"
         :class="[
@@ -433,7 +346,7 @@ function onFocus(ribbon: Ribbon, index: number) {
       </summary>
       <ul class="divide-y divide-line type-body-sm">
         <li
-          v-for="ribbon in goal.ribbons"
+          v-for="ribbon in diagram.ribbons"
           :key="ribbon.key"
           class="flex items-baseline justify-between gap-3 py-2"
         >

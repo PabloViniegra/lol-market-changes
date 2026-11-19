@@ -24,9 +24,8 @@ const name = useId();
           :aria-label="`${index + 1} · ${label}`"
         />
         <span
-          class="meter-dot size-2.5 rounded-pill"
+          class="size-2.5 rounded-pill peer-checked:scale-140"
           :class="index < model ? 'bg-primary' : 'bg-line group-hover:bg-text-muted'"
-          :style="{ '--meter-delay': `${index * 25}ms` }"
           aria-hidden="true"
         />
       </label>
@@ -34,25 +33,3 @@ const name = useId();
     <p class="type-label-md text-text" aria-hidden="true">{{ model }} · {{ labels[model - 1] }}</p>
   </div>
 </template>
-
-<style scoped>
-.meter-dot {
-  transition:
-    background-color 120ms var(--ease-out) var(--meter-delay),
-    transform 160ms var(--ease-out) var(--meter-delay);
-}
-
-input:checked + .meter-dot {
-  transform: scale(1.4);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .meter-dot {
-    transition: background-color 120ms linear;
-  }
-
-  input:checked + .meter-dot {
-    transform: none;
-  }
-}
-</style>
