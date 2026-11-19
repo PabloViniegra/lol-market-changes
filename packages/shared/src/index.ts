@@ -147,3 +147,25 @@ export interface PlayerResponse {
   timeline: FeedItem[];
   rumors: FeedItem[];
 }
+
+export type Role = "Top" | "Jungle" | "Mid" | "Bot" | "Support";
+
+/** Body of `POST /api/submissions`. Empty optional fields are sent as null. */
+export interface RumorSubmission {
+  player: string;
+  fromTeam: string | null;
+  toTeam: string | null;
+  role: Role | null;
+  kind: MoveKind | null;
+  reportedAt: string;
+  sourceUrl: string;
+  outlet: string | null;
+  reliability: number;
+  notes: string | null;
+  /** Honeypot: real visitors never see or fill it. */
+  website?: string;
+}
+
+export interface SubmissionResponse {
+  ok: true;
+}

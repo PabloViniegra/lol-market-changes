@@ -57,7 +57,15 @@ const shown = computed(() =>
       <h1 class="type-heading-lg">Rumor tracker</h1>
       <p v-if="rate" class="mt-1 type-body-md text-text-muted">{{ rate }}</p>
     </div>
-    <BoardLegend v-if="shown.length" />
+    <div class="flex flex-wrap items-center gap-4">
+      <BoardLegend v-if="shown.length" />
+      <RouterLink
+        to="/rumors/new"
+        class="inline-flex h-10 items-center rounded-control bg-surface-raised px-4 type-label-md hover:bg-line"
+      >
+        Send a rumor
+      </RouterLink>
+    </div>
   </div>
 
   <section
@@ -82,8 +90,8 @@ const shown = computed(() =>
   >
     <h2 id="rumors-empty-heading" class="type-heading-md">No rumors tracked yet</h2>
     <p class="mt-2 type-body-md text-text-muted">
-      Rumors are added by hand from reports and checked against official moves on every sync. Each
-      one moves through these statuses:
+      Rumors come from reports, are reviewed by hand and are checked against official moves on every
+      sync. Each one moves through these statuses:
     </p>
     <ul class="mt-4 flex flex-col gap-3 type-body-sm text-text-muted">
       <li v-for="step in LIFECYCLE" :key="step.status" class="flex items-center gap-3">

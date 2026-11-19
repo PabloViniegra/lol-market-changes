@@ -4,8 +4,9 @@ export class HttpError extends Error {
   constructor(
     readonly status: number,
     path: string,
+    method = "GET",
   ) {
-    super(`GET ${path} failed with ${status}`);
+    super(`${method} ${path} failed with ${status}`);
   }
 }
 

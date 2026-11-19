@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{Context, Result, bail};
-use chrono::{Days, NaiveDate};
+use chrono::{DateTime, Days, NaiveDate, TimeDelta, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::pairing::{Kind, lineage};
@@ -9,6 +9,12 @@ use crate::pairing::{Kind, lineage};
 pub const RUMOR_MATCH_LEAD_DAYS: u64 = 7;
 pub const RUMOR_MATCH_WINDOW_DAYS: u64 = 90;
 pub const RUMOR_EXPIRY_DAYS: u64 = 60;
+
+/// The latest calendar date anywhere on Earth (UTC+14). A rumor is dated where it was
+/// reported, so a Korean report from this morning can be a day ahead of UTC.
+pub fn latest_report_date(now: DateTime<Utc>) -> NaiveDate {
+    (now + TimeDelta::hours(14)).date_naive()
+}
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -70,7 +76,7 @@ pub struct Outcome {
 }
 
 /// Parses `rumors.yaml` and checks the rules of §4.2, reporting every problem at once.
-pub fn parse(yaml: &str, today: NaiveDate) -> Result<Vec<Rumor>> {
+pub fn parse(yaml: &str, latest: NaiveDate) -> Result<Vec<Rumor>> {
     let rumors: Vec<Rumor> = yaml_serde::from_str::<Option<Vec<Rumor>>>(yaml)
         .context("rumors.yaml does not match the schema")?
         .unwrap_or_default();
@@ -87,7 +93,7 @@ pub fn parse(yaml: &str, today: NaiveDate) -> Result<Vec<Rumor>> {
         if rumor.from_team.is_none() && rumor.to_team.is_none() {
             problem("from_team or to_team is required".into());
         }
-        if rumor.reported_at > today {
+        if rumor.reported_at > latest {
             problem(format!(
                 "reported_at {} is in the future",
                 rumor.reported_at
@@ -248,6 +254,13 @@ mod tests {
     fn an_empty_file_has_no_rumors() {
         assert_eq!(parse("", date(TODAY)).unwrap(), []);
         assert_eq!(parse("[]", date(TODAY)).unwrap(), []);
+    }
+
+    #[test]
+    fn the_latest_report_date_is_today_in_utc_plus_14() {
+        let at = |instant: &str| latest_report_date(instant.parse().unwrap());
+        assert_eq!(at("2026-11-18T09:59:59Z"), date("2026-11-18"));
+        assert_eq!(at("2026-11-18T10:00:00Z"), date("2026-11-19"));
     }
 
     #[test]

@@ -17,6 +17,11 @@ export const router = createRouter({
       component: () => import("./views/RumorsView.vue"),
       meta: { title: "Rumor tracker" },
     },
+    {
+      path: "/rumors/new",
+      component: () => import("./views/SubmitRumorView.vue"),
+      meta: { title: "Send a rumor" },
+    },
   ],
   scrollBehavior: (to, from, saved) => saved ?? (to.path === from.path ? undefined : { top: 0 }),
 });

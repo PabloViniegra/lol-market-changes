@@ -78,7 +78,7 @@ cargo run --bin probe       # refresh the JSON fixtures in tests/fixtures/probe/
 These are the same checks CI runs:
 
 ```sh
-pnpm check                 # oxlint, oxfmt --check, tsc / vue-tsgo, vite build
+pnpm check                 # oxlint, oxfmt --check, tsc / vue-tsgo, API tests, vite build
 
 cd ingestor
 cargo fmt --check
@@ -97,10 +97,16 @@ TEST_DATABASE_URL=postgres://postgres:dev@127.0.0.1:55432/lol_market cargo test
 
 See [`.env.example`](.env.example).
 
-| Variable                | Used by                                                        | Role                   |
-| ----------------------- | -------------------------------------------------------------- | ---------------------- |
-| `DATABASE_URL`          | `api/` (Vercel env)                                            | Read-only role.        |
-| `INGESTOR_DATABASE_URL` | Ingestor (GitHub secret in `ingest.yml`, `.env.local` locally) | Read/write owner role. |
+| Variable                | Used by                                                        | Role                                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`          | `api/` (Vercel env)                                            | Read-only role.                                                                                                                           |
+| `INGESTOR_DATABASE_URL` | Ingestor (GitHub secret in `ingest.yml`, `.env.local` locally) | Read/write owner role.                                                                                                                    |
+| `RESEND_API_KEY`        | `api/submissions` (Vercel env)                                 | Sends review emails from `send.pabloviniegra.dev`.                                                                                        |
+| `REVIEW_EMAIL_TO`       | `api/submissions` (Vercel env)                                 | Inbox that reviews submitted rumors.                                                                                                      |
+| `REVIEW_SECRET`         | `api/submissions`, `api/review` (Vercel env)                   | 32+ random characters that sign review links.                                                                                             |
+| `GITHUB_TOKEN`          | `api/review` (Vercel env)                                      | Fine-grained token for this repo: Contents and Actions read/write. Commits accepted rumors to `data/rumors.yaml` and starts `ingest.yml`. |
+
+Submitted rumors are not stored anywhere until they are accepted: the review email carries a signed link that expires after 14 days, and accepting it commits the rumor to `data/rumors.yaml`. A Vercel WAF rate-limit rule (Firewall settings, not in the repo) allows 3 `POST /api/submissions` per IP every 10 minutes; Hobby allows one such rule per project.
 
 ## Roadmap
 

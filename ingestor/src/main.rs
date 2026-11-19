@@ -47,7 +47,7 @@ async fn main() -> Result<()> {
     let today = Utc::now().date_naive();
 
     if cli.dry_run {
-        let rumors = load_rumors(&cli.rumors, today)?;
+        let rumors = load_rumors(&cli.rumors)?;
         let since = cli
             .since
             .or(cli.full.then(|| backfill_start(today)))
@@ -75,7 +75,7 @@ async fn main() -> Result<()> {
 }
 
 async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
-    let rumors = load_rumors(&cli.rumors, today)?;
+    let rumors = load_rumors(&cli.rumors)?;
     let since = match (cli.since, cli.full) {
         (Some(since), _) => since,
         (None, true) => backfill_start(today),
@@ -126,10 +126,10 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
     Ok(stats)
 }
 
-fn load_rumors(path: &Path, today: NaiveDate) -> Result<Vec<Rumor>> {
+fn load_rumors(path: &Path) -> Result<Vec<Rumor>> {
     let yaml =
         std::fs::read_to_string(path).with_context(|| format!("cannot read {}", path.display()))?;
-    rumors::parse(&yaml, today)
+    rumors::parse(&yaml, rumors::latest_report_date(Utc::now()))
 }
 
 async fn fetch_and_normalize(

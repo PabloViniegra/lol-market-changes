@@ -10,7 +10,7 @@ use sqlx::PgPool;
 fn the_committed_rumors_file_is_valid() {
     let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../data/rumors.yaml");
     let yaml = std::fs::read_to_string(path).unwrap();
-    if let Err(error) = rumors::parse(&yaml, Utc::now().date_naive()) {
+    if let Err(error) = rumors::parse(&yaml, rumors::latest_report_date(Utc::now())) {
         panic!("{error:#}");
     }
 }

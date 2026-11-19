@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: "Send a rumor" form (`/rumors/new`, linked from the rumor tracker) validated with vee-validate and Zod, grouped into the move and the source, with team suggestions, a live preview of the board row on wide screens, a specific message when the rate limit is hit and a spam honeypot.
+- API: `POST /api/submissions` emails each submitted rumor through Resend, in the Transfer Board design, with signed accept and reject links. `/api/review` asks for confirmation and, on accept, commits the rumor to `data/rumors.yaml` and starts the Ingest workflow. Needs `RESEND_API_KEY`, `REVIEW_EMAIL_TO`, `REVIEW_SECRET` and `GITHUB_TOKEN` in Vercel.
+- Security: a Vercel WAF rule limits `POST /api/submissions` to 3 requests per IP every 10 minutes, and submissions with control or hidden characters are rejected so an accepted rumor can't break `rumors.yaml` parsing.
+- API: unit tests for rumor submissions (validation, review tokens and `rumors.yaml` entries) with `node:test` and tsx; `pnpm test` runs them and is part of `pnpm check` and CI.
 - Web: League of Legends wordmark at the right end of the header and a Riot Games non-endorsement disclaimer in the footer.
 - Web: team logos on flaps and a team crest, player photos on board rows, rosters and the player page, and minimap-style role icons. Near-black logos sit on a light plate so they stay visible on petrol.
 - Ingestor: store every player on a tracked tournament roster, not only players with moves, and fetch each player's photo from the latest tournament in the last two years (`PlayerImages`) when Leaguepedia has no profile image.
@@ -87,6 +91,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: the rumor tracker merges empty sections into one note on how rumors are tracked.
 - Web: the dashboard puts open rumors and a tracker link above the latest board, links the season counts to league-filtered feeds, and shares the flow view in the URL. Keyboard links jump directly to the season summary and flows.
 - Web: rumor rows name their sources, all board source links have larger mobile tap targets, and the flow list labels moves within a league explicitly.
+
+- Ingestor, API and web: a rumor's report date may be today anywhere on Earth (UTC+14), so a report from Korea or China dated today is no longer rejected as "in the future" before UTC midnight. The form defaults to the user's local date.
 
 ### Removed
 
