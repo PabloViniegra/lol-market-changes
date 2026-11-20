@@ -12,6 +12,11 @@ const STATUS_HELP: { status: FeedStatus; reliability: number | null; text: strin
   },
   { status: "denied", reliability: null, text: "A rumor denied by someone involved." },
   { status: "stale", reliability: null, text: "A rumor with no confirmation after 60 days." },
+  {
+    status: "contradicted",
+    reliability: null,
+    text: "A rumor contradicted by an official move to another team.",
+  },
 ];
 </script>
 

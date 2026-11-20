@@ -95,15 +95,22 @@ async fn rumors_sync_idempotently_and_survive_transfer_rebuilds() {
         ),
         rumor("b-denied", &player, &to_team, date, Status::Denied),
         rumor(
-            "c-stale",
+            "c-contradicted",
             &player,
             "Nowhere",
             date - Days::new(1),
             Status::Rumor,
         ),
-        rumor("d-open", &player, "Nowhere", today, Status::Rumor),
+        rumor(
+            "d-stale",
+            "Nobody",
+            "Nowhere",
+            date - Days::new(1),
+            Status::Rumor,
+        ),
+        rumor("e-open", &player, "Nowhere", today, Status::Rumor),
     ];
-    assert_eq!(db::sync_rumors(&pool, &list, today).await.unwrap(), 4);
+    assert_eq!(db::sync_rumors(&pool, &list, today).await.unwrap(), 5);
     let expected = |s: &str, t: Option<&str>| (s.to_owned(), t.map(str::to_owned));
     let rows = statuses(&pool).await;
     let got: Vec<_> = rows
@@ -115,6 +122,7 @@ async fn rumors_sync_idempotently_and_survive_transfer_rebuilds() {
         [
             expected("confirmed", Some(&transfer_id)),
             expected("denied", None),
+            expected("contradicted", None),
             expected("stale", None),
             expected("rumor", None),
         ]
@@ -129,7 +137,7 @@ async fn rumors_sync_idempotently_and_survive_transfer_rebuilds() {
     assert_eq!(db::sync_rumors(&pool, &list, today).await.unwrap(), 1);
     assert_eq!(
         statuses(&pool).await.len(),
-        3,
+        4,
         "rumors removed from YAML are deleted"
     );
 

@@ -20,6 +20,7 @@ export const STATUSES = [
   "rumor",
   "denied",
   "stale",
+  "contradicted",
 ] as const satisfies readonly FeedStatus[];
 
 export const KIND_LABELS: Record<MoveKind, string> = {
@@ -39,6 +40,7 @@ export const STATUS_LABELS: Record<FeedStatus, string> = {
   rumor: "Rumor",
   denied: "Denied",
   stale: "Faded",
+  contradicted: "Contradicted",
 };
 
 export function kindLabel(kind: string | null): string | null {

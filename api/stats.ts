@@ -49,7 +49,7 @@ export const GET = handler(async (url): Promise<StatsResponse> => {
             order by count(*) desc, c.team
             limit 10`,
       sql`select count(*) filter (where status = 'confirmed')::int as confirmed,
-                   count(*) filter (where status in ('confirmed', 'denied', 'stale'))::int
+                   count(*) filter (where status in ('confirmed', 'denied', 'stale', 'contradicted'))::int
                      as resolved
             from rumors where reported_at >= ${since}::date`,
     ],

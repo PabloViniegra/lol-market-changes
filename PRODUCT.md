@@ -16,7 +16,7 @@ A dashboard of the LoL esports transfer market for LCK, LPL, LEC and LCS. It sho
 
 ## Positioning
 
-Leaguepedia records events; news sites scatter rumors. This product pairs events into transfers, puts rumors in the same feed, and reconciles rumors against official moves automatically, so a rumor's outcome (confirmed, denied, stale) is tracked over time.
+Leaguepedia records events; news sites scatter rumors. This product pairs events into transfers, puts rumors in the same feed, and reconciles rumors against official moves automatically, so a rumor's outcome (confirmed, denied, contradicted, stale) is tracked over time.
 
 ## Operating Context
 
@@ -29,7 +29,7 @@ Leaguepedia records events; news sites scatter rumors. This product pairs events
 
 - Leagues: LCK, LPL, LEC, LCS. A move is in scope if either team was in one of them on the move date.
 - Move kinds: transfer, free agent signing, release, loan, promotion, bench, sub, retirement. Players only; staff is out of scope.
-- Statuses: official, rumor, confirmed, denied, stale.
+- Statuses: official, rumor, confirmed, denied, contradicted, stale.
 - Filters (league, team, role, kind, status, dates) are mirrored in the URL.
 - Freshness from `/api/meta`; a warning when the last sync is older than one hour.
 - Desktop first, usable on mobile. Dark theme only in v1.
@@ -48,7 +48,7 @@ Live data in Neon via the API (moves, rosters, rumors). No testimonials, users o
 ## Product Principles
 
 - Data first: the moves are the headline, chrome stays quiet.
-- Status is never ambiguous: every item says whether it is official, rumored, confirmed, denied or stale.
+- Status is never ambiguous: every item says whether it is official, rumored, confirmed, denied, contradicted or stale.
 - Fast to scan for someone checking several times a day.
 - Shareable state: what you see is reproducible from the URL.
 

@@ -46,6 +46,7 @@ pub enum Status {
     Confirmed,
     Denied,
     Stale,
+    Contradicted,
 }
 
 impl Status {
@@ -55,11 +56,12 @@ impl Status {
             Self::Confirmed => "confirmed",
             Self::Denied => "denied",
             Self::Stale => "stale",
+            Self::Contradicted => "contradicted",
         }
     }
 }
 
-/// An official transfer a rumor can be confirmed by.
+/// An official transfer a rumor can be confirmed or contradicted by.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Official {
     pub id: String,
@@ -148,20 +150,37 @@ pub fn reconcile(
     let player = rumor.player.to_lowercase();
     let window = (rumor.reported_at - Days::new(RUMOR_MATCH_LEAD_DAYS))
         ..=(rumor.reported_at + Days::new(RUMOR_MATCH_WINDOW_DAYS));
-    let matched = officials
+    let in_window: Vec<&Official> = officials
         .iter()
         .filter(|o| o.player.to_lowercase() == player && window.contains(&o.date))
+        .collect();
+    let matched = in_window
+        .iter()
         .filter(|o| match (&rumor.to_team, &rumor.from_team) {
             (Some(to), _) => same(&o.to_team, to),
             (None, Some(from)) => same(&o.from_team, from),
             (None, None) => false,
         })
         .min_by_key(|o| o.date);
+    // Only a move to a third team contradicts: a departure rumor gives no destination to
+    // contradict, leaving for free agency does not rule out the rumored team, and joining the
+    // origin (a loan return, a promotion) can precede the rumored move.
+    let contradicted = rumor.to_team.as_deref().is_some_and(|to| {
+        in_window.iter().any(|o| {
+            o.to_team.is_some()
+                && !same(&o.to_team, to)
+                && !rumor
+                    .from_team
+                    .as_deref()
+                    .is_some_and(|from| same(&o.to_team, from))
+        })
+    });
     match matched {
         Some(official) => Outcome {
             status: Status::Confirmed,
             transfer_id: Some(official.id.clone()),
         },
+        None if contradicted => plain(Status::Contradicted),
         None if today > rumor.reported_at + Days::new(RUMOR_EXPIRY_DAYS) => plain(Status::Stale),
         None => plain(Status::Rumor),
     }
@@ -280,6 +299,13 @@ mod tests {
   sources: [{url: https://example.com}]
   reliability: 0
   status: stale
+- id: auto
+  player: Caps
+  to_team: Fnatic
+  reported_at: 2026-11-01
+  sources: [{url: https://example.com}]
+  reliability: 3
+  status: contradicted
 ";
         let message = errors(yaml);
         for expected in [
@@ -293,6 +319,7 @@ mod tests {
             "dup: unknown kind trade",
             "dup: reliability 0 is not between 1 and 5",
             "dup: status stale is set by the reconciler",
+            "auto: status contradicted is set by the reconciler",
         ] {
             assert!(
                 message.contains(expected),
@@ -368,6 +395,80 @@ mod tests {
     }
 
     #[test]
+    fn a_move_to_another_team_contradicts() {
+        let officials = [official(
+            "elsewhere",
+            Some("G2 Esports"),
+            Some("Team Vitality"),
+            "2026-11-20",
+        )];
+        assert_eq!(
+            outcome(&rumor(), &officials, TODAY),
+            plain(Status::Contradicted)
+        );
+    }
+
+    #[test]
+    fn a_match_in_the_window_beats_a_contradiction() {
+        let officials = [
+            official("loan", None, Some("Team Vitality"), "2026-11-20"),
+            official("match", None, Some("Fnatic"), "2027-01-20"),
+        ];
+        assert_eq!(
+            outcome(&rumor(), &officials, "2027-01-21"),
+            confirmed("match")
+        );
+    }
+
+    #[test]
+    fn leaving_or_moving_outside_the_window_does_not_contradict() {
+        let officials = [
+            official("release", Some("G2 Esports"), None, "2026-11-20"),
+            official("early", None, Some("Team Vitality"), "2026-11-02"),
+            official("late", None, Some("Team Vitality"), "2027-02-09"),
+        ];
+        assert_eq!(outcome(&rumor(), &officials, TODAY), plain(Status::Rumor));
+    }
+
+    #[test]
+    fn joining_the_origin_team_does_not_contradict() {
+        let officials = [official(
+            "loan-return",
+            Some("Team BDS"),
+            Some("g2 esports"),
+            "2026-11-05",
+        )];
+        assert_eq!(outcome(&rumor(), &officials, TODAY), plain(Status::Rumor));
+    }
+
+    #[test]
+    fn a_contradiction_outlasts_the_expiry() {
+        let officials = [official(
+            "elsewhere",
+            None,
+            Some("Team Vitality"),
+            "2026-11-20",
+        )];
+        assert_eq!(
+            outcome(&rumor(), &officials, "2027-01-10"),
+            plain(Status::Contradicted)
+        );
+    }
+
+    #[test]
+    fn a_departure_rumor_is_never_contradicted() {
+        let mut rumor = rumor();
+        rumor.to_team = None;
+        let officials = [official(
+            "elsewhere",
+            None,
+            Some("Team Vitality"),
+            "2026-11-20",
+        )];
+        assert_eq!(outcome(&rumor, &officials, TODAY), plain(Status::Rumor));
+    }
+
+    #[test]
     fn another_players_move_does_not_confirm() {
         let mut other = official("t", None, Some("Fnatic"), "2026-11-20");
         other.player = "Humanoid".to_owned();
@@ -394,7 +495,10 @@ mod tests {
     fn denied_always_wins() {
         let mut rumor = rumor();
         rumor.status = Status::Denied;
-        let officials = [official("match", None, Some("Fnatic"), "2026-11-20")];
+        let officials = [
+            official("match", None, Some("Fnatic"), "2026-11-20"),
+            official("elsewhere", None, Some("Team Vitality"), "2026-11-21"),
+        ];
         assert_eq!(outcome(&rumor, &officials, TODAY), plain(Status::Denied));
     }
 }

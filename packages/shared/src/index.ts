@@ -26,7 +26,7 @@ export type MoveKind =
   | "sub"
   | "retirement";
 
-export type RumorStatus = "rumor" | "confirmed" | "denied" | "stale";
+export type RumorStatus = "rumor" | "confirmed" | "denied" | "stale" | "contradicted";
 
 export type FeedStatus = "official" | RumorStatus;
 

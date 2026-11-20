@@ -28,7 +28,7 @@ Transfer Board pairs Leaguepedia roster events into player moves so you can see 
 | Dashboard         | Latest moves, activity by league, free agents, busiest teams, and an interactive diagram of player flows between leagues or teams.            |
 | Market feed       | Search by player and filter by league, team, role, move type, status, or date. The URL preserves your filters so you can share the same view. |
 | Teams and players | Compare current and previous team rosters, review arrivals and departures, or follow a player's move and rumor history.                       |
-| Rumor tracker     | Follow open, confirmed, denied, and stale reports with source links and reliability ratings.                                                  |
+| Rumor tracker     | Follow open, confirmed, denied, contradicted, and stale reports with source links and reliability ratings.                                    |
 
 The official feed covers player moves where either team belonged to a tracked league on the move date.
 

@@ -26,7 +26,7 @@ const moves = useFeed(
 
 const rumors = useFeed(() => ({
   team: props.name,
-  status: "rumor,confirmed,denied,stale",
+  status: "rumor,confirmed,denied,contradicted,stale",
   limit: 50,
 }));
 

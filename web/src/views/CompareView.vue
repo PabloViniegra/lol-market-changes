@@ -192,7 +192,7 @@ function byRole(roster: Entry[], role: string | null) {
 const league = (value: string | null) => LEAGUES.find((item) => item === value) ?? null;
 
 const rumors = useFeed(
-  () => ({ team: names.value.a, status: "rumor,confirmed,denied,stale", limit: 50 }),
+  () => ({ team: names.value.a, status: "rumor,confirmed,denied,contradicted,stale", limit: 50 }),
   both,
 );
 

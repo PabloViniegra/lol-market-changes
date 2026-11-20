@@ -10,7 +10,7 @@ import StatusPill from "../components/StatusPill.vue";
 
 const open = useFeed({ status: "rumor", limit: 50 });
 const confirmed = useFeed({ status: "confirmed", limit: 50 });
-const closed = useFeed({ status: "denied,stale", limit: 50 });
+const closed = useFeed({ status: "denied,contradicted,stale", limit: 50 });
 const stats = useStats("season");
 
 const rate = computed(() => {
@@ -34,7 +34,7 @@ const sections = [
   },
   {
     id: "closed",
-    title: "Denied and faded",
+    title: "Denied, contradicted and faded",
     query: closed,
   },
 ];
@@ -43,6 +43,7 @@ const LIFECYCLE: { status: FeedStatus; text: string }[] = [
   { status: "rumor", text: "Reported, not official yet." },
   { status: "confirmed", text: "An official move matched it." },
   { status: "denied", text: "Someone involved denied it." },
+  { status: "contradicted", text: "The player officially moved to another team." },
   { status: "stale", text: "No confirmation after 60 days." },
 ];
 

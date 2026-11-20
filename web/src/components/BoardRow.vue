@@ -10,7 +10,7 @@ import StatusPill from "./StatusPill.vue";
 
 const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean; hidePlayer?: boolean }>();
 
-const muted = computed(() => props.item.status === "denied" || props.item.status === "stale");
+const muted = computed(() => ["denied", "stale", "contradicted"].includes(props.item.status));
 
 const status = computed(() =>
   props.item.status === "official" && props.item.rumorId ? "confirmed" : props.item.status,

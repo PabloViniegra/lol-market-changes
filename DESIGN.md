@@ -140,6 +140,12 @@ components:
     typography: "{typography.label-md}"
     rounded: "{rounded.pill}"
     padding: 4px 10px
+  status-contradicted:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.text-muted}"
+    typography: "{typography.label-md}"
+    rounded: "{rounded.pill}"
+    padding: 4px 10px
   league-tag-lck:
     backgroundColor: "{colors.league-lck}"
     textColor: "{colors.on-primary}"
@@ -235,7 +241,7 @@ The palette is dark-first. A light theme is out of scope for v1.
 - **Line (#2A5556):** Dividers between board rows and the seam across each flap. Used as a 1px fill, never as a decorative border around cards.
 - **Control border (#728F8E):** Identifies input boundaries on both panel surfaces with at least 3:1 contrast.
 - **Text (#EEF3EF):** Primary text, slightly green-tinted white so it belongs to the petrol family.
-- **Text muted (#A9BDB8):** Metadata, dates, sources, denied and faded rumors. Passes AA on every surface.
+- **Text muted (#A9BDB8):** Metadata, dates, sources, denied, contradicted and faded rumors. Passes AA on every surface.
 
 League colours are **categorical data colours**, used only to identify a league in tags, chart series and the flows diagram. They are never used for status, buttons or emphasis.
 
@@ -330,17 +336,18 @@ The direction glyph between flaps is a solid right-pointing triangle (`▸`), no
 
 **Role icon.** Shown before the role in board rows, roster role cells and the player header, in the colour of its text.
 
-**Status pills.** Five states, distinguished by fill, outline and decoration, not only by colour:
+**Status pills.** Six states, distinguished by fill, outline and decoration, not only by colour:
 
-| State     | Label       | Treatment                                                                                                      |
-| --------- | ----------- | -------------------------------------------------------------------------------------------------------------- |
-| Official  | `Official`  | Surface fill, text colour, 1px solid `text-muted` outline. The quiet default: most rows are official.          |
-| Confirmed | `Confirmed` | Solid yellow fill, petrol text, plus a small dashed-outline dot before the label meaning "started as a rumor". |
-| Rumor     | `Rumor`     | Surface fill, yellow text, 1.5px dashed yellow outline. Followed by 1–5 small filled dots showing reliability. |
-| Denied    | `Denied`    | Surface fill, muted text, label struck through.                                                                |
-| Faded     | `Faded`     | No outline, muted text, on background. Used when a rumor went 60 days without confirmation.                    |
+| State        | Label          | Treatment                                                                                                         |
+| ------------ | -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Official     | `Official`     | Surface fill, text colour, 1px solid `text-muted` outline. The quiet default: most rows are official.             |
+| Confirmed    | `Confirmed`    | Solid yellow fill, petrol text, plus a small dashed-outline dot before the label meaning "started as a rumor".    |
+| Rumor        | `Rumor`        | Surface fill, yellow text, 1.5px dashed yellow outline. Followed by 1–5 small filled dots showing reliability.    |
+| Denied       | `Denied`       | Surface fill, muted text, label struck through.                                                                   |
+| Faded        | `Faded`        | No outline, muted text, on background. Used when a rumor went 60 days without confirmation.                       |
+| Contradicted | `Contradicted` | Muted text on background, 1px dashed `text-muted` outline. Used when the player officially moved to another team. |
 
-Rows with `Denied` or `Faded` status render the whole row's text in `text-muted`, and both are hidden from the feed by default (a toggle shows them).
+Rows with `Denied`, `Contradicted` or `Faded` status render the whole row's text in `text-muted`, and all three are hidden from the feed by default (a toggle shows them).
 
 **League tag.** League colour fill, petrol text, `flap` radius, `label-md`. Shows the league short name (`LCK`). A cross-league transfer shows two tags in origin → destination order.
 

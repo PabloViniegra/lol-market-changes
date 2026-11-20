@@ -15,6 +15,7 @@ defineProps<{ status: FeedStatus; reliability?: number | null }>();
         'pill-dashed bg-surface text-primary': status === 'rumor',
         'bg-surface text-text-muted line-through': status === 'denied',
         'bg-background text-text-muted': status === 'stale',
+        'pill-muted-dashed bg-background text-text-muted': status === 'contradicted',
       }"
     >
       <span
@@ -49,5 +50,10 @@ defineProps<{ status: FeedStatus; reliability?: number | null }>();
 .pill-dashed {
   outline: 1.5px dashed var(--color-primary);
   outline-offset: -1.5px;
+}
+
+.pill-muted-dashed {
+  outline: 1px dashed var(--color-text-muted);
+  outline-offset: -1px;
 }
 </style>

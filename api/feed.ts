@@ -19,6 +19,7 @@ const STATUSES = [
   "confirmed",
   "denied",
   "stale",
+  "contradicted",
 ] as const satisfies readonly FeedStatus[];
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
