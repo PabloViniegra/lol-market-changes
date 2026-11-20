@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue";
+import { useRefreshFeedOnSync } from "./api/feedRefresh";
 import { useMeta } from "./api/meta";
 import LolLogo from "./components/LolLogo.vue";
 import ShortcutsDialog from "./components/ShortcutsDialog.vue";
@@ -23,13 +24,11 @@ const attribution = computed(
     },
 );
 
-const age = computed(() => {
-  const lastSuccess =
-    meta.value?.lastSuccessfulRunAt ??
-    (meta.value?.lastRunStatus === "ok" ? meta.value.lastRunAt : null);
+const lastSuccessfulRun = useRefreshFeedOnSync(meta);
 
-  return lastSuccess ? minutesAgo(lastSuccess, now.value) : null;
-});
+const age = computed(() =>
+  lastSuccessfulRun.value ? minutesAgo(lastSuccessfulRun.value, now.value) : null,
+);
 
 const failedRefresh = computed(() => meta.value?.lastRunStatus === "error");
 

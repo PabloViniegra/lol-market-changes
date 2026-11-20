@@ -279,7 +279,7 @@ const closeOnBackdrop = (event: MouseEvent) => {
       id="load-more"
       type="button"
       class="mt-4 h-10 rounded-control bg-surface-raised px-4 type-label-md hover:bg-line disabled:text-text-muted"
-      :disabled="feed.isFetchingNextPage.value"
+      :disabled="feed.isFetching.value"
       @click="feed.fetchNextPage()"
     >
       {{ feed.isFetchingNextPage.value ? "Loading…" : "Load more moves" }}

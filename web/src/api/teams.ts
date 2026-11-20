@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 import { getJson } from "./client";
 
+const TEAM_CATALOG_CACHE_TIME = 60 * 60_000;
+
 export function useTeam(name: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
   return useQuery({
     enabled,
@@ -16,7 +18,8 @@ export function useTeams(enabled: MaybeRefOrGetter<boolean> = true) {
     enabled,
     queryKey: ["teams"],
     queryFn: () => getJson<TeamsResponse>("/api/teams"),
-    staleTime: 60 * 60_000,
+    staleTime: TEAM_CATALOG_CACHE_TIME,
+    gcTime: TEAM_CATALOG_CACHE_TIME,
     refetchInterval: false,
   });
 }

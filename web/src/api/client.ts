@@ -10,7 +10,11 @@ export class HttpError extends Error {
   }
 }
 
-export async function getJson<T>(path: string, params: QueryParams = {}): Promise<T> {
+export async function getJson<T>(
+  path: string,
+  params: QueryParams = {},
+  signal: AbortSignal | null = null,
+): Promise<T> {
   const search = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
@@ -18,7 +22,7 @@ export async function getJson<T>(path: string, params: QueryParams = {}): Promis
   }
 
   const query = search.size > 0 ? `?${search}` : "";
-  const response = await fetch(`${path}${query}`);
+  const response = await fetch(`${path}${query}`, { signal });
 
   if (!response.ok) throw new HttpError(response.status, path);
 

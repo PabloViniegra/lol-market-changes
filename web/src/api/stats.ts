@@ -15,9 +15,9 @@ export function useFlows(
   window: MaybeRefOrGetter<StatsWindow>,
 ) {
   return useQuery({
-    queryKey: computed(() => ["flows", toValue(level), toValue(window)]),
-    queryFn: () =>
-      getJson<FlowsResponse>("/api/flows", { level: toValue(level), window: toValue(window) }),
+    queryKey: computed(() => ["flows", toValue(level), toValue(window)] as const),
+    queryFn: ({ queryKey: [, flowLevel, flowWindow], signal }) =>
+      getJson<FlowsResponse>("/api/flows", { level: flowLevel, window: flowWindow }, signal),
     placeholderData: keepPreviousData,
   });
 }
