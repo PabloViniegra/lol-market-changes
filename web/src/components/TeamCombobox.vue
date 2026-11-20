@@ -8,9 +8,10 @@ import LeagueTag from "./LeagueTag.vue";
 
 defineOptions({ inheritAttrs: false });
 
-const props = withDefaults(defineProps<{ teams: TeamsResponse["teams"]; fieldClass?: string }>(), {
-  fieldClass: "h-10 bg-surface-raised",
-});
+const props = withDefaults(
+  defineProps<{ teams: TeamsResponse["teams"]; fieldClass?: string; browseAll?: boolean }>(),
+  { fieldClass: "h-10 bg-surface-raised" },
+);
 
 const emit = defineEmits<{ select: [name: string] }>();
 const model = defineModel<string>({ required: true });
@@ -21,7 +22,11 @@ const root = ref<HTMLElement | null>(null);
 const listId = useId();
 const optionId = (index: number) => `${listId}-${index}`;
 
-const matches = computed(() => searchTeams(props.teams, model.value).slice(0, 40));
+const matches = computed(() => {
+  const results = searchTeams(props.teams, model.value);
+
+  return props.browseAll ? results : results.slice(0, 40);
+});
 
 const known = computed(() => findTeam(props.teams, model.value));
 
@@ -64,7 +69,7 @@ function onKeydown(event: KeyboardEvent) {
   } else if (event.key === "Enter" && visible.value && active.value >= 0) {
     event.preventDefault();
     choose(active.value);
-  } else if (event.key === "Escape" && visible.value) {
+  } else if (event.key === "Escape" && (visible.value || (props.browseAll && open.value))) {
     event.preventDefault();
     open.value = false;
   } else if (event.key === "Tab") {
@@ -117,7 +122,10 @@ onClickOutside(root, () => (open.value = false));
         role="option"
         :aria-selected="index === active"
         class="menu-option gap-3"
-        :class="index === active ? 'bg-line text-text' : 'text-text-muted'"
+        :class="[
+          index === active ? 'bg-line text-text' : 'text-text-muted',
+          { 'max-md:min-h-11': browseAll },
+        ]"
         @pointermove="active = index"
         @click="choose(index)"
       >
@@ -128,5 +136,12 @@ onClickOutside(root, () => (open.value = false));
         <LeagueTag class="ml-auto shrink-0" :league="team.league" />
       </li>
     </ul>
+    <p
+      v-if="browseAll && open && teams.length && !matches.length"
+      class="menu-panel px-3 py-2 type-body-sm text-text-muted"
+      role="status"
+    >
+      No matches. Try a team name or code.
+    </p>
   </div>
 </template>

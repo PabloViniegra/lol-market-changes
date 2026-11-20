@@ -68,6 +68,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: Compare distinguishes current players from departures, opens the full team catalog, and applies edits and swaps when you select Compare. On phones, a valid comparison collapses the picker so the rosters appear sooner.
 - Web: the paginated market feed refreshes after a successful ingest is detected, with a 15-minute fallback, and keeps the pages already loaded. Feed and flows requests are cancelled when their filters are no longer observed, and the team catalog stays in cache for an hour after leaving a view.
 - Web: dropdowns, team suggestions, calendar, reliability dots, live rumor preview and flow routes update immediately. Split-flap motion marks new moves and rumor submission confirmations, and the rumor submit button gives brief press feedback.
 - Web: the dashboard "See all" button sits under the latest moves board and the legend at the right of its heading; player names line up across board rows even when a team code is long.
@@ -114,6 +115,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Web: Compare rejects duplicate teams, distinguishes unavailable rosters from empty roles, supports cancelling partial edits and preserves keyboard focus when correcting a name or returning to the picker.
 - Web: refresh the market feed on its first successful ingest and after pagination finishes when the two overlap.
 - Web and API: validate rumor sources in Safari 17, preserve the moderator-approved URL including Unicode and fragments, and let reviewers replace credential-bearing sources from previously issued review links.
 - Web: keep the mobile dashboard layout steady while fonts and sync status load. Fetch team metadata only when the flows chart needs it, and offer a list of full team routes on narrow screens.
