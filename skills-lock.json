@@ -41,6 +41,14 @@
       "computedHash": "a3c816f09a2ff43bc1502983a68c3fb4e2bb40c6b70dc065d4c11bd91cfa8740",
       "installMode": "copy"
     },
+    "improve": {
+      "source": "shadcn/improve",
+      "commit": "cac56e1ebd3c279aa9153616cfeac7b174ab90f9",
+      "sourceType": "github",
+      "skillPath": "skills/improve/SKILL.md",
+      "computedHash": "9e8fe9ea4f9a0e4155801d1624e38ca23798467bb88b447efaa5120f7b1fe802",
+      "installMode": "copy"
+    },
     "media-use": {
       "source": "heygen-com/hyperframes",
       "commit": "3f3a6205a76c1a95c9b15ace08272d741b1698c3",
