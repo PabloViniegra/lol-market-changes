@@ -69,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: the header's data freshness (checking, never synced, fresh, stale, failed refresh, unverifiable) is one explicit state derived by a pure `syncHealth` function with unit tests. No visible change.
 - Web: Compare distinguishes current players from departures, opens the full team catalog, and applies edits and swaps when you select Compare. On phones, a valid comparison collapses the picker so the rosters appear sooner.
 - Web: data refreshes when a successful ingest is detected instead of polling every endpoint: only sync status is checked every 5 minutes, and then every feed, stats, flows, team and player view refreshes except the team catalog, while the market feed keeps the pages already loaded. Data requests carry the latest ingest time, so the CDN cache cannot serve a copy from before that ingest. Every request is cancelled when its view is no longer observed, team and player names that differ only in case share one cache entry, and hovering or focusing a team or player link preloads its page. The team page loads its season moves at the same time as the team instead of after it, and the team catalog stays in cache for an hour after leaving a view.
 - Web: dropdowns, team suggestions, calendar, reliability dots, live rumor preview and flow routes update immediately. Split-flap motion marks new moves and rumor submission confirmations, and the rumor submit button gives brief press feedback.

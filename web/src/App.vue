@@ -7,8 +7,7 @@ import ShortcutsDialog from "./components/ShortcutsDialog.vue";
 import { useNow } from "./composables/useNow";
 import { useShortcuts } from "./composables/useShortcuts";
 import { formatAge, minutesAgo } from "./format";
-
-const STALE_AFTER_MINUTES = 60;
+import { syncHealth } from "./syncHealth";
 
 const { data: meta, isError: metaUnavailable } = useMeta();
 const now = useNow();
@@ -26,29 +25,41 @@ const attribution = computed(
 
 const lastSuccessfulRun = useRefreshOnSync(meta);
 
-const age = computed(() =>
-  lastSuccessfulRun.value ? minutesAgo(lastSuccessfulRun.value, now.value) : null,
+const health = computed(() =>
+  syncHealth(
+    meta.value,
+    metaUnavailable.value,
+    lastSuccessfulRun.value ? minutesAgo(lastSuccessfulRun.value, now.value) : null,
+  ),
 );
-
-const failedRefresh = computed(() => meta.value?.lastRunStatus === "error");
 
 const warning = computed(() => {
-  if (metaUnavailable.value) return "Couldn’t verify when data last refreshed.";
+  const current = health.value;
 
-  if (failedRefresh.value) return "The latest data refresh failed.";
+  switch (current.state) {
+    case "unverified":
+      return { title: "Couldn’t verify when data last refreshed.", since: current.lastSuccessAge };
+    case "failed":
+      return { title: "The latest data refresh failed.", since: current.lastSuccessAge };
+    case "stale": {
+      const hours = Math.floor(current.age / 60);
 
-  if (age.value !== null && age.value > STALE_AFTER_MINUTES) {
-    const hours = Math.floor(age.value / 60);
+      return {
+        title: `Data hasn’t refreshed for ${hours} ${hours === 1 ? "hour" : "hours"}.`,
+        since: null,
+      };
+    }
 
-    return `Data hasn’t refreshed for ${hours} ${hours === 1 ? "hour" : "hours"}.`;
+    default:
+      return null;
   }
-
-  return null;
 });
 
-const freshness = computed(() =>
-  age.value === null ? "Not synced yet" : `Updated ${formatAge(age.value)}`,
-);
+const freshness = computed(() => {
+  const current = health.value;
+
+  return current.state === "fresh" ? `Updated ${formatAge(current.age)}` : "Not synced yet";
+});
 </script>
 
 <template>
@@ -85,14 +96,14 @@ const freshness = computed(() =>
       </nav>
       <p
         v-if="!warning"
-        :class="{ 'invisible md:hidden': !meta }"
+        :class="{ 'invisible md:hidden': health.state === 'checking' }"
         class="order-last -mt-1 basis-full pb-3 type-body-sm text-text-muted md:order-none md:mt-0 md:ml-auto md:basis-auto md:pb-0"
       >
         {{ freshness }}
       </p>
       <LolLogo
         class="h-6 w-auto shrink-0 text-text-muted"
-        :class="{ 'md:ml-auto': !meta || warning }"
+        :class="{ 'md:ml-auto': health.state === 'checking' || warning }"
       />
     </header>
 
@@ -114,9 +125,9 @@ const freshness = computed(() =>
         <path d="M10 3 2.5 16.5h15L10 3ZM10 8.5v3.5M10 14.5v.01" />
       </svg>
       <p>
-        <span class="type-label-md">{{ warning }}</span>
-        <template v-if="(failedRefresh || metaUnavailable) && age !== null">
-          Last successful refresh {{ formatAge(age) }}.
+        <span class="type-label-md">{{ warning.title }}</span>
+        <template v-if="warning.since !== null">
+          Last successful refresh {{ formatAge(warning.since) }}.
         </template>
         Moves from Leaguepedia may be missing.
       </p>
