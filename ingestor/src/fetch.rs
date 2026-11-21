@@ -262,7 +262,7 @@ fn roster_changes(since: NaiveDate, filter: &str) -> Result<Query> {
         tables: "RosterChanges".into(),
         fields: ROSTER_CHANGE_FIELDS.into(),
         where_clause: format!("Date_Sort>=\"{since}\" AND {filter}"),
-        order_by: "Date_Sort,NewsId,N_LineInNews".into(),
+        order_by: "Date_Sort,NewsId,N_LineInNews,RosterChangeId".into(),
         ..Default::default()
     })
 }
@@ -337,6 +337,17 @@ mod tests {
             .as_object()
             .unwrap()
             .clone()
+    }
+
+    #[test]
+    fn roster_changes_sort_ends_with_the_unique_id() {
+        let since = NaiveDate::from_ymd_opt(2026, 11, 1).unwrap();
+        let query = roster_changes(since, "Team IN (\"T1\")").unwrap();
+        assert!(
+            query.order_by.ends_with(",RosterChangeId"),
+            "{}",
+            query.order_by
+        );
     }
 
     #[test]

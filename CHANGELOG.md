@@ -118,6 +118,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Ingestor: a run that would soft-delete more than half of the live events in its re-fetch window (and at least 5) now fails without writing, instead of treating an empty or truncated Leaguepedia response as wiki deletions and regenerating transfer IDs. `--allow-mass-delete` overrides the check for a deliberate run.
+- Ingestor: roster changes are paged in a total order (`RosterChangeId` as the last sort key), so a row tied on date and news line can no longer fall between two 500-row pages and be soft-deleted by mistake.
+- Ingestor: Leaguepedia retries no longer sleep after the final attempt and stop once a backoff would run past a 20-minute budget, so a run that keeps failing records its error in `sync_state` instead of being killed by the workflow timeout.
+- Ingestor: a rumor that names a renamed team's old page in different letter case (e.g. `fnatic old`) now follows the rename and confirms, instead of turning stale or contradicted.
+
 - API: a player's moves include those outside LCK, LPL, LEC and LCS, so a release from an untracked team no longer leaves "Free agent" in the header contradicting a last move to that team. The player's link preview card shows that latest move too. The feed, stats and flows stay limited to the four leagues. Migration `0008` adds the unfiltered `official_moves` view, which `market_feed` now builds on.
 - Web: Compare rejects duplicate teams, distinguishes unavailable rosters from empty roles, supports cancelling partial edits and preserves keyboard focus when correcting a name or returning to the picker.
 - Web: refresh the market feed on its first successful ingest and after pagination finishes when the two overlap.

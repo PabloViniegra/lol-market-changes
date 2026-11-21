@@ -31,6 +31,10 @@ struct Cli {
     #[arg(long)]
     dry_run: bool,
 
+    /// Allow soft-deleting most of the re-fetched window, after checking the wiki removed the rows.
+    #[arg(long)]
+    allow_mass_delete: bool,
+
     /// Hand-curated rumors file.
     #[arg(long, default_value = "../data/rumors.yaml")]
     rumors: PathBuf,
@@ -104,6 +108,7 @@ async fn run(pool: &PgPool, cli: &Cli, today: NaiveDate) -> Result<Value> {
         since,
         players: &scope.players,
         teams: &scope.teams,
+        allow_mass_delete: cli.allow_mass_delete,
     };
     let written = db::write(pool, &data, &window).await?;
     let rumors_changed = db::sync_rumors(pool, &rumors, today).await?;

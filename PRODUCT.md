@@ -21,9 +21,9 @@ Leaguepedia records events; news sites scatter rumors. This product pairs events
 ## Operating Context
 
 - Official moves are ingested from Leaguepedia every 15 minutes by a GitHub Actions job; data can lag up to about 30 minutes.
-- Rumors are added by editing `data/rumors.yaml` and committing.
-- The frontend is a read-only SPA over a read-only API (`/api/meta`, `/api/feed`, `/api/stats`, `/api/flows`, `/api/teams/:name`, `/api/players/:name`).
-- Views: dashboard, market feed, flows, team, player, rumor tracker.
+- Rumors live in `data/rumors.yaml`. They are added by committing to it directly, or by submitting the "Send a rumor" form (`/rumors/new`): the submission is emailed for review, and approval commits it to the file and triggers ingestion.
+- The frontend is an SPA over a read-only data API (`/api/meta`, `/api/feed`, `/api/stats`, `/api/flows`, `/api/teams`, `/api/teams/:name`, `/api/players/:name`), plus `/api/og` and `/api/share` for link previews and `/api/submissions` and `/api/review` for rumor moderation. Only the ingestor writes to the database.
+- Views: dashboard (with the league flows chart), market feed, team, player, roster comparison, rumor tracker, send a rumor, privacy and credits.
 
 ## Capabilities and Constraints
 

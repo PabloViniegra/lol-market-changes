@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use chrono::NaiveDate;
 use serde_json::Value;
 use sqlx::postgres::{PgPool, PgPoolOptions};
@@ -30,6 +30,21 @@ pub struct Window<'a> {
     pub since: NaiveDate,
     pub players: &'a [String],
     pub teams: &'a [String],
+    pub allow_mass_delete: bool,
+}
+
+// A wiki correction removes a handful of rows; losing most of the window means the fetch came back short.
+const MASS_DELETE_MIN: u64 = 5;
+
+pub fn check_deletions(live_in_window: u64, deleted: u64) -> Result<()> {
+    if deleted >= MASS_DELETE_MIN && deleted * 2 > live_in_window {
+        bail!(
+            "refusing to soft-delete {deleted} of {live_in_window} live events in the re-fetched \
+             window: the Leaguepedia fetch looks incomplete (rerun with --allow-mass-delete if \
+             the wiki really removed them)"
+        );
+    }
+    Ok(())
 }
 
 pub async fn connect(url: &str) -> Result<PgPool> {
@@ -407,7 +422,18 @@ async fn mark_deleted(
     data: &Normalized,
     window: &Window<'_>,
 ) -> Result<Vec<String>> {
-    let players = sqlx::query_scalar(
+    let live: i64 = sqlx::query_scalar(
+        "select count(*) from raw_events
+         where deleted_at is null
+           and date >= $1
+           and (player_raw = any($2) or team_raw = any($3))",
+    )
+    .bind(window.since)
+    .bind(window.players)
+    .bind(window.teams)
+    .fetch_one(&mut **tx)
+    .await?;
+    let players: Vec<String> = sqlx::query_scalar(
         "update raw_events set deleted_at = now()
          where deleted_at is null
            and date >= $1
@@ -426,6 +452,9 @@ async fn mark_deleted(
     )
     .fetch_all(&mut **tx)
     .await?;
+    if !window.allow_mass_delete {
+        check_deletions(live as u64, players.len() as u64)?;
+    }
     Ok(players)
 }
 
@@ -513,4 +542,22 @@ async fn load_events(
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn small_corrections_pass() {
+        assert!(check_deletions(100, 1).is_ok());
+        assert!(check_deletions(4, 4).is_ok());
+        assert!(check_deletions(10, 5).is_ok());
+    }
+
+    #[test]
+    fn losing_most_of_the_window_fails() {
+        assert!(check_deletions(10, 6).is_err());
+        assert!(check_deletions(200, 200).is_err());
+    }
 }

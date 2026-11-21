@@ -26,6 +26,7 @@ async fn write(pool: &PgPool, data: &Normalized) {
         since: NaiveDate::from_ymd_opt(2000, 1, 1).unwrap(),
         players: &players,
         teams: &teams,
+        allow_mass_delete: false,
     };
     db::write(pool, data, &window).await.unwrap();
 }

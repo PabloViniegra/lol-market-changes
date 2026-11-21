@@ -24,6 +24,7 @@ async fn write(pool: &sqlx::PgPool, data: &Normalized) -> WriteStats {
         since: early(),
         players: &players,
         teams: &teams,
+        allow_mass_delete: false,
     };
     db::write(pool, data, &window).await.unwrap()
 }
@@ -89,6 +90,7 @@ async fn writes_are_idempotent_and_track_wiki_deletions() {
         since: removed.date.succ_opt().unwrap(),
         players: &players,
         teams: &teams,
+        allow_mass_delete: false,
     };
     let stats = db::write(&pool, &data, &before_window).await.unwrap();
     assert_eq!(
@@ -99,11 +101,46 @@ async fn writes_are_idempotent_and_track_wiki_deletions() {
         since: early(),
         players: &[],
         teams: &[],
+        allow_mass_delete: false,
     };
     let stats = db::write(&pool, &data, &other_names).await.unwrap();
     assert_eq!(
         stats.deleted_events, 0,
         "events of names not queried are not re-fetched"
+    );
+
+    let deleted_count = "select count(*) from raw_events where deleted_at is not null";
+    let deleted_before: i64 = sqlx::query_scalar(deleted_count)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    let mut empty = normalize(&common::probe_snapshot()).unwrap();
+    empty.raw_events.clear();
+    let full_window = Window {
+        since: early(),
+        players: &players,
+        teams: &teams,
+        allow_mass_delete: false,
+    };
+    let error = db::write(&pool, &empty, &full_window).await.unwrap_err();
+    assert!(format!("{error:#}").contains("refusing"), "{error:#}");
+    let deleted_after: i64 = sqlx::query_scalar(deleted_count)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(
+        deleted_after, deleted_before,
+        "an aborted run deletes nothing"
+    );
+
+    let forced = Window {
+        allow_mass_delete: true,
+        ..full_window
+    };
+    let stats = db::write(&pool, &empty, &forced).await.unwrap();
+    assert!(
+        stats.deleted_events >= 5,
+        "the override applies the deletions"
     );
 }
 

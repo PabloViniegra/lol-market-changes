@@ -143,7 +143,11 @@ pub fn reconcile(
     if rumor.status == Status::Denied {
         return plain(Status::Denied);
     }
-    let key = |team: &str| lineage(renames, team).to_lowercase();
+    let renames: HashMap<String, String> = renames
+        .iter()
+        .map(|(from, to)| (from.to_lowercase(), to.to_lowercase()))
+        .collect();
+    let key = |team: &str| lineage(&renames, &team.to_lowercase());
     let same = |team: &Option<String>, wanted: &str| {
         team.as_deref().is_some_and(|team| key(team) == key(wanted))
     };
@@ -355,6 +359,43 @@ mod tests {
         rumor.to_team = Some("Fnatic Old".to_owned());
         let renames = HashMap::from([("Fnatic Old".to_owned(), "Fnatic".to_owned())]);
         let officials = [official("match", None, Some("fnatic"), "2026-11-25")];
+        assert_eq!(
+            reconcile(&rumor, &officials, &renames, date(TODAY)),
+            confirmed("match")
+        );
+    }
+
+    #[test]
+    fn follows_renames_when_the_rumor_uses_different_case() {
+        let mut rumor = rumor();
+        rumor.to_team = Some("fnatic old".to_owned());
+        let renames = HashMap::from([("Fnatic Old".to_owned(), "Fnatic".to_owned())]);
+        let officials = [official(
+            "match",
+            Some("G2 Esports"),
+            Some("Fnatic"),
+            "2026-11-25",
+        )];
+        assert_eq!(
+            reconcile(&rumor, &officials, &renames, date(TODAY)),
+            confirmed("match")
+        );
+    }
+
+    #[test]
+    fn follows_rename_chains_case_insensitively() {
+        let mut rumor = rumor();
+        rumor.to_team = Some("FNATIC OLDEST".to_owned());
+        let renames = HashMap::from([
+            ("Fnatic Oldest".to_owned(), "Fnatic Old".to_owned()),
+            ("Fnatic Old".to_owned(), "Fnatic".to_owned()),
+        ]);
+        let officials = [official(
+            "match",
+            Some("G2 Esports"),
+            Some("fnatic"),
+            "2026-11-25",
+        )];
         assert_eq!(
             reconcile(&rumor, &officials, &renames, date(TODAY)),
             confirmed("match")

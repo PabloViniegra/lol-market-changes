@@ -6,13 +6,13 @@ The product spec lives in `docs/PRD.md` (git-ignored, local only). Read the rele
 
 ## Layout
 
-| Path               | What                                                                                                                 | Stack                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `ingestor/`        | Batch job run by GitHub Actions: fetch Leaguepedia → normalise → pair events → sync rumors → reconcile → upsert Neon | Rust 2024, standalone crate                             |
-| `api/`             | Read-only Vercel functions, one file per endpoint (`api/meta.ts` → `/api/meta`)                                      | TypeScript, `@neondatabase/serverless`                  |
-| `web/`             | SPA                                                                                                                  | Vue 3, Vite, Tailwind CSS 4, Vue Router, TanStack Query |
-| `packages/shared/` | API response types shared by `api/` and `web/` (type-only imports)                                                   | TypeScript                                              |
-| `data/rumors.yaml` | Rumors, edited by hand and committed                                                                                 | YAML                                                    |
+| Path               | What                                                                                                                             | Stack                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `ingestor/`        | Batch job run by GitHub Actions: fetch Leaguepedia → normalise → pair events → sync rumors → reconcile → upsert Neon             | Rust 2024, standalone crate                             |
+| `api/`             | Vercel functions, one file per endpoint (`api/meta.ts` → `/api/meta`): read-only data endpoints plus rumor submission and review | TypeScript, `@neondatabase/serverless`                  |
+| `web/`             | SPA                                                                                                                              | Vue 3, Vite, Tailwind CSS 4, Vue Router, TanStack Query |
+| `packages/shared/` | API response types shared by `api/` and `web/` (type-only imports)                                                               | TypeScript                                              |
+| `data/rumors.yaml` | Rumors, edited by hand and committed                                                                                             | YAML                                                    |
 
 ## Commands
 
@@ -21,7 +21,7 @@ From the repo root (pnpm workspace):
 ```sh
 pnpm install
 pnpm dev            # web dev server
-pnpm check          # lint + format check + typecheck + build
+pnpm check          # lint + format check + typecheck + tests + build
 pnpm format         # oxfmt write
 ```
 
@@ -43,7 +43,7 @@ CI (`.github/workflows/ci.yml`) runs exactly these. Keep both green.
 - **`DESIGN.md` is the design system and its use is mandatory in `web/`.** Use only the tokens in `web/src/style.css` (`@theme` colours, `font-display`/`font-body`, `rounded-flap|control|panel|pill`, the 4px spacing grid, `max-w-content`) and the `type-*` utilities for typography. Tailwind's default palette, type scale, radii and shadows are reset on purpose: do not add arbitrary values (`bg-[#…]`, `text-[17px]`) or restore defaults. Change a token in `DESIGN.md` first, then mirror it in `style.css`. Product context lives in `PRODUCT.md`.
 - **oxlint + oxfmt** are the only linter and formatter. Do not add ESLint or Prettier. Lint runs with `--deny-warnings`.
 - `web/` and `api/` share types only through `@lol/shared`, using `import type`. `api/` must not import from `web/`, nor `web/` from `api/`.
-- **The API is read-only.** It uses the Postgres read-only role (`DATABASE_URL` in Vercel). Only the ingestor writes, using the read/write role via `INGESTOR_DATABASE_URL` (GitHub secret, `.env.local` locally). Never point `DATABASE_URL` at the read/write role.
+- **The database is written only by the ingestor.** The API uses the Postgres read-only role (`DATABASE_URL` in Vercel); the ingestor uses the read/write role via `INGESTOR_DATABASE_URL` (GitHub secret, `.env.local` locally). Never point `DATABASE_URL` at the read/write role. The API's only write path is rumor moderation: `POST /api/submissions` emails a review link (Resend), and an accepted `POST /api/review` commits to `data/rumors.yaml` through the GitHub API (`GITHUB_TOKEN`) and dispatches `ingest.yml`. Treat changes there as security-sensitive.
 - Ingestor: keep the domain logic (pairing, rumor reconciliation, normalisation) as pure functions over plain data, tested with real Leaguepedia fixtures in `ingestor/tests/fixtures/`. Keep HTTP and DB code at the edges.
 - The ingestor must be idempotent: two consecutive runs produce no changes.
 - Leaguepedia etiquette: ≤ 1 request/s, an identifiable User-Agent, incremental fetches. Data is CC BY-SA, so the UI must keep the attribution footer.
@@ -58,7 +58,7 @@ Project skills are installed in both `.claude/skills/` and `.agents/skills/` (ke
 - `neon-postgres`: Neon connection and serverless driver.
 - `vue-pinia-best-practices`: Vue and Pinia state.
 - `tanstack-query-best-practices`: server state in `web/`.
-- `echarts`: Sankey, chord and bar charts.
+- `echarts`: charting reference; no chart library is installed today (`FlowsChart.vue` draws its Sankey in SVG).
 
 Restore them with `npx skills experimental_install`.
 

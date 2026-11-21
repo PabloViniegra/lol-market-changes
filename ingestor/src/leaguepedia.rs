@@ -20,6 +20,18 @@ const MIN_INTERVAL: Duration = Duration::from_secs(6);
 const BACKOFF_BASE: Duration = Duration::from_secs(30);
 const MAX_RETRIES: u32 = 4;
 
+// Leaves room for a cache-miss release build inside the 30-minute job timeout, so a run that
+// keeps failing still reaches `record_run` and stores its error.
+const RUN_BUDGET: Duration = Duration::from_secs(20 * 60);
+
+fn backoff(attempt: u32, now: Instant, deadline: Instant) -> Option<Duration> {
+    if attempt >= MAX_RETRIES {
+        return None;
+    }
+    let wait = BACKOFF_BASE * 2u32.pow(attempt);
+    (now + wait <= deadline).then_some(wait)
+}
+
 pub type Row = Map<String, Value>;
 
 #[derive(Debug, Clone, Default)]
@@ -175,6 +187,7 @@ fn is_transient(error: &anyhow::Error) -> bool {
 pub struct Client {
     http: reqwest::Client,
     last_request: Option<Instant>,
+    deadline: Instant,
 }
 
 impl Client {
@@ -186,6 +199,7 @@ impl Client {
         Ok(Self {
             http,
             last_request: None,
+            deadline: Instant::now() + RUN_BUDGET,
         })
     }
 
@@ -223,7 +237,8 @@ impl Client {
         params: &[(&'static str, String)],
         parse: impl Fn(&Value) -> Result<Option<T>>,
     ) -> Result<T> {
-        for attempt in 0..=MAX_RETRIES {
+        let mut attempt = 0;
+        loop {
             self.throttle().await;
             let reason = match self.request(params).await.and_then(|body| parse(&body)) {
                 Ok(Some(parsed)) => return Ok(parsed),
@@ -231,11 +246,13 @@ impl Client {
                 Err(error) if is_transient(&error) => format!("{error:#}"),
                 Err(error) => return Err(error),
             };
-            let wait = BACKOFF_BASE * 2u32.pow(attempt);
+            let Some(wait) = backoff(attempt, Instant::now(), self.deadline) else {
+                bail!("Leaguepedia still failing after {attempt} retries: {reason}");
+            };
             tracing::warn!(attempt, wait_secs = wait.as_secs(), %reason, "backing off");
             sleep(wait).await;
+            attempt += 1;
         }
-        bail!("Leaguepedia still failing after {MAX_RETRIES} retries")
     }
 
     async fn request(&self, params: &[(&'static str, String)]) -> Result<Value> {
@@ -269,6 +286,25 @@ mod tests {
         let rows = parse_page(&body).unwrap().expect("rows");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0]["Player"], "Caps");
+    }
+
+    #[test]
+    fn backoff_doubles_and_never_sleeps_after_the_last_attempt() {
+        let now = Instant::now();
+        let later = now + Duration::from_secs(3600);
+        assert_eq!(backoff(0, now, later), Some(Duration::from_secs(30)));
+        assert_eq!(backoff(3, now, later), Some(Duration::from_secs(240)));
+        assert_eq!(backoff(MAX_RETRIES, now, later), None);
+    }
+
+    #[test]
+    fn backoff_stops_when_the_wait_would_pass_the_deadline() {
+        let now = Instant::now();
+        assert_eq!(backoff(0, now, now + Duration::from_secs(29)), None);
+        assert_eq!(
+            backoff(0, now, now + Duration::from_secs(30)),
+            Some(Duration::from_secs(30))
+        );
     }
 
     #[test]
