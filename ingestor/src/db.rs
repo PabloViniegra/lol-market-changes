@@ -232,15 +232,17 @@ pub async fn record_run(
 async fn upsert_teams(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> Result<u64> {
     let teams = &data.teams;
     let result = sqlx::query(
-        "insert into teams (name, short, league, region, org, renamed_to)
+        "insert into teams (name, short, league, region, org, renamed_to, logo_url)
          select * from unnest($1::text[], $2::text[], $3::text[], $4::text[], $5::text[],
-           $6::text[])
+           $6::text[], $7::text[])
          on conflict (name) do update set
            short = excluded.short, league = excluded.league, region = excluded.region,
-           org = excluded.org, renamed_to = excluded.renamed_to
-         where (teams.short, teams.league, teams.region, teams.org, teams.renamed_to)
+           org = excluded.org, renamed_to = excluded.renamed_to, logo_url = excluded.logo_url
+         where (teams.short, teams.league, teams.region, teams.org, teams.renamed_to,
+           teams.logo_url)
            is distinct from
-           (excluded.short, excluded.league, excluded.region, excluded.org, excluded.renamed_to)",
+           (excluded.short, excluded.league, excluded.region, excluded.org, excluded.renamed_to,
+           excluded.logo_url)",
     )
     .bind(teams.iter().map(|t| t.name.clone()).collect::<Vec<_>>())
     .bind(teams.iter().map(|t| t.short.clone()).collect::<Vec<_>>())
@@ -253,6 +255,7 @@ async fn upsert_teams(tx: &mut Transaction<'_, Postgres>, data: &Normalized) -> 
             .map(|t| t.renamed_to.clone())
             .collect::<Vec<_>>(),
     )
+    .bind(teams.iter().map(|t| t.logo_url.clone()).collect::<Vec<_>>())
     .execute(&mut **tx)
     .await?;
     Ok(result.rows_affected())

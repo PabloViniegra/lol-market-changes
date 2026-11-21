@@ -1,5 +1,5 @@
 import type { FeedItem } from "@lol/shared";
-import { storedImage, teamLogo } from "./images.js";
+import { storedImage } from "./images.js";
 
 export function toFeedItem(row: Record<string, any>): FeedItem {
   return {
@@ -10,8 +10,8 @@ export function toFeedItem(row: Record<string, any>): FeedItem {
     toTeam: row.to_team,
     fromShort: row.from_short,
     toShort: row.to_short,
-    fromLogo: teamLogo(row.from_team),
-    toLogo: teamLogo(row.to_team),
+    fromLogo: storedImage(row.from_logo ?? null, 64),
+    toLogo: storedImage(row.to_logo ?? null, 64),
     playerImage: storedImage(row.player_image ?? null, 96),
     fromLeague: row.from_league,
     toLeague: row.to_league,

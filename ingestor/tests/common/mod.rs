@@ -23,5 +23,6 @@ pub fn probe_snapshot() -> Snapshot {
         player_redirects: load("player_redirects"),
         players: load("players"),
         player_images: load("player_images"),
+        logo_files: load("logo_files"),
     }
 }

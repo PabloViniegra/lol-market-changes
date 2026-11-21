@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 
 use crate::leaguepedia::{Client, Query, Row, in_list};
 use crate::model::TournamentRoster;
-use crate::normalize::{LEAGUE_NAMES, Snapshot, page_title};
+use crate::normalize::{LEAGUE_NAMES, Snapshot, page_title, square_logo};
 
 // Long enough to include the previous season's rosters, so off-season moves stay in scope.
 const TOURNAMENT_LOOKBACK_DAYS: u64 = 365;
@@ -148,6 +148,13 @@ pub async fn fetch_snapshot(
     })
     .await?;
 
+    let logo_titles: Vec<String> = team_pages
+        .iter()
+        .filter(|team| !team.contains('|'))
+        .map(|team| square_logo(team))
+        .collect();
+    let logo_files = client.resolve_files(&logo_titles).await?;
+
     let roster_links = tournament_rosters
         .iter()
         .map(TournamentRoster::try_from)
@@ -215,6 +222,7 @@ pub async fn fetch_snapshot(
         player_redirects,
         players,
         player_images,
+        logo_files,
     };
     let scope = Scope {
         teams: scope_names,

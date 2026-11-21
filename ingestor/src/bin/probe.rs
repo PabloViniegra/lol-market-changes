@@ -45,6 +45,7 @@ async fn main() -> Result<()> {
         ("player_redirects", &snapshot.player_redirects),
         ("players", &snapshot.players),
         ("player_images", &snapshot.player_images),
+        ("logo_files", &snapshot.logo_files),
     ];
     for (name, rows) in tables {
         write(&cli.out, name, rows)?;

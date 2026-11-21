@@ -1,6 +1,6 @@
 import type { PlayerResponse } from "@lol/shared";
 import { toFeedItem } from "./feed.js";
-import { storedImage, teamLogo } from "./images.js";
+import { storedImage } from "./images.js";
 import { NotFound, db } from "./http.js";
 
 export async function loadPlayer(name: string): Promise<PlayerResponse> {
@@ -11,13 +11,15 @@ export async function loadPlayer(name: string): Promise<PlayerResponse> {
       [
         sql`select name, real_name, country, role, image_url from players where name = ${name}`,
         sql`select to_team, date::text as date,
-                 (select short from teams where name = to_team) as to_short
+                 (select short from teams where name = to_team) as to_short,
+                 (select logo_url from teams where name = to_team) as to_logo
           from transfers
           where player = ${name}
           order by date desc, id desc
           limit 1`,
         sql`select s.team, s.date_start::text as date_start,
-                 (select short from teams where name = s.team) as short
+                 (select short from teams where name = s.team) as short,
+                 (select logo_url from teams where name = s.team) as logo_url
           from team_seasons s
           where s.roster @> jsonb_build_array(jsonb_build_object('player', ${name}::text))
           order by s.date_start desc
@@ -28,6 +30,8 @@ export async function loadPlayer(name: string): Promise<PlayerResponse> {
                  date::text as date, reliability, sources, notes, rumor_id, transfer_id,
                  (select short from teams where name = from_team) as from_short,
                  (select short from teams where name = to_team) as to_short,
+                 (select logo_url from teams where name = from_team) as from_logo,
+                 (select logo_url from teams where name = to_team) as to_logo,
                  (select image_url from players where name = ${name}) as player_image
           from official_moves
           where player = ${name}
@@ -36,6 +40,8 @@ export async function loadPlayer(name: string): Promise<PlayerResponse> {
                  date::text as date, reliability, sources, notes, rumor_id, transfer_id,
                  (select short from teams where name = from_team) as from_short,
                  (select short from teams where name = to_team) as to_short,
+                 (select logo_url from teams where name = from_team) as from_logo,
+                 (select logo_url from teams where name = to_team) as to_logo,
                  (select image_url from players where name = ${name}) as player_image
           from market_feed
           where player = ${name} and status <> 'official'
@@ -62,7 +68,10 @@ export async function loadPlayer(name: string): Promise<PlayerResponse> {
       imageUrl: storedImage(player.image_url, 320),
     },
     currentTeam,
-    currentTeamLogo: teamLogo(currentTeam),
+    currentTeamLogo: storedImage(
+      (fromRoster ? lastRoster.logo_url : latestMove?.to_logo) ?? null,
+      64,
+    ),
     currentTeamShort: fromRoster ? lastRoster.short : (latestMove?.to_short ?? null),
     timeline: moves.map(toFeedItem),
     rumors: rumors.map(toFeedItem),

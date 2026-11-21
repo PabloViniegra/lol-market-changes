@@ -23,6 +23,8 @@ pub struct Snapshot {
     pub player_redirects: Vec<Row>,
     pub players: Vec<Row>,
     pub player_images: Vec<Row>,
+    /// `File` → `Resolved` rows for the teams' square logos (`Client::resolve_files`).
+    pub logo_files: Vec<Row>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -33,6 +35,7 @@ pub struct Team {
     pub region: Option<String>,
     pub org: Option<String>,
     pub renamed_to: Option<String>,
+    pub logo_url: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -214,6 +217,13 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
             .map(|(team, s)| (team, s.league.as_str()))
             .collect()
     };
+    // The CDN path is derived from the file name and does not follow redirects, so a logo is
+    // stored as the file its square-logo title resolves to.
+    let logos: HashMap<&str, &str> = snapshot
+        .logo_files
+        .iter()
+        .filter_map(|row| Some((row.get("File")?.as_str()?, row.get("Resolved")?.as_str()?)))
+        .collect();
     let team_info: HashMap<&str, &TeamInfo> = team_infos
         .iter()
         .map(|info| (info.page.as_str(), info))
@@ -233,6 +243,9 @@ pub fn normalize(snapshot: &Snapshot) -> Result<Normalized> {
                 region: info.and_then(|i| i.region.clone()),
                 org: info.and_then(|i| i.org.clone()),
                 renamed_to: info.and_then(|i| i.renamed_to.clone()),
+                logo_url: logos
+                    .get(square_logo(name).as_str())
+                    .map(|file| file_url(file)),
             }
         })
         .collect();
@@ -317,6 +330,10 @@ fn first_source_url(source: &str) -> Option<String> {
         .map(str::trim)
         .find(|url| url.starts_with("http"))
         .map(str::to_owned)
+}
+
+pub fn square_logo(team: &str) -> String {
+    format!("{team}logo square.png")
 }
 
 fn file_url(file: &str) -> String {

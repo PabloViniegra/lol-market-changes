@@ -134,6 +134,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Web: inactive filter chips in the desktop feed filter panel are visible again; they used the same colour as the panel.
 - Web: the player page shows the same team codes as the rest of the board (`FNC`, not `FNA`), with league tags and source links.
 - Web: the current page is underlined in the header navigation again.
+- Ingestor and API: team logos whose square-logo file is a wiki redirect (e.g. HANJIN BRION, Hanwha Life Esports Challengers) showed Fandom's grey placeholder, because the CDN path does not follow redirects. The ingestor resolves each team's logo through the wiki and stores it in `teams.logo_url` (migration `0009`); the API serves that file or no logo. Run the ingestor with `--full` once after deploying to fill teams outside the incremental window.
+- Web: preload the display and body fonts so the board no longer shifts when they swap in on slow mobile connections.
+- Web: leaving the rumor form with unsent changes asks for confirmation. The outlet field no longer autocompletes or spellchecks, and the date picker’s text input has an id.
+
+### Security
+
+- Web: serve a Content Security Policy, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` on every route. Zod runs in jitless mode so form validation needs no `eval`.
 
 ## [0.1.0] - 2026-11-18
 

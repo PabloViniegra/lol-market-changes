@@ -16,7 +16,3 @@ export function storedImage(url: string | null, width: number): string | null {
   if (!url?.startsWith(FILE_PATH)) return null;
   return thumbnail(url.slice(FILE_PATH.length), width);
 }
-
-export function teamLogo(team: string | null, width = 64): string | null {
-  return team ? thumbnail(`${team}logo square.png`, width) : null;
-}

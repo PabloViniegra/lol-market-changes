@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { RumorSubmission } from "@lol/shared";
 import { useForm } from "vee-validate";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeRouteLeave } from "vue-router";
 import { HttpError } from "../api/client";
 import { z } from "zod";
 import { useSubmitRumor } from "../api/submissions";
@@ -17,6 +18,9 @@ import WarningIcon from "../components/WarningIcon.vue";
 import { zodSchema } from "../forms";
 import { KIND_LABELS, KINDS, localToday, ROLES } from "../format";
 import { privacyController } from "../privacy";
+
+// Without it Zod probes `new Function`, which the CSP reports as a violation.
+z.config({ jitless: true });
 
 const UNSAFE = /[\p{Cc}\u2028\u2029\uFEFF]/u;
 const HIDDEN = "Remove hidden characters, they often come from copy and paste.";
@@ -78,7 +82,7 @@ const initialValues = {
   notes: "",
 } as const;
 
-const { defineField, errors, handleSubmit, resetForm, submitCount } = useForm({
+const { defineField, errors, handleSubmit, meta, resetForm, submitCount } = useForm({
   validationSchema: zodSchema(schema),
   initialValues,
 });
@@ -110,6 +114,20 @@ const KIND_OPTIONS = [
 const website = ref("");
 const teams = useTeams();
 const submit = useSubmitRumor();
+
+const unsaved = computed(() => meta.value.dirty && !submit.isSuccess.value);
+
+function warnBeforeUnload(event: BeforeUnloadEvent) {
+  if (unsaved.value) event.preventDefault();
+}
+
+onMounted(() => window.addEventListener("beforeunload", warnBeforeUnload));
+
+onBeforeUnmount(() => window.removeEventListener("beforeunload", warnBeforeUnload));
+
+onBeforeRouteLeave(
+  () => !unsaved.value || window.confirm("Leave this page? The rumor you started won’t be sent."),
+);
 
 const onSubmit = handleSubmit(
   (values) => {
@@ -348,6 +366,8 @@ const input =
                 id="rumor-outlet"
                 v-model="outlet"
                 v-bind="outletAttrs"
+                autocomplete="off"
+                spellcheck="false"
                 :aria-describedby="describedBy"
                 :aria-invalid="invalid || undefined"
                 :class="input"

@@ -59,7 +59,7 @@ const setPlayer = (event: Event) => {
         type="search"
         :value="filters.player ?? ''"
         autocomplete="off"
-        placeholder="Name, e.g. Faker"
+        placeholder="Name, e.g. Faker…"
         :aria-keyshortcuts="collapsible ? 'Control+/' : undefined"
         :class="fieldBg"
         class="h-11 w-full rounded-control border border-control-border px-3 type-body-md text-text placeholder:text-text-muted sm:w-64 md:h-8"

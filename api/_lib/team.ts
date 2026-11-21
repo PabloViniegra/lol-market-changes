@@ -1,12 +1,12 @@
 import type { RosterEntry, TeamResponse } from "@lol/shared";
 import { NotFound, db, windowStart } from "./http.js";
-import { teamLogo, storedImage } from "./images.js";
+import { storedImage } from "./images.js";
 import { toRumor } from "./rumors.js";
 
 export async function loadTeam(requested: string): Promise<TeamResponse> {
   const seasonStart = windowStart("season");
   const sql = db();
-  const [team] = await sql`select name, short, league, region from teams
+  const [team] = await sql`select name, short, league, region, logo_url from teams
                            where lower(name) = lower(${requested})
                            order by name = ${requested} desc
                            limit 1`;
@@ -80,7 +80,7 @@ export async function loadTeam(requested: string): Promise<TeamResponse> {
       short: team.short,
       league: team.league,
       region: team.region,
-      logoUrl: teamLogo(team.name, 192),
+      logoUrl: storedImage(team.logo_url, 192),
     },
     seasonStart,
     previousTournament: base?.tournament ?? null,

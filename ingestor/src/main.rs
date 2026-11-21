@@ -145,6 +145,7 @@ async fn fetch_and_normalize(
 fn normalized_stats(data: &Normalized) -> Value {
     json!({
         "teams": data.teams.len(),
+        "team_logos": data.teams.iter().filter(|team| team.logo_url.is_some()).count(),
         "team_seasons": data.team_seasons.len(),
         "players": data.players.len(),
         "raw_events": data.raw_events.len(),

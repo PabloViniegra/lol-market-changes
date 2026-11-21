@@ -284,6 +284,7 @@ onClickOutside(root, () => close());
       <div class="mt-1 border-t border-line pt-2">
         <div class="flex gap-2">
           <input
+            :id="`${id}-draft`"
             v-model="draft"
             type="text"
             aria-label="Enter date (YYYY-MM-DD)"

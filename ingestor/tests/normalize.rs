@@ -55,6 +55,43 @@ fn renamed_teams_resolve_to_their_current_page() {
 }
 
 #[test]
+fn team_logos_point_at_the_file_their_square_logo_redirects_to() {
+    let data = probe();
+    let logo = |name: &str| {
+        data.teams
+            .iter()
+            .find(|team| team.name == name)
+            .unwrap_or_else(|| panic!("{name} missing"))
+            .logo_url
+            .as_deref()
+    };
+    assert_eq!(
+        logo("HANJIN BRION"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/BRIONlogo_square.png")
+    );
+    assert_eq!(
+        logo("T1"),
+        Some("https://lol.fandom.com/wiki/Special:FilePath/T1logo_square.png")
+    );
+}
+
+#[test]
+fn teams_without_a_square_logo_have_none() {
+    let snapshot = Snapshot {
+        tournaments: vec![row(json!({
+            "OverviewPage": "LCK/2026 Season", "League": "LoL Champions Korea",
+            "DateStart": "2026-01-14", "Date": "",
+        }))],
+        tournament_rosters: vec![row(
+            json!({"OverviewPage": "LCK/2026 Season", "Team": "T1"}),
+        )],
+        ..Default::default()
+    };
+    let data = normalize(&snapshot).unwrap();
+    assert_eq!(data.teams[0].logo_url, None);
+}
+
+#[test]
 fn lowercase_player_names_resolve_to_the_page_title() {
     let data = probe();
     assert!(data.players.iter().all(|p| p.name != "kyeahoo"));
