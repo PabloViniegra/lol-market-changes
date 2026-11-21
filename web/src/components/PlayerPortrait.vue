@@ -30,7 +30,7 @@ watch(
       class="size-full object-cover object-top"
       @error="failed = true"
     />
-    <span v-else class="flex size-full items-center justify-center text-line">
+    <span v-else class="flex size-full items-center justify-center text-line [&_svg]:size-2/5">
       <RoleIcon :role="role ?? null" />
     </span>
   </span>

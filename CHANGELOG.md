@@ -69,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: the player page puts moves and rumors on one board, newest first, hiding a confirmed rumor behind its official move as the feed does, and notes that official moves go back two seasons. The header links the current team, says since when (and which team a free agent left, or "Retired"), and shows the strongest open rumor. Rows there drop the role the header already shows, and a missing portrait shows a larger role mark.
 - Web: the header's data freshness (checking, never synced, fresh, stale, failed refresh, unverifiable) is one explicit state derived by a pure `syncHealth` function with unit tests. No visible change.
 - Web: Compare distinguishes current players from departures, opens the full team catalog, and applies edits and swaps when you select Compare. On phones, a valid comparison collapses the picker so the rosters appear sooner.
 - Web: data refreshes when a successful ingest is detected instead of polling every endpoint: only sync status is checked every 5 minutes, and then every feed, stats, flows, team and player view refreshes except the team catalog, while the market feed keeps the pages already loaded. Data requests carry the latest ingest time, so the CDN cache cannot serve a copy from before that ingest. Every request is cancelled when its view is no longer observed, team and player names that differ only in case share one cache entry, and hovering or focusing a team or player link preloads its page. The team page loads its season moves at the same time as the team instead of after it, and the team catalog stays in cache for an hour after leaving a view.
@@ -117,6 +118,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- API: a player's moves include those outside LCK, LPL, LEC and LCS, so a release from an untracked team no longer leaves "Free agent" in the header contradicting a last move to that team. The player's link preview card shows that latest move too. The feed, stats and flows stay limited to the four leagues. Migration `0008` adds the unfiltered `official_moves` view, which `market_feed` now builds on.
 - Web: Compare rejects duplicate teams, distinguishes unavailable rosters from empty roles, supports cancelling partial edits and preserves keyboard focus when correcting a name or returning to the picker.
 - Web: refresh the market feed on its first successful ingest and after pagination finishes when the two overlap.
 - Web and API: validate rumor sources in Safari 17, preserve the moderator-approved URL including Unicode and fragments, and let reviewers replace credential-bearing sources from previously issued review links.

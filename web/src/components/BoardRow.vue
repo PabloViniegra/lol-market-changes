@@ -37,6 +37,9 @@ const source = computed(() => {
 });
 
 const kind = computed(() => kindLabel(props.item.kind));
+
+// Without the player column every row belongs to one player, whose role the page already shows.
+const role = computed(() => (props.hidePlayer ? null : props.item.role));
 </script>
 
 <template>
@@ -108,10 +111,12 @@ const kind = computed(() => kindLabel(props.item.kind));
     <div
       class="flex w-full flex-wrap items-center gap-x-3 gap-y-2 type-body-sm md:w-auto md:shrink-0 md:justify-end"
     >
-      <span v-if="item.role || kind" class="flex items-center gap-1 text-text-muted">
-        <RoleIcon :role="item.role" />
-        <span v-if="item.role">{{ item.role }}</span>
-        <span v-if="kind" class="max-md:sr-only">{{ item.role ? "· " : "" }}{{ kind }}</span>
+      <span v-if="role || kind" class="flex items-center gap-1 text-text-muted">
+        <RoleIcon v-if="role" :role="role" />
+        <span v-if="role">{{ role }}</span>
+        <span v-if="kind" :class="{ 'max-md:sr-only': !hidePlayer }"
+          >{{ role ? "· " : "" }}{{ kind }}</span
+        >
       </span>
       <span v-if="leagues.length" class="flex items-center gap-1">
         <LeagueTag v-for="league in leagues" :key="league" :league="league" />
