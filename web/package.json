@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/api/feedRefresh.test.mjs",
+    "test": "node --test src/api/syncRefresh.test.mjs",
     "typecheck": "vue-tsgo -p tsconfig.json"
   },
   "dependencies": {

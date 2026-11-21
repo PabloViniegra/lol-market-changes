@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- API: `GET /api/feed` accepts `window=7d|30d|season` as a start date, the same windows as stats and flows; an explicit `from` wins.
 - Ingestor: rumors with a destination become `contradicted` when, within the match window, the player officially moves to a third team instead (not back to the rumored origin), so most dead rumors close without editing `rumors.yaml`. A later match still confirms them and a manual `denied` still wins. Migration `0007` allows the new status.
 - API and web: the `contradicted` status in the feed filter, the rumor tracker's closed list, team and compare rumors, the board legend and the rumor confirmation rate, with a muted dashed `Contradicted` pill.
 - Web: roster comparison (`/compare?a=…&b=…`, in the header and linked from each team page) shows the current rosters of two teams side by side by role, with team logos, players who joined and left since the season start, rumors linking the two teams and a swap button. An unknown team is flagged on its field with a "Did you mean" suggestion while the other team still shows, an empty field is pointed out on submit, and so is picking the same team twice. Team and player names use the board's large type, and picking or swapping a team flips its header flap.
@@ -69,7 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Web: Compare distinguishes current players from departures, opens the full team catalog, and applies edits and swaps when you select Compare. On phones, a valid comparison collapses the picker so the rosters appear sooner.
-- Web: the paginated market feed refreshes after a successful ingest is detected, with a 15-minute fallback, and keeps the pages already loaded. Feed and flows requests are cancelled when their filters are no longer observed, and the team catalog stays in cache for an hour after leaving a view.
+- Web: data refreshes when a successful ingest is detected instead of polling every endpoint: only sync status is checked every 5 minutes, and then every feed, stats, flows, team and player view refreshes except the team catalog, while the market feed keeps the pages already loaded. Data requests carry the latest ingest time, so the CDN cache cannot serve a copy from before that ingest. Every request is cancelled when its view is no longer observed, team and player names that differ only in case share one cache entry, and hovering or focusing a team or player link preloads its page. The team page loads its season moves at the same time as the team instead of after it, and the team catalog stays in cache for an hour after leaving a view.
 - Web: dropdowns, team suggestions, calendar, reliability dots, live rumor preview and flow routes update immediately. Split-flap motion marks new moves and rumor submission confirmations, and the rumor submit button gives brief press feedback.
 - Web: the dashboard "See all" button sits under the latest moves board and the legend at the right of its heading; player names line up across board rows even when a team code is long.
 - API: encrypt new review links, keep private notes out of published rumors, and let reviewers clean up the public source URL before approving. Review pages and emails use local system fonts.

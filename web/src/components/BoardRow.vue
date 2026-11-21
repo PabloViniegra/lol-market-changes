@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FeedItem } from "@lol/shared";
 import { computed } from "vue";
+import { usePrefetchPlayer } from "../api/players";
 import { kindLabel, playerHandle, relativeDay, teamCode } from "../format";
 import BoardFlap from "./BoardFlap.vue";
 import LeagueTag from "./LeagueTag.vue";
@@ -9,6 +10,8 @@ import RoleIcon from "./RoleIcon.vue";
 import StatusPill from "./StatusPill.vue";
 
 const props = defineProps<{ item: FeedItem; now: Date; fresh?: boolean; hidePlayer?: boolean }>();
+
+const prefetchPlayer = usePrefetchPlayer();
 
 const muted = computed(() => ["denied", "stale", "contradicted"].includes(props.item.status));
 
@@ -80,6 +83,8 @@ const kind = computed(() => kindLabel(props.item.kind));
         v-if="!hidePlayer"
         :to="`/players/${encodeURIComponent(item.player)}`"
         :title="item.player"
+        @pointerenter="prefetchPlayer(item.player)"
+        @focus="prefetchPlayer(item.player)"
         class="row-link block wrap-anywhere type-board-player hover:text-primary"
         :class="{ 'text-text-muted': !item.toTeam }"
       >

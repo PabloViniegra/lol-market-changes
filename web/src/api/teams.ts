@@ -1,23 +1,38 @@
 import type { TeamResponse, TeamsResponse } from "@lol/shared";
-import { useQuery } from "@tanstack/vue-query";
+import { useQuery, useQueryClient, type QueryFunctionContext } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
-import { getJson } from "./client";
+import { getData } from "./client";
+import { queryKeys } from "./keys";
 
 const TEAM_CATALOG_CACHE_TIME = 60 * 60_000;
+
+function fetchTeam({
+  queryKey: [, name],
+  signal,
+}: QueryFunctionContext<ReturnType<typeof queryKeys.team>>) {
+  return getData<TeamResponse>(`/api/teams/${encodeURIComponent(name)}`, {}, signal);
+}
 
 export function useTeam(name: MaybeRefOrGetter<string>, enabled: MaybeRefOrGetter<boolean> = true) {
   return useQuery({
     enabled,
-    queryKey: computed(() => ["team", toValue(name)]),
-    queryFn: () => getJson<TeamResponse>(`/api/teams/${encodeURIComponent(toValue(name))}`),
+    queryKey: computed(() => queryKeys.team(toValue(name))),
+    queryFn: fetchTeam,
   });
+}
+
+export function usePrefetchTeam() {
+  const queryClient = useQueryClient();
+
+  return (name: string) =>
+    void queryClient.prefetchQuery({ queryKey: queryKeys.team(name), queryFn: fetchTeam });
 }
 
 export function useTeams(enabled: MaybeRefOrGetter<boolean> = true) {
   return useQuery({
     enabled,
-    queryKey: ["teams"],
-    queryFn: () => getJson<TeamsResponse>("/api/teams"),
+    queryKey: queryKeys.teams,
+    queryFn: ({ signal }) => getData<TeamsResponse>("/api/teams", {}, signal),
     staleTime: TEAM_CATALOG_CACHE_TIME,
     gcTime: TEAM_CATALOG_CACHE_TIME,
     refetchInterval: false,

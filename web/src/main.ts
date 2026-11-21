@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
 import { HttpError } from "./api/client";
-import { FEED_PAGES_KEY } from "./api/feedRefresh";
+import { queryKeys } from "./api/keys";
 import { router } from "./router";
 import "./style.css";
 
@@ -16,11 +16,11 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60_000,
       refetchInterval: (query) => {
-        if (query.state.status !== "error") {
-          return query.queryKey[0] === FEED_PAGES_KEY[0] ? 15 * 60_000 : 5 * 60_000;
-        }
+        if (query.state.status === "error")
+          return isClientError(query.state.error) ? false : 30_000;
 
-        return isClientError(query.state.error) ? false : 30_000;
+        // Data only changes when the ingestor runs; polling meta detects that and refreshes the rest.
+        return query.queryKey[0] === queryKeys.meta[0] ? 5 * 60_000 : false;
       },
       retry: (failures, error) => !isClientError(error) && failures < 2,
     },

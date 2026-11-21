@@ -1,12 +1,14 @@
 import type { FlowsResponse, StatsResponse, StatsWindow } from "@lol/shared";
 import { keepPreviousData, useQuery } from "@tanstack/vue-query";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
-import { getJson } from "./client";
+import { getData } from "./client";
+import { queryKeys } from "./keys";
 
 export function useStats(window: MaybeRefOrGetter<StatsWindow>) {
   return useQuery({
-    queryKey: computed(() => ["stats", toValue(window)]),
-    queryFn: () => getJson<StatsResponse>("/api/stats", { window: toValue(window) }),
+    queryKey: computed(() => queryKeys.stats(toValue(window))),
+    queryFn: ({ queryKey: [, statsWindow], signal }) =>
+      getData<StatsResponse>("/api/stats", { window: statsWindow }, signal),
   });
 }
 
@@ -15,9 +17,9 @@ export function useFlows(
   window: MaybeRefOrGetter<StatsWindow>,
 ) {
   return useQuery({
-    queryKey: computed(() => ["flows", toValue(level), toValue(window)] as const),
+    queryKey: computed(() => queryKeys.flows(toValue(level), toValue(window))),
     queryFn: ({ queryKey: [, flowLevel, flowWindow], signal }) =>
-      getJson<FlowsResponse>("/api/flows", { level: flowLevel, window: flowWindow }, signal),
+      getData<FlowsResponse>("/api/flows", { level: flowLevel, window: flowWindow }, signal),
     placeholderData: keepPreviousData,
   });
 }

@@ -19,10 +19,12 @@ const props = defineProps<{ name: string }>();
 
 const team = useTeam(() => props.name);
 
-const moves = useFeed(
-  () => ({ team: props.name, status: "official", from: team.data.value?.seasonStart, limit: 50 }),
-  () => team.data.value !== undefined,
-);
+const moves = useFeed(() => ({
+  team: props.name,
+  status: "official",
+  window: "season",
+  limit: 50,
+}));
 
 const rumors = useFeed(() => ({
   team: props.name,

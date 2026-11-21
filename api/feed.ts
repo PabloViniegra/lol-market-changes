@@ -1,6 +1,16 @@
 import type { FeedItem, FeedResponse, FeedStatus, League, MoveKind } from "@lol/shared";
 import { toFeedItem } from "./_lib/feed.js";
-import { BadRequest, db, handler, isIsoDate, isoDate, oneOf, text } from "./_lib/http.js";
+import {
+  BadRequest,
+  WINDOWS,
+  db,
+  handler,
+  isIsoDate,
+  isoDate,
+  oneOf,
+  text,
+  windowStart,
+} from "./_lib/http.js";
 
 const LEAGUES = ["LCK", "LPL", "LEC", "LCS"] as const satisfies readonly League[];
 const KINDS = [
@@ -33,7 +43,8 @@ export const GET = handler(async (url): Promise<FeedResponse> => {
   const kind = oneOf(params, "kind", KINDS);
   const market = oneOf(params, "view", ["market"]) === "market";
   const statuses = parseStatuses(params.get("status"), market);
-  const from = isoDate(params, "from");
+  const window = oneOf(params, "window", WINDOWS);
+  const from = isoDate(params, "from") ?? (window ? windowStart(window) : null);
   const to = isoDate(params, "to");
   const limit = parseLimit(params.get("limit"));
   const cursor = parseCursor(params.get("cursor"));

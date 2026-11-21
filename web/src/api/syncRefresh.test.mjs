@@ -3,9 +3,9 @@ import { setImmediate } from "node:timers/promises";
 import test from "node:test";
 import { InfiniteQueryObserver, QueryClient, VUE_QUERY_CLIENT } from "@tanstack/vue-query";
 import { createSSRApp, effectScope, nextTick, ref } from "vue";
-import { FEED_PAGES_KEY, useRefreshFeedOnSync } from "./feedRefresh.ts";
+import { lastSyncedRun, useRefreshOnSync } from "./syncRefresh.ts";
 
-const queryKey = [...FEED_PAGES_KEY, { limit: 50 }];
+const queryKey = ["feed", "pages", { limit: 50 }];
 
 function setup(t, run) {
   const client = new QueryClient();
@@ -14,7 +14,7 @@ function setup(t, run) {
   const meta = ref(run === undefined ? undefined : successfulSync(run));
 
   app.provide(VUE_QUERY_CLIENT, client);
-  app.runWithContext(() => scope.run(() => useRefreshFeedOnSync(meta)));
+  app.runWithContext(() => scope.run(() => useRefreshOnSync(meta)));
   t.after(() => {
     scope.stop();
     client.clear();
@@ -75,4 +75,44 @@ test("sync waits for pagination and then refreshes both pages", async (t) => {
   await setImmediate();
   assert.deepEqual(requested, ["", "cursor", "", "cursor"]);
   assert.deepEqual(observer.getCurrentResult().data.pageParams, ["", "cursor"]);
+});
+
+test("sync refreshes data queries but not meta or the team catalog", async (t) => {
+  const { client, meta } = setup(t, "2026-11-20T12:00:00Z");
+
+  const keys = [
+    ["feed", "list", { limit: 6 }],
+    ["team", "t1"],
+    ["stats", "season"],
+    ["meta"],
+    ["teams"],
+  ];
+
+  for (const key of keys) client.setQueryData(key, {});
+
+  meta.value = successfulSync("2026-11-20T12:15:00Z");
+  await nextTick();
+
+  assert.deepEqual(
+    keys.map((key) => client.getQueryState(key).isInvalidated),
+    [true, true, true, false, false],
+  );
+});
+
+test("data requests follow the latest successful sync", async (t) => {
+  const { meta } = setup(t, "2026-11-20T12:00:00Z");
+
+  assert.equal(lastSyncedRun(), "2026-11-20T12:00:00Z");
+
+  meta.value = {
+    lastRunStatus: "error",
+    lastRunAt: "2026-11-20T12:15:00Z",
+    lastSuccessfulRunAt: null,
+  };
+  await nextTick();
+  assert.equal(lastSyncedRun(), "2026-11-20T12:00:00Z");
+
+  meta.value = successfulSync("2026-11-20T12:30:00Z");
+  await nextTick();
+  assert.equal(lastSyncedRun(), "2026-11-20T12:30:00Z");
 });

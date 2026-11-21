@@ -1,3 +1,5 @@
+import { lastSyncedRun } from "./syncRefresh";
+
 export type QueryParams = Record<string, string | number | null | undefined>;
 
 export class HttpError extends Error {
@@ -27,4 +29,13 @@ export async function getJson<T>(
   if (!response.ok) throw new HttpError(response.status, path);
 
   return response.json();
+}
+
+// Data URLs change with each ingest so the CDN cannot answer a post-ingest refetch with an older copy.
+export function getData<T>(
+  path: string,
+  params: QueryParams = {},
+  signal: AbortSignal | null = null,
+): Promise<T> {
+  return getJson<T>(path, { ...params, sync: lastSyncedRun() }, signal);
 }

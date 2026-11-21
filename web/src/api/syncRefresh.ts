@@ -2,9 +2,16 @@ import type { MetaResponse } from "@lol/shared";
 import { useQueryClient } from "@tanstack/vue-query";
 import { computed, type Ref, watch } from "vue";
 
-export const FEED_PAGES_KEY = ["feed-pages"] as const;
+// Meta drives this refresh and the team catalog keeps its own long cache.
+const SYNC_INDEPENDENT_ROOTS = new Set<unknown>(["meta", "teams"]);
 
-export function useRefreshFeedOnSync(meta: Ref<MetaResponse | undefined>) {
+let currentRun: string | null = null;
+
+export function lastSyncedRun() {
+  return currentRun;
+}
+
+export function useRefreshOnSync(meta: Ref<MetaResponse | undefined>) {
   const queryClient = useQueryClient();
 
   const lastSuccessfulRun = computed(() => {
@@ -22,8 +29,12 @@ export function useRefreshFeedOnSync(meta: Ref<MetaResponse | undefined>) {
     (run) => {
       if (run === undefined) return;
 
+      if (run !== null) currentRun = run;
+
       if (run !== null && lastSeen !== undefined && run !== lastSeen) {
-        for (const query of queryClient.getQueryCache().findAll({ queryKey: FEED_PAGES_KEY })) {
+        for (const query of queryClient.getQueryCache().findAll({
+          predicate: ({ queryKey }) => !SYNC_INDEPENDENT_ROOTS.has(queryKey[0]),
+        })) {
           const refresh = () =>
             queryClient.invalidateQueries(
               { queryKey: query.queryKey, exact: true },

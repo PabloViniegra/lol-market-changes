@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import { usePrefetchTeam } from "../api/teams";
 import { isDarkLogo, measureLogo } from "../composables/useLogoTone";
 
 const props = defineProps<{
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const failed = ref(false);
+const prefetchTeam = usePrefetchTeam();
 
 watch(
   () => props.logo,
@@ -24,6 +26,8 @@ watch(
     :is="team ? 'RouterLink' : 'span'"
     :to="team ? `/teams/${encodeURIComponent(team)}` : undefined"
     :title="team ?? undefined"
+    @pointerenter="team && prefetchTeam(team)"
+    @focus="team && prefetchTeam(team)"
     class="flap relative flex h-9 min-w-20 shrink-0 items-center justify-center rounded-flap bg-surface-raised px-2 type-board-code md:h-11 md:min-w-26"
     :class="[code ? 'text-text' : 'text-text-muted', { 'flap-flip': flip, 'hover:bg-line': team }]"
   >
