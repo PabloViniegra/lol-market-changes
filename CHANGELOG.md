@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Web: the player page header shows the player's route through teams in the last two seasons as a row of flaps, past teams muted, then the current team and, when there is an open rumor, a dashed rumor flap for the rumored destination. A player without a photo no longer shows an empty portrait tile, and the role icon sits next to the role.
 - API: `GET /api/feed` accepts `window=7d|30d|season` as a start date, the same windows as stats and flows; an explicit `from` wins.
 - Ingestor: rumors with a destination become `contradicted` when, within the match window, the player officially moves to a third team instead (not back to the rumored origin), so most dead rumors close without editing `rumors.yaml`. A later match still confirms them and a manual `denied` still wins. Migration `0007` allows the new status.
 - API and web: the `contradicted` status in the feed filter, the rumor tracker's closed list, team and compare rumors, the board legend and the rumor confirmation rate, with a muted dashed `Contradicted` pill.

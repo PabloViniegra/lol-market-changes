@@ -10,6 +10,7 @@ const props = defineProps<{
   logo?: string | null;
   emptyLabel?: string;
   flip?: boolean;
+  tone?: "past" | "rumor";
 }>();
 
 const failed = ref(false);
@@ -28,8 +29,12 @@ watch(
     :title="team ?? undefined"
     @pointerenter="team && prefetchTeam(team)"
     @focus="team && prefetchTeam(team)"
-    class="flap relative flex h-9 min-w-20 shrink-0 items-center justify-center rounded-flap bg-surface-raised px-2 type-board-code md:h-11 md:min-w-26"
-    :class="[code ? 'text-text' : 'text-text-muted', { 'flap-flip': flip, 'hover:bg-line': team }]"
+    class="flap relative flex h-9 min-w-20 shrink-0 items-center justify-center rounded-flap px-2 type-board-code md:h-11 md:min-w-26"
+    :class="[
+      tone === 'rumor' ? 'flap-rumor bg-surface text-primary' : 'bg-surface-raised',
+      code && !tone ? 'text-text' : tone !== 'rumor' && 'text-text-muted',
+      { 'flap-flip': flip, 'hover:bg-line': team, 'flap-past': tone === 'past' },
+    ]"
   >
     <span
       v-for="half in ['flap-top', 'flap-bottom', 'flap-sizer']"
@@ -94,6 +99,15 @@ watch(
 
 .flap-sizer {
   visibility: hidden;
+}
+
+.flap-rumor {
+  outline: 1.5px dashed var(--color-primary);
+  outline-offset: -1.5px;
+}
+
+.flap-past img {
+  filter: grayscale(1);
 }
 
 .logo-plate {

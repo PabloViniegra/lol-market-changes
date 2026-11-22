@@ -25,7 +25,7 @@ const notFound = computed(
 const details = computed(() => {
   const info = player.data.value?.player;
 
-  return [info?.realName, info?.country, info?.role].filter(Boolean).join(" · ");
+  return [info?.realName, info?.country].filter(Boolean).join(" · ");
 });
 
 const latestMove = computed(() => player.data.value?.timeline[0]);
@@ -40,9 +40,39 @@ const standing = computed(() => {
 
   if (!data || !move || move.toTeam !== data.currentTeam) return null;
 
-  const since = `Since ${shortDate(move.date, move.date.slice(0, 4) !== String(now.value.getUTCFullYear()))}`;
+  return `Since ${shortDate(move.date, move.date.slice(0, 4) !== String(now.value.getUTCFullYear()))}`;
+});
 
-  return !data.currentTeam && move.fromTeam ? `${since} · left ${move.fromTeam}` : since;
+interface Stop {
+  team: string | null;
+  short: string | null;
+  logo: string | null;
+}
+
+// Teams the player went through before the current one, oldest first. A spell without a team is
+// one stop, however many releases and signings bracket it.
+const pastStops = computed(() => {
+  const data = player.data.value;
+
+  if (!data) return [];
+
+  const stops: Stop[] = [];
+
+  const add = (team: string | null, short: string | null, logo: string | null) => {
+    if (stops.at(-1)?.team === team) return;
+
+    stops.push({ team, short, logo });
+  };
+
+  for (const move of data.timeline.toReversed()) {
+    if (move.fromTeam || !stops.length) add(move.fromTeam, move.fromShort, move.fromLogo);
+
+    add(move.toTeam, move.toShort, move.toLogo);
+  }
+
+  add(data.currentTeam, data.currentTeamShort, data.currentTeamLogo);
+
+  return stops.slice(0, -1);
 });
 
 const topRumor = computed(
@@ -90,15 +120,15 @@ const history = computed(() => {
   <QueryError v-else-if="player.isError.value" what="this player" @retry="player.refetch()" />
   <div v-else-if="player.isPending.value" aria-busy="true">
     <span class="sr-only">Loading player</span>
-    <div class="mb-10 flex flex-wrap items-end justify-between gap-x-6 gap-y-5" aria-hidden="true">
+    <div class="mb-12" aria-hidden="true">
       <div class="flex items-end gap-4 md:gap-6">
         <span class="size-28 shrink-0 rounded-flap bg-surface-raised" />
-        <div>
+        <div class="min-w-0">
           <span class="block h-9 w-48 max-w-full rounded-flap bg-surface-raised" />
           <span class="mt-3 block h-3 w-56 max-w-full rounded-flap bg-surface-raised" />
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="mt-6 flex items-center gap-3 rounded-panel bg-surface px-3 py-3 md:gap-4 md:px-6">
         <FlapSkeleton />
         <div>
           <span class="block h-4 w-32 rounded-flap bg-surface-raised" />
@@ -110,9 +140,10 @@ const history = computed(() => {
     <MoveBoard :items="undefined" pending :rows="4" hide-player />
   </div>
   <template v-else-if="player.data.value">
-    <header class="mb-10 flex flex-wrap items-end justify-between gap-x-6 gap-y-5">
+    <header class="mb-12">
       <div class="flex min-w-0 items-end gap-4 md:gap-6">
         <PlayerPortrait
+          v-if="player.data.value.player.imageUrl"
           :src="player.data.value.player.imageUrl"
           :role="player.data.value.player.role"
           :size="112"
@@ -121,15 +152,41 @@ const history = computed(() => {
           <h1 class="type-heading-lg wrap-anywhere">
             {{ playerHandle(player.data.value.player.name) }}
           </h1>
-          <p v-if="details" class="mt-1 flex items-center gap-1 type-body-sm text-text-muted">
-            <RoleIcon :role="player.data.value.player.role" />
-            {{ details }}
+          <p
+            v-if="details || player.data.value.player.role"
+            class="mt-1 flex flex-wrap items-center gap-x-1 type-body-sm text-text-muted"
+          >
+            <span v-if="details" class="wrap-anywhere">{{ details }}</span>
+            <span v-if="details && player.data.value.player.role" aria-hidden="true">·</span>
+            <span v-if="player.data.value.player.role" class="inline-flex items-center gap-1">
+              <RoleIcon :role="player.data.value.player.role" />
+              {{ player.data.value.player.role }}
+            </span>
           </p>
         </div>
       </div>
 
-      <div class="flex min-w-0 flex-col gap-3 md:items-end">
-        <div class="flex min-w-0 items-center gap-3">
+      <ol
+        aria-label="Team history"
+        class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-3 rounded-panel bg-surface px-3 py-3 md:gap-x-4 md:px-6"
+      >
+        <li
+          v-for="(stop, index) in pastStops"
+          :key="index"
+          class="flex items-center gap-3 md:gap-4"
+        >
+          <span v-if="index" class="text-text-muted" aria-hidden="true">▸</span>
+          <BoardFlap
+            :code="stop.team ? teamCode(stop.team, stop.short) : null"
+            placeholder="FA"
+            empty-label="free agent"
+            :team="stop.team"
+            :logo="stop.logo"
+            tone="past"
+          />
+        </li>
+        <li class="flex min-w-0 items-center gap-3 md:gap-4">
+          <span v-if="pastStops.length" class="text-text-muted" aria-hidden="true">▸</span>
           <BoardFlap
             :code="
               player.data.value.currentTeam
@@ -153,19 +210,28 @@ const history = computed(() => {
               </RouterLink>
               <template v-else>{{ retired ? "Retired" : "Free agent" }}</template>
             </p>
-            <p v-if="standing" class="type-body-sm text-text-muted wrap-anywhere">
-              {{ standing }}
-            </p>
+            <p v-if="standing" class="type-body-sm text-text-muted">{{ standing }}</p>
           </div>
-        </div>
-        <p v-if="topRumor" class="flex flex-wrap items-center gap-x-2 gap-y-1 type-body-sm">
-          <StatusPill status="rumor" :reliability="topRumor.reliability" />
-          <span class="wrap-anywhere">{{ rumorTarget(topRumor) }}</span>
-          <time :datetime="topRumor.date" class="text-text-muted">
-            {{ relativeDay(topRumor.date, now) }}
-          </time>
-        </p>
-      </div>
+        </li>
+        <li v-if="topRumor" class="flex min-w-0 items-center gap-3 md:gap-4">
+          <span class="text-text-muted" aria-hidden="true">▸</span>
+          <BoardFlap
+            :code="topRumor.toTeam ? teamCode(topRumor.toTeam, topRumor.toShort) : null"
+            placeholder="OUT"
+            empty-label="no team"
+            :team="topRumor.toTeam"
+            :logo="topRumor.toLogo"
+            tone="rumor"
+          />
+          <div class="min-w-0">
+            <StatusPill status="rumor" :reliability="topRumor.reliability" />
+            <span class="sr-only">{{ rumorTarget(topRumor) }}</span>
+            <time :datetime="topRumor.date" class="mt-1 block type-body-sm text-text-muted">
+              {{ relativeDay(topRumor.date, now) }}
+            </time>
+          </div>
+        </li>
+      </ol>
     </header>
 
     <section aria-labelledby="player-history-heading">
