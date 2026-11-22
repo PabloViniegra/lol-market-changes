@@ -65,11 +65,42 @@ const rosterRows = computed(() => {
     ...data.roster.map((entry) => entry.role),
   ]);
 
-  return Array.from(roles, (role) => ({
-    role,
-    previous: data.previousRoster.filter((entry) => entry.role === role),
-    current: data.roster.filter((entry) => entry.role === role),
-  })).filter(({ previous, current }) => previous.length || current.length);
+  return Array.from(roles, (role) => {
+    const previous = data.previousRoster.filter((entry) => entry.role === role);
+    const current = data.roster.filter((entry) => entry.role === role);
+
+    return {
+      role,
+      previous,
+      current,
+      changed:
+        previous.some((entry) => departures.value.has(entry.player)) ||
+        current.some((entry) => arrivals.value.has(entry.player)),
+      // With no current players at all the roster is more likely unrecorded than empty.
+      open: !current.length && previous.length > 0 && data.roster.length > 0,
+    };
+  }).filter(({ previous, current }) => previous.length || current.length);
+});
+
+function count(n: number, one: string, many = `${one}s`) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+const windowSummary = computed(() => {
+  const left = departures.value.size;
+  const joined = arrivals.value.size;
+  const open = rosterRows.value.filter((row) => row.open).length;
+
+  if (!left && !joined) return `No roster moves since ${seasonLabel.value}.`;
+
+  const changes = [
+    left ? `${count(left, "player")} left` : "nobody left",
+    joined ? `${joined} joined` : "none joined",
+  ];
+
+  const seats = open ? ` ${count(open, "seat is", "seats are")} open.` : "";
+
+  return `Since ${seasonLabel.value}, ${changes.join(" and ")}.${seats}`;
 });
 </script>
 
@@ -89,6 +120,7 @@ const rosterRows = computed(() => {
         <span class="h-9 w-full max-w-56 rounded-flap bg-surface-raised" />
         <FlapSkeleton />
         <span class="h-5 w-10 rounded-flap bg-surface-raised" />
+        <span class="h-4 w-full max-w-80 rounded-flap bg-surface-raised" />
       </div>
     </div>
     <span class="mb-4 block h-6 w-24 rounded-flap bg-surface-raised" aria-hidden="true" />
@@ -119,6 +151,7 @@ const rosterRows = computed(() => {
         <BoardFlap :code="teamCode(info.name, info.short)" placeholder="" :team="null" />
         <LeagueTag v-if="league" :league="league" />
         <span v-if="info.region" class="type-body-sm text-text-muted">{{ info.region }}</span>
+        <p class="w-full text-text-muted">{{ windowSummary }}</p>
       </div>
     </header>
 
@@ -148,6 +181,7 @@ const rosterRows = computed(() => {
                   }}
                 </span>
               </th>
+              <td class="w-6 md:w-10" aria-hidden="true" />
               <th scope="col" class="py-3 align-top type-label-md">
                 Current roster
                 <span class="mt-1 block type-body-sm text-text-muted">
@@ -162,18 +196,18 @@ const rosterRows = computed(() => {
           </thead>
           <tbody class="divide-y divide-line">
             <tr v-for="row in rosterRows" :key="row.role ?? 0">
-              <th scope="row" class="py-3 pr-2 align-top wrap-anywhere type-label-md">
+              <th scope="row" class="py-4 pr-2 align-top wrap-anywhere type-label-md">
                 <span class="flex min-h-8 items-center gap-2">
                   <RoleIcon :role="row.role" class="text-text-muted max-md:hidden" />
                   {{ row.role ?? "Unknown" }}
                 </span>
               </th>
-              <td class="py-3 pr-3 align-top">
+              <td class="py-4 pr-3 align-top">
                 <ul v-if="row.previous.length" class="flex flex-col gap-2">
                   <li
                     v-for="entry in row.previous"
                     :key="entry.player"
-                    class="flex items-center gap-x-2 md:gap-x-3"
+                    class="flex min-h-8 flex-wrap items-center gap-x-2 md:gap-x-3"
                   >
                     <PlayerPortrait
                       :src="entry.imageUrl"
@@ -184,7 +218,7 @@ const rosterRows = computed(() => {
                     />
                     <RouterLink
                       :to="`/players/${encodeURIComponent(entry.player)}`"
-                      class="min-w-0 wrap-anywhere underline hover:text-primary"
+                      class="min-w-0 wrap-anywhere type-board-player hover:text-primary"
                       :class="{ 'text-text-muted': departures.has(entry.player) }"
                     >
                       {{ playerHandle(entry.player) }}
@@ -193,16 +227,25 @@ const rosterRows = computed(() => {
                   </li>
                 </ul>
                 <template v-else>
-                  <span class="text-text-muted" aria-hidden="true">—</span>
+                  <span class="flex min-h-8 items-center text-text-muted" aria-hidden="true"
+                    >—</span
+                  >
                   <span class="sr-only">No player recorded</span>
                 </template>
               </td>
-              <td class="py-3 align-top">
+              <td
+                class="py-4 text-center align-top"
+                :class="row.changed ? 'text-primary' : 'text-line'"
+                aria-hidden="true"
+              >
+                <span class="flex min-h-8 items-center justify-center">▸</span>
+              </td>
+              <td class="py-4 align-top">
                 <ul v-if="row.current.length" class="flex flex-col gap-2">
                   <li
                     v-for="entry in row.current"
                     :key="entry.player"
-                    class="flex items-center gap-x-2 md:gap-x-3"
+                    class="flex min-h-8 flex-wrap items-center gap-x-2 md:gap-x-3"
                   >
                     <PlayerPortrait
                       :src="entry.imageUrl"
@@ -212,15 +255,23 @@ const rosterRows = computed(() => {
                     />
                     <RouterLink
                       :to="`/players/${encodeURIComponent(entry.player)}`"
-                      class="min-w-0 wrap-anywhere underline hover:text-primary"
+                      class="min-w-0 wrap-anywhere type-board-player hover:text-primary"
                     >
                       {{ playerHandle(entry.player) }}
                     </RouterLink>
                     <MoveMark v-if="arrivals.has(entry.player)" change="joined" />
                   </li>
                 </ul>
+                <span
+                  v-else-if="row.open"
+                  class="flex min-h-8 items-center type-board-player text-text-muted"
+                >
+                  Open seat
+                </span>
                 <template v-else>
-                  <span class="text-text-muted" aria-hidden="true">—</span>
+                  <span class="flex min-h-8 items-center text-text-muted" aria-hidden="true"
+                    >—</span
+                  >
                   <span class="sr-only">No player recorded</span>
                 </template>
               </td>

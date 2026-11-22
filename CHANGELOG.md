@@ -69,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: the team page header sums up the window in one line ("Since Nov 1, 2026, 3 players left and none joined. 3 seats are open."). The roster reads like the board: player names in its large type, a `▸` from the previous to the current roster that turns yellow on rows that changed, and "Open seat" where a player left and nobody replaced them yet.
 - Web: the player page puts moves and rumors on one board, newest first, hiding a confirmed rumor behind its official move as the feed does, and notes that official moves go back two seasons. The header links the current team, says since when (and which team a free agent left, or "Retired"), and shows the strongest open rumor. Rows there drop the role the header already shows, and a missing portrait shows a larger role mark.
 - Web: the header's data freshness (checking, never synced, fresh, stale, failed refresh, unverifiable) is one explicit state derived by a pure `syncHealth` function with unit tests. No visible change.
 - Web: Compare distinguishes current players from departures, opens the full team catalog, and applies edits and swaps when you select Compare. On phones, a valid comparison collapses the picker so the rosters appear sooner.
