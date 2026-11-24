@@ -5,7 +5,7 @@ import { getData } from "./client";
 import { queryKeys } from "./keys";
 
 function fetchPlayer({
-  queryKey: [, name],
+  queryKey: [, , name],
   signal,
 }: QueryFunctionContext<ReturnType<typeof queryKeys.player>>) {
   return getData<PlayerResponse>(`/api/players/${encodeURIComponent(name)}`, {}, signal);

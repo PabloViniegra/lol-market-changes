@@ -17,15 +17,18 @@ function normalizeParams(params: QueryParams): QueryParams {
   return normalized;
 }
 
+// Everything under "data" is replaced by each ingest and useRefreshOnSync invalidates it by that
+// prefix; meta and the catalog keep their own cache.
 export const queryKeys = {
   meta: ["meta"] as const,
-  teams: ["teams"] as const,
-  team: (name: string) => ["team", name.toLowerCase()] as const,
-  player: (name: string) => ["player", name] as const,
-  stats: (window: StatsWindow) => ["stats", window] as const,
-  flows: (level: FlowsResponse["level"], window: StatsWindow) => ["flows", level, window] as const,
+  teams: ["catalog", "teams"] as const,
+  team: (name: string) => ["data", "team", name.toLowerCase()] as const,
+  player: (name: string) => ["data", "player", name] as const,
+  stats: (window: StatsWindow) => ["data", "stats", window] as const,
+  flows: (level: FlowsResponse["level"], window: StatsWindow) =>
+    ["data", "flows", level, window] as const,
   feed: {
-    list: (params: QueryParams) => ["feed", "list", normalizeParams(params)] as const,
-    pages: (params: QueryParams) => ["feed", "pages", normalizeParams(params)] as const,
+    list: (params: QueryParams) => ["data", "feed", "list", normalizeParams(params)] as const,
+    pages: (params: QueryParams) => ["data", "feed", "pages", normalizeParams(params)] as const,
   },
 };

@@ -5,7 +5,7 @@ import { InfiniteQueryObserver, QueryClient, VUE_QUERY_CLIENT } from "@tanstack/
 import { createSSRApp, effectScope, nextTick, ref } from "vue";
 import { lastSyncedRun, useRefreshOnSync } from "./syncRefresh.ts";
 
-const queryKey = ["feed", "pages", { limit: 50 }];
+const queryKey = ["data", "feed", "pages", { limit: 50 }];
 
 function setup(t, run) {
   const client = new QueryClient();
@@ -35,6 +35,15 @@ test("the first successful sync refreshes a feed that observed a confirmed absen
   await nextTick();
   assert.equal(client.getQueryState(queryKey).isInvalidated, false);
 
+  meta.value = successfulSync("2026-11-20T12:00:00Z");
+  await nextTick();
+  assert.equal(client.getQueryState(queryKey).isInvalidated, true);
+});
+
+test("the first meta response refreshes data fetched before it arrived", async (t) => {
+  const { client, meta } = setup(t, undefined);
+
+  client.setQueryData(queryKey, { pages: [], pageParams: [] });
   meta.value = successfulSync("2026-11-20T12:00:00Z");
   await nextTick();
   assert.equal(client.getQueryState(queryKey).isInvalidated, true);
@@ -81,11 +90,11 @@ test("sync refreshes data queries but not meta or the team catalog", async (t) =
   const { client, meta } = setup(t, "2026-11-20T12:00:00Z");
 
   const keys = [
-    ["feed", "list", { limit: 6 }],
-    ["team", "t1"],
-    ["stats", "season"],
+    ["data", "feed", "list", { limit: 6 }],
+    ["data", "team", "t1"],
+    ["data", "stats", "season"],
     ["meta"],
-    ["teams"],
+    ["catalog", "teams"],
   ];
 
   for (const key of keys) client.setQueryData(key, {});

@@ -12,6 +12,10 @@ export class HttpError extends Error {
   }
 }
 
+export function isClientError(error: Error | null): boolean {
+  return error instanceof HttpError && error.status < 500;
+}
+
 export async function getJson<T>(
   path: string,
   params: QueryParams = {},

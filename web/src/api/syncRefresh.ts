@@ -2,9 +2,6 @@ import type { MetaResponse } from "@lol/shared";
 import { useQueryClient } from "@tanstack/vue-query";
 import { computed, type Ref, watch } from "vue";
 
-// Meta drives this refresh and the team catalog keeps its own long cache.
-const SYNC_INDEPENDENT_ROOTS = new Set<unknown>(["meta", "teams"]);
-
 let currentRun: string | null = null;
 
 export function lastSyncedRun() {
@@ -31,10 +28,10 @@ export function useRefreshOnSync(meta: Ref<MetaResponse | undefined>) {
 
       if (run !== null) currentRun = run;
 
-      if (run !== null && lastSeen !== undefined && run !== lastSeen) {
-        for (const query of queryClient.getQueryCache().findAll({
-          predicate: ({ queryKey }) => !SYNC_INDEPENDENT_ROOTS.has(queryKey[0]),
-        })) {
+      // Queries cached before the first meta response were fetched without a sync key, so the CDN
+      // may have answered them from before the last ingest.
+      if (run !== null && run !== lastSeen) {
+        for (const query of queryClient.getQueryCache().findAll({ queryKey: ["data"] })) {
           const refresh = () =>
             queryClient.invalidateQueries(
               { queryKey: query.queryKey, exact: true },

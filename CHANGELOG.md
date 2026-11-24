@@ -70,6 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Web: data queries no longer refetch on window focus or remount; they stay cached until meta reports a new ingest run (polled every 5 minutes, and rechecked on focus after 30 seconds), and inactive pages stay cached for 30 minutes.
 - Web: the team page header sums up the window in one line ("Since Nov 1, 2026, 3 players left and none joined. 3 seats are open."). The roster reads like the board: player names in its large type, a `▸` from the previous to the current roster that turns yellow on rows that changed, and "Open seat" where a player left and nobody replaced them yet.
 - Web: the player page puts moves and rumors on one board, newest first, hiding a confirmed rumor behind its official move as the feed does, and notes that official moves go back two seasons. The header links the current team, says since when (and which team a free agent left, or "Retired"), and shows the strongest open rumor. Rows there drop the role the header already shows, and a missing portrait shows a larger role mark.
 - Web: the header's data freshness (checking, never synced, fresh, stale, failed refresh, unverifiable) is one explicit state derived by a pure `syncHealth` function with unit tests. No visible change.
@@ -120,6 +121,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Web: data loaded before the first meta response is refreshed once meta arrives, so a cold load no longer keeps a CDN copy from before the last ingest.
 - Ingestor: a run that would soft-delete more than half of the live events in its re-fetch window (and at least 5) now fails without writing, instead of treating an empty or truncated Leaguepedia response as wiki deletions and regenerating transfer IDs. `--allow-mass-delete` overrides the check for a deliberate run.
 - Ingestor: roster changes are paged in a total order (`RosterChangeId` as the last sort key), so a row tied on date and news line can no longer fall between two 500-row pages and be soft-deleted by mistake.
 - Ingestor: Leaguepedia retries no longer sleep after the final attempt and stop once a backoff would run past a 20-minute budget, so a run that keeps failing records its error in `sync_state` instead of being killed by the workflow timeout.

@@ -7,7 +7,7 @@ import { queryKeys } from "./keys";
 const TEAM_CATALOG_CACHE_TIME = 60 * 60_000;
 
 function fetchTeam({
-  queryKey: [, name],
+  queryKey: [, , name],
   signal,
 }: QueryFunctionContext<ReturnType<typeof queryKeys.team>>) {
   return getData<TeamResponse>(`/api/teams/${encodeURIComponent(name)}`, {}, signal);

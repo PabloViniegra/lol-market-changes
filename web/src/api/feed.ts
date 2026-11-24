@@ -11,7 +11,7 @@ export function useFeed(
   return useQuery({
     enabled,
     queryKey: computed(() => queryKeys.feed.list(toValue(params))),
-    queryFn: ({ queryKey: [, , filters], signal }) =>
+    queryFn: ({ queryKey: [, , , filters], signal }) =>
       getData<FeedResponse>("/api/feed", filters, signal),
   });
 }
@@ -19,7 +19,7 @@ export function useFeed(
 export function useFeedPages(params: MaybeRefOrGetter<QueryParams>) {
   return useInfiniteQuery({
     queryKey: computed(() => queryKeys.feed.pages(toValue(params))),
-    queryFn: ({ queryKey: [, , filters], pageParam, signal }) =>
+    queryFn: ({ queryKey: [, , , filters], pageParam, signal }) =>
       getData<FeedResponse>("/api/feed", { ...filters, cursor: pageParam }, signal),
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
